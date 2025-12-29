@@ -1,0 +1,222 @@
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import DynamicFormRenderer, { FormField } from '../components/DynamicFormRenderer';
+
+interface GenericForm {
+  id: string;
+  name: string;
+  title: string;
+  submitButtonText: string;
+  isActive: boolean;
+  fields: FormField[];
+}
+
+// Default data fallback (Matches Admin.tsx)
+const defaultFormsData: GenericForm[] = [
+  {
+    id: 'contact',
+    name: 'İletişim Formu',
+    title: 'Bize Yazın',
+    submitButtonText: 'Mesajı Gönder',
+    isActive: true,
+    fields: [
+      { id: 'c1', type: 'text', label: 'Ad Soyad', placeholder: 'Adınız ve Soyadınız', required: true },
+      { id: 'c2', type: 'email', label: 'E-posta', placeholder: 'ornek@email.com', required: true },
+      { id: 'c3', type: 'tel', label: 'Telefon', placeholder: '05XX XXX XX XX', required: true },
+      { id: 'c4', type: 'select', label: 'Konu', options: ['Bilgi Almak İstiyorum', 'Randevu Talebi', 'Öneri/Şikayet'], required: true },
+      { id: 'c5', type: 'textarea', label: 'Mesajınız', placeholder: 'Mesajınızı buraya yazınız...', required: true },
+    ]
+  },
+  {
+    id: 'personnel',
+    name: 'Personel Başvuru Formu',
+    title: 'Personel Başvuru Formu',
+    submitButtonText: 'Başvuruyu Tamamla',
+    isActive: true,
+    fields: []
+  },
+  {
+    id: 'school_register',
+    name: 'Öğrenci Ön Kayıt Formu',
+    title: 'Öğrenci Ön Kayıt Formu',
+    submitButtonText: 'Ön Kayıt Oluştur',
+    isActive: false,
+    fields: []
+  },
+];
+
+const Contact: React.FC = () => {
+  const [formData, setFormData] = useState<GenericForm | null>(null);
+  const [activeOtherForms, setActiveOtherForms] = useState<{ id: string, title: string, path: string }[]>([]);
+
+  useEffect(() => {
+    // Check admin settings for form availability, fallback to default if empty
+    // Updated key to match Admin.tsx
+    const settings = localStorage.getItem('patika_custom_forms');
+    let forms: GenericForm[] = defaultFormsData;
+
+    if (settings) {
+      try {
+        forms = JSON.parse(settings);
+      } catch (e) {
+        console.error("Error parsing form settings", e);
+      }
+    }
+
+    // Load Contact Form
+    const contactForm = forms.find((f: any) => f.id === 'contact');
+    if (contactForm) {
+      setFormData(contactForm);
+    }
+
+    // Find other active forms for Quick Links
+    const links = [];
+    const personnelForm = forms.find((f: any) => f.id === 'personnel');
+    if (personnelForm && personnelForm.isActive) {
+      links.push({ id: 'personnel', title: personnelForm.title, path: '/apply-personnel' });
+    }
+    const studentForm = forms.find((f: any) => f.id === 'school_register');
+    if (studentForm && studentForm.isActive) {
+      links.push({ id: 'student', title: studentForm.title, path: '/apply-student' });
+    }
+    setActiveOtherForms(links);
+  }, []);
+
+  const mapLink = "https://maps.app.goo.gl/4XhSdNG5ckydkFU67";
+
+  return (
+    <div className="max-w-[1200px] w-full flex flex-col">
+      <section className="px-4 sm:px-10 pt-12 pb-8">
+        <div className="max-w-[960px] mx-auto">
+          <div className="flex flex-col gap-4 text-center md:text-left">
+            <h1 className="text-text-main dark:text-white text-4xl md:text-5xl font-black tracking-tighter">Bize Ulaşın</h1>
+            <p className="text-text-muted dark:text-gray-400 text-lg font-normal max-w-2xl">
+              Sorularınız mı var? Tanışmak için sabırsızlanıyoruz. Çocuğunuzun geleceği için en doğru adımı birlikte atalım.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 sm:px-10 pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <div className="lg:col-span-5 flex flex-col gap-8">
+            <div className="flex flex-col gap-4">
+              <div className="flex gap-4 p-4 rounded-xl border border-border-color bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                  <span className="material-symbols-outlined">location_on</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-text-main dark:text-white mb-1">Adres</h3>
+                  <p className="text-text-muted dark:text-gray-400 text-sm leading-relaxed">
+                    Ortakentyahşi Mahallesi,<br />
+                    Hıral Sk. No:6,<br />
+                    48420 Bodrum/Muğla
+                  </p>
+                  <a
+                    href={mapLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-primary mt-3 hover:underline bg-primary/5 px-2 py-1 rounded-md transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-sm">directions</span>
+                    Yol Tarifi Al
+                  </a>
+                </div>
+              </div>
+              <div className="flex gap-4 p-4 rounded-xl border border-border-color bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                  <span className="material-symbols-outlined">call</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-text-main dark:text-white mb-1">Telefon</h3>
+                  <a className="text-text-muted dark:text-gray-400 text-sm hover:text-primary transition-colors" href="tel:+905528044140">+90 (552) 804 41 40</a>
+                  <p className="text-xs text-text-muted dark:text-gray-500 mt-1">Hafta içi 08:00 - 18:00</p>
+                </div>
+              </div>
+              <div className="flex gap-4 p-4 rounded-xl border border-border-color bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                  <span className="material-symbols-outlined">mail</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-text-main dark:text-white mb-1">E-posta</h3>
+                  <a className="text-text-muted dark:text-gray-400 text-sm hover:text-primary transition-colors" href="mailto:patikayuva@gmail.com">patikayuva@gmail.com</a>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Links for Other Active Forms */}
+            {activeOtherForms.length > 0 && (
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-white/5 dark:to-white/10 rounded-xl p-6 border border-border-color">
+                <h3 className="font-bold text-text-main dark:text-white mb-4 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">link</span>
+                  Hızlı Başvuru Bağlantıları
+                </h3>
+                <div className="flex flex-col gap-3">
+                  {activeOtherForms.map(link => (
+                    <Link
+                      key={link.id}
+                      to={link.path}
+                      className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:border-primary dark:hover:border-primary group transition-all"
+                    >
+                      <span className="text-sm font-medium text-text-main dark:text-gray-200 group-hover:text-primary">{link.title}</span>
+                      <span className="material-symbols-outlined text-gray-400 group-hover:text-primary text-sm">arrow_forward_ios</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="relative w-full h-48 rounded-xl overflow-hidden border border-border-color shadow-sm group">
+              <img
+                alt="Map showing location of Patika preschool in Istanbul"
+                className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvaE7mYV1R_zLr4h0qaLMZTi60jiTKoO0A2HhNbHuZrM4d6j-8Pztame7DURT50eg58ghxsUtNstaPRoD2Ggc5gqyKpHK7Sgj_w-QzHu6h_09EvcOZvhBoOuaoc3jD8QetQ2GlEtqSaxEXVzO734kfZTnPy9szSvcuEAFAe0MnBzVAB-cKP_OBheN5M23xbqE93_ZXv00YywH1UXB5M-Z-XDNwBvPjMfJeB0Kdf2iVlmPLw_wb8Zy2_FNBlWEaZOU7F58Mmgy9Iw"
+              />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="bg-white/90 p-2 rounded-full shadow-lg">
+                  <span className="material-symbols-outlined text-secondary text-4xl drop-shadow-md">location_on</span>
+                </div>
+              </div>
+              <a
+                className="absolute bottom-4 right-4 bg-white text-xs font-bold px-3 py-1.5 rounded-lg shadow hover:bg-gray-50 text-text-main flex items-center gap-1"
+                href={mapLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Haritada Göster
+                <span className="material-symbols-outlined text-sm">open_in_new</span>
+              </a>
+            </div>
+          </div>
+
+          <div className="lg:col-span-7">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-border-color p-6 md:p-8 shadow-sm">
+              <h2 className="text-2xl font-bold text-text-main dark:text-white mb-6">
+                {formData?.title || 'Bize Yazın'}
+              </h2>
+
+              {formData?.isActive ? (
+                <DynamicFormRenderer
+                  fields={formData.fields || []}
+                  submitButtonText={formData.submitButtonText}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 dark:bg-white/5 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
+                  <div className="size-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 mb-4">
+                    <span className="material-symbols-outlined text-3xl">unpublished</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-text-main dark:text-white">Form Geçici Olarak Kapalı</h3>
+                  <p className="text-text-muted dark:text-gray-400 text-sm max-w-xs mt-2">
+                    İletişim formumuz şu anda bakım aşamasındadır veya başvuru kabul etmemektedir. Lütfen telefon ile ulaşınız.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default Contact;
