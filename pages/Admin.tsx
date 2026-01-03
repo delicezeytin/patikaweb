@@ -288,6 +288,105 @@ const BrandLogo = ({ className = "h-12" }: { className?: string }) => (
 );
 
 const Admin: React.FC = () => {
+  // --- OTP Authentication State ---
+  const ADMIN_EMAIL = 'patikayuva@gmail.com';
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const session = localStorage.getItem('patika_admin_session');
+    if (session) {
+      const parsed = JSON.parse(session);
+      // Session expires after 24 hours
+      if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
+        return true;
+      }
+    }
+    return false;
+  });
+  const [loginEmail, setLoginEmail] = useState('');
+  const [generatedOtp, setGeneratedOtp] = useState('');
+  const [otpInput, setOtpInput] = useState(['', '', '', '', '', '']);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const [showOtpOnScreen, setShowOtpOnScreen] = useState(true); // For testing mode
+  const otpInputRefs = [
+    React.useRef<HTMLInputElement>(null),
+    React.useRef<HTMLInputElement>(null),
+    React.useRef<HTMLInputElement>(null),
+    React.useRef<HTMLInputElement>(null),
+    React.useRef<HTMLInputElement>(null),
+    React.useRef<HTMLInputElement>(null)
+  ];
+
+  const generateOtp = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  const handleSendOtp = () => {
+    if (loginEmail.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+      setOtpError('Bu e-posta adresi yönetim paneline erişim yetkisine sahip değil.');
+      return;
+    }
+    const otp = generateOtp();
+    setGeneratedOtp(otp);
+    setOtpSent(true);
+    setOtpError('');
+    setOtpInput(['', '', '', '', '', '']);
+
+    // Focus first OTP input
+    setTimeout(() => otpInputRefs[0].current?.focus(), 100);
+
+    // TODO: Send OTP via EmailJS when ready
+    // For now, OTP is shown on screen for testing
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+
+    const newOtp = [...otpInput];
+    newOtp[index] = value.slice(-1);
+    setOtpInput(newOtp);
+    setOtpError('');
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      otpInputRefs[index + 1].current?.focus();
+    }
+
+    // Auto-verify when all digits are entered
+    if (newOtp.every(digit => digit !== '')) {
+      const enteredOtp = newOtp.join('');
+      if (enteredOtp === generatedOtp) {
+        setIsAuthenticated(true);
+        localStorage.setItem('patika_admin_session', JSON.stringify({ timestamp: Date.now(), email: loginEmail }));
+      } else {
+        setOtpError('Geçersiz doğrulama kodu. Lütfen tekrar deneyin.');
+        setOtpInput(['', '', '', '', '', '']);
+        setTimeout(() => otpInputRefs[0].current?.focus(), 100);
+      }
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otpInput[index] && index > 0) {
+      otpInputRefs[index - 1].current?.focus();
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('patika_admin_session');
+    setOtpSent(false);
+    setLoginEmail('');
+    setGeneratedOtp('');
+    setOtpInput(['', '', '', '', '', '']);
+  };
+
+  const copyOtpToClipboard = () => {
+    navigator.clipboard.writeText(generatedOtp);
+    // Auto-fill OTP inputs
+    const digits = generatedOtp.split('');
+    setOtpInput(digits);
+  };
+
   // --- State Management ---
   const [activeView, setActiveView] = useState<'dashboard' | 'teachers' | 'classes' | 'food-menu' | 'schedule' | 'meetings' | 'meeting-manage' | 'meeting-edit' | 'applications' | 'settings' | 'forms' | 'form-builder' | 'meeting-calendar' | 'content-management'>('dashboard');
   const [selectedFormId, setSelectedFormId] = useState<number | null>(null);
@@ -2241,204 +2340,319 @@ const Admin: React.FC = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-background-light dark:bg-background-dark">
-      {/* Sidebar - Desktop */}
-      <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-white/5 hidden md:flex flex-col fixed h-full z-20">
-        <div className="p-6 border-b border-gray-100 dark:border-white/5 flex items-center justify-center">
-          <BrandLogo className="h-10" />
-        </div>
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          <button onClick={() => setActiveView('dashboard')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === 'dashboard' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-            <span className="material-symbols-outlined">dashboard</span>
-            Panel Özeti
-          </button>
-
-          <div className="pt-4 pb-2">
-            <span className="px-4 text-xs font-bold text-text-muted uppercase tracking-wider">İçerik Yönetimi</span>
-          </div>
-          <button onClick={() => setActiveView('content-management')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === 'content-management' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-            <span className="material-symbols-outlined">edit_note</span>
-            Site İçerikleri
-          </button>
-          <button onClick={() => setActiveView('teachers')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === 'teachers' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-            <span className="material-symbols-outlined">group</span>
-            Öğretmenler
-          </button>
-          <button onClick={() => setActiveView('classes')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === 'classes' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-            <span className="material-symbols-outlined">school</span>
-            Sınıflar
-          </button>
-          <button onClick={() => setActiveView('food-menu')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === 'food-menu' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-            <span className="material-symbols-outlined">restaurant</span>
-            Yemek Listesi
-          </button>
-          <button onClick={() => setActiveView('schedule')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === 'schedule' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-            <span className="material-symbols-outlined">calendar_today</span>
-            Ders Programı
-          </button>
-
-          <div className="pt-4 pb-2">
-            <span className="px-4 text-xs font-bold text-text-muted uppercase tracking-wider">Sistem</span>
-          </div>
-          <button onClick={() => setActiveView('meetings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${['meetings', 'meeting-manage', 'meeting-edit'].includes(activeView) ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-            <span className="material-symbols-outlined">event</span>
-            Toplantılar
-          </button>
-          <button onClick={() => setActiveView('forms')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${['forms', 'form-builder'].includes(activeView) ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-            <span className="material-symbols-outlined">feed</span>
-            Formlar
-          </button>
-          <button onClick={() => setActiveView('settings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === 'settings' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
-            <span className="material-symbols-outlined">settings</span>
-            Ayarlar
-          </button>
-        </nav>
-        <div className="p-4 border-t border-gray-100 dark:border-white/5">
-          <Link to="/" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
-            <span className="material-symbols-outlined">logout</span>
-            Güvenli Çıkış
-          </Link>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 md:ml-64 p-4 sm:p-8 overflow-y-auto min-h-screen">
-        <div className="md:hidden mb-6 flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5">
-          <BrandLogo className="h-8" />
-          <div className="flex gap-4">
-            <button onClick={() => setActiveView('dashboard')} className="text-text-muted"><span className="material-symbols-outlined">dashboard</span></button>
-            <button onClick={() => setActiveView('meetings')} className="text-text-muted"><span className="material-symbols-outlined">calendar_month</span></button>
-            <Link to="/" className="text-red-500"><span className="material-symbols-outlined">logout</span></Link>
-          </div>
-        </div>
-
-        {activeView === 'dashboard' && renderDashboard()}
-        {activeView === 'teachers' && renderTeachers()}
-        {activeView === 'classes' && renderClasses()}
-        {activeView === 'food-menu' && renderFoodMenu()}
-        {activeView === 'schedule' && renderSchedule()}
-        {activeView === 'meetings' && renderMeetingFormsList()}
-        {activeView === 'meeting-calendar' && renderMeetingCalendar()}
-        {activeView === 'meeting-manage' && renderMeetingManagement()}
-        {activeView === 'meeting-edit' && renderMeetingEdit()}
-        {activeView === 'forms' && renderForms()}
-        {activeView === 'form-builder' && renderFormBuilder()}
-        {activeView === 'form-submissions' && renderFormSubmissions()}
-        {activeView === 'content-management' && renderContentManagement()}
-        {activeView === 'settings' && renderSettings()}
-      </main>
-
-      {/* Two-Step Approval Modal */}
-      {showEmailModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-gray-100 dark:border-white/5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-text-main dark:text-white flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">{approvalStep === 1 ? 'event' : 'mail_outline'}</span>
-                  {approvalStep === 1 ? 'Takvim Etkinliği Oluştur' : 'Onay E-postası Gönder'}
-                </h3>
-                <button onClick={() => setShowEmailModal(false)} className="text-gray-400 hover:text-red-500">
-                  <span className="material-symbols-outlined">close</span>
-                </button>
+    <>
+      {/* Login Screen */}
+      {!isAuthenticated && (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-900 dark:to-gray-800 p-4">
+          <div className="w-full max-w-md">
+            <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 space-y-6">
+              <div className="text-center">
+                <BrandLogo className="h-16 mx-auto mb-4" />
+                <h1 className="text-2xl font-black text-text-main dark:text-white">Yönetim Paneli</h1>
+                <p className="text-text-muted dark:text-gray-400 text-sm mt-2">Güvenli giriş için e-posta doğrulaması gereklidir</p>
               </div>
-              <div className="flex items-center gap-2">
-                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${approvalStep === 1 ? 'bg-primary text-white' : 'bg-green-100 text-green-600'}`}>
-                  {approvalStep > 1 ? <span className="material-symbols-outlined text-sm">check</span> : <span>1</span>}
-                  Takvim
-                </div>
-                <div className="w-8 h-0.5 bg-gray-200 dark:bg-gray-700" />
-                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${approvalStep === 2 ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-400'}`}>
-                  <span>2</span>
-                  E-posta
-                </div>
-              </div>
-            </div>
-            <div className="p-6 flex-1 overflow-y-auto space-y-4">
-              {approvalStep === 1 ? (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <label className="text-xs font-bold text-text-muted uppercase block mb-1">Etkinlik Başlığı</label>
-                      <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white font-bold outline-none" value={calendarEvent.title} onChange={(e) => setCalendarEvent({ ...calendarEvent, title: e.target.value })} />
+
+              {!otpSent ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold text-text-muted uppercase mb-2 block">E-posta Adresi</label>
+                    <input
+                      type="email"
+                      value={loginEmail}
+                      onChange={(e) => { setLoginEmail(e.target.value); setOtpError(''); }}
+                      placeholder="admin@patika.com"
+                      className="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  {otpError && (
+                    <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg text-red-600 dark:text-red-400 text-sm flex items-center gap-2">
+                      <span className="material-symbols-outlined text-lg">error</span>
+                      {otpError}
                     </div>
-                    <div>
-                      <label className="text-xs font-bold text-text-muted uppercase block mb-1">Tarih</label>
-                      <input type="date" className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white outline-none" value={calendarEvent.date} onChange={(e) => setCalendarEvent({ ...calendarEvent, date: e.target.value })} />
+                  )}
+                  <button
+                    onClick={handleSendOtp}
+                    className="w-full py-4 bg-primary hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <span className="material-symbols-outlined">send</span>
+                    Doğrulama Kodu Gönder
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <div className="size-16 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mx-auto mb-3">
+                      <span className="material-symbols-outlined text-3xl text-green-600">mark_email_read</span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-xs font-bold text-text-muted uppercase block mb-1">Başlangıç</label>
-                        <input type="time" className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white outline-none" value={calendarEvent.time} onChange={(e) => setCalendarEvent({ ...calendarEvent, time: e.target.value })} />
+                    <p className="text-text-muted dark:text-gray-400 text-sm">
+                      <strong>{loginEmail}</strong> adresine doğrulama kodu gönderildi.
+                    </p>
+                  </div>
+
+                  {/* OTP Display (Testing Mode) */}
+                  {showOtpOnScreen && generatedOtp && (
+                    <div
+                      onClick={copyOtpToClipboard}
+                      className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-dashed border-blue-300 dark:border-blue-700 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                          <span className="material-symbols-outlined">developer_mode</span>
+                          <span className="text-xs font-bold uppercase">Test Modu - Kodu Kopyala</span>
+                        </div>
+                        <span className="material-symbols-outlined text-blue-600">content_copy</span>
                       </div>
-                      <div>
-                        <label className="text-xs font-bold text-text-muted uppercase block mb-1">Bitiş</label>
-                        <input type="time" className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white outline-none" value={calendarEvent.endTime} onChange={(e) => setCalendarEvent({ ...calendarEvent, endTime: e.target.value })} />
+                      <div className="text-center mt-2">
+                        <span className="text-3xl font-mono font-black tracking-widest text-blue-700 dark:text-blue-300">{generatedOtp}</span>
                       </div>
                     </div>
-                    <div>
-                      <label className="text-xs font-bold text-text-muted uppercase block mb-1">Konum</label>
-                      <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white outline-none" value={calendarEvent.location} onChange={(e) => setCalendarEvent({ ...calendarEvent, location: e.target.value })} />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-text-muted uppercase block mb-1">Katılımcı E-posta</label>
-                      <input type="email" className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white outline-none" value={calendarEvent.attendeeEmail} onChange={(e) => setCalendarEvent({ ...calendarEvent, attendeeEmail: e.target.value })} placeholder="veli@email.com" />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="text-xs font-bold text-text-muted uppercase block mb-1">Açıklama</label>
-                      <textarea className="w-full h-24 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white text-sm outline-none resize-none" value={calendarEvent.description} onChange={(e) => setCalendarEvent({ ...calendarEvent, description: e.target.value })} />
-                    </div>
-                  </div>
-                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-start gap-3 text-sm text-blue-800 dark:text-blue-200">
-                    <span className="material-symbols-outlined shrink-0">info</span>
-                    <p>Bu etkinlik .ics dosyası olarak oluşturulacak ve veliye e-postaya eklenecektir.</p>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-xl text-green-700 dark:text-green-300 text-sm">
-                    <span className="material-symbols-outlined">check_circle</span>
-                    <span>Takvim etkinliği oluşturuldu ve e-postaya eklenecek.</span>
-                  </div>
+                  )}
+
                   <div>
-                    <label className="text-xs font-bold text-text-muted uppercase block mb-1">Konu</label>
-                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white font-bold outline-none" value={generatedEmailSubject} onChange={(e) => setGeneratedEmailSubject(e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-text-muted uppercase block mb-1">İçerik</label>
-                    <textarea className="w-full h-48 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white font-mono text-sm leading-relaxed outline-none resize-none" value={generatedEmailBody} onChange={(e) => setGeneratedEmailBody(e.target.value)} />
-                  </div>
-                  <div className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-white/5 rounded-xl text-sm">
-                    <span className="material-symbols-outlined text-primary">attachment</span>
-                    <div>
-                      <span className="font-bold text-text-main dark:text-white">Ek Dosya:</span>
-                      <span className="text-text-muted dark:text-gray-400 ml-2">patika-toplanti.ics</span>
+                    <label className="text-xs font-bold text-text-muted uppercase mb-2 block text-center">6 Haneli Doğrulama Kodu</label>
+                    <div className="flex justify-center gap-2">
+                      {otpInput.map((digit, index) => (
+                        <input
+                          key={index}
+                          ref={otpInputRefs[index]}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleOtpChange(index, e.target.value)}
+                          onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                          className="w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                        />
+                      ))}
                     </div>
                   </div>
-                </>
+
+                  {otpError && (
+                    <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg text-red-600 dark:text-red-400 text-sm flex items-center gap-2 justify-center">
+                      <span className="material-symbols-outlined text-lg">error</span>
+                      {otpError}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => { setOtpSent(false); setOtpError(''); }}
+                    className="w-full py-3 text-text-muted hover:text-text-main text-sm font-bold transition-colors flex items-center justify-center gap-1"
+                  >
+                    <span className="material-symbols-outlined text-lg">arrow_back</span>
+                    Farklı E-posta Kullan
+                  </button>
+                </div>
               )}
             </div>
-            <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5 flex justify-between gap-3">
-              <button onClick={() => { if (approvalStep === 1) setShowEmailModal(false); else setApprovalStep(1); }} className="px-6 py-2.5 rounded-xl font-bold text-gray-500 hover:text-text-main hover:bg-gray-200 dark:hover:bg-white/10 transition-colors flex items-center gap-2">
-                {approvalStep === 2 && <span className="material-symbols-outlined">arrow_back</span>}
-                {approvalStep === 1 ? 'İptal' : 'Geri'}
-              </button>
-              {approvalStep === 1 ? (
-                <button onClick={proceedToEmailStep} className="px-6 py-2.5 rounded-xl font-bold bg-primary text-white shadow-lg hover:bg-orange-600 transition-transform active:scale-95 flex items-center gap-2">
-                  Etkinliği Oluştur
-                  <span className="material-symbols-outlined">arrow_forward</span>
-                </button>
-              ) : (
-                <button onClick={confirmStatusChange} className="px-6 py-2.5 rounded-xl font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-transform active:scale-95 flex items-center gap-2">
-                  <span className="material-symbols-outlined">send</span>
-                  Gönder ve Onayla
-                </button>
-              )}
-            </div>
+            <p className="text-center text-text-muted dark:text-gray-500 text-xs mt-6">
+              © {new Date().getFullYear()} Patika Çocuk Yuvası • Tüm hakları saklıdır
+            </p>
           </div>
         </div>
       )}
-    </div>
+
+      {/* Main Admin Panel */}
+      {isAuthenticated && (
+        <div className="flex min-h-screen bg-background-light dark:bg-background-dark">
+          {/* Sidebar - Desktop */}
+          <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-white/5 hidden md:flex flex-col fixed h-full z-20">
+            <div className="p-6 border-b border-gray-100 dark:border-white/5 flex items-center justify-center">
+              <BrandLogo className="h-10" />
+            </div>
+            <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+              <button onClick={() => setActiveView('dashboard')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === 'dashboard' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
+                <span className="material-symbols-outlined">dashboard</span>
+                Panel Özeti
+              </button>
+
+              <div className="pt-4 pb-2">
+                <span className="px-4 text-xs font-bold text-text-muted uppercase tracking-wider">İçerik Yönetimi</span>
+              </div>
+              <button onClick={() => setActiveView('content-management')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === 'content-management' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
+                <span className="material-symbols-outlined">edit_note</span>
+                Site İçerikleri
+              </button>
+              <button onClick={() => setActiveView('teachers')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === 'teachers' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
+                <span className="material-symbols-outlined">group</span>
+                Öğretmenler
+              </button>
+              <button onClick={() => setActiveView('classes')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === 'classes' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
+                <span className="material-symbols-outlined">school</span>
+                Sınıflar
+              </button>
+              <button onClick={() => setActiveView('food-menu')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === 'food-menu' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
+                <span className="material-symbols-outlined">restaurant</span>
+                Yemek Listesi
+              </button>
+              <button onClick={() => setActiveView('schedule')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === 'schedule' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
+                <span className="material-symbols-outlined">calendar_today</span>
+                Ders Programı
+              </button>
+
+              <div className="pt-4 pb-2">
+                <span className="px-4 text-xs font-bold text-text-muted uppercase tracking-wider">Sistem</span>
+              </div>
+              <button onClick={() => setActiveView('meetings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${['meetings', 'meeting-manage', 'meeting-edit'].includes(activeView) ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
+                <span className="material-symbols-outlined">event</span>
+                Toplantılar
+              </button>
+              <button onClick={() => setActiveView('forms')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${['forms', 'form-builder'].includes(activeView) ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
+                <span className="material-symbols-outlined">feed</span>
+                Formlar
+              </button>
+              <button onClick={() => setActiveView('settings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeView === 'settings' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}>
+                <span className="material-symbols-outlined">settings</span>
+                Ayarlar
+              </button>
+            </nav>
+            <div className="p-4 border-t border-gray-100 dark:border-white/5">
+              <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
+                <span className="material-symbols-outlined">logout</span>
+                Güvenli Çıkış
+              </button>
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1 md:ml-64 p-4 sm:p-8 overflow-y-auto min-h-screen">
+            <div className="md:hidden mb-6 flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5">
+              <BrandLogo className="h-8" />
+              <div className="flex gap-4">
+                <button onClick={() => setActiveView('dashboard')} className="text-text-muted"><span className="material-symbols-outlined">dashboard</span></button>
+                <button onClick={() => setActiveView('meetings')} className="text-text-muted"><span className="material-symbols-outlined">calendar_month</span></button>
+                <Link to="/" className="text-red-500"><span className="material-symbols-outlined">logout</span></Link>
+              </div>
+            </div>
+
+            {activeView === 'dashboard' && renderDashboard()}
+            {activeView === 'teachers' && renderTeachers()}
+            {activeView === 'classes' && renderClasses()}
+            {activeView === 'food-menu' && renderFoodMenu()}
+            {activeView === 'schedule' && renderSchedule()}
+            {activeView === 'meetings' && renderMeetingFormsList()}
+            {activeView === 'meeting-calendar' && renderMeetingCalendar()}
+            {activeView === 'meeting-manage' && renderMeetingManagement()}
+            {activeView === 'meeting-edit' && renderMeetingEdit()}
+            {activeView === 'forms' && renderForms()}
+            {activeView === 'form-builder' && renderFormBuilder()}
+            {activeView === 'form-submissions' && renderFormSubmissions()}
+            {activeView === 'content-management' && renderContentManagement()}
+            {activeView === 'settings' && renderSettings()}
+          </main>
+
+          {/* Two-Step Approval Modal */}
+          {showEmailModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                <div className="p-6 border-b border-gray-100 dark:border-white/5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-text-main dark:text-white flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary">{approvalStep === 1 ? 'event' : 'mail_outline'}</span>
+                      {approvalStep === 1 ? 'Takvim Etkinliği Oluştur' : 'Onay E-postası Gönder'}
+                    </h3>
+                    <button onClick={() => setShowEmailModal(false)} className="text-gray-400 hover:text-red-500">
+                      <span className="material-symbols-outlined">close</span>
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${approvalStep === 1 ? 'bg-primary text-white' : 'bg-green-100 text-green-600'}`}>
+                      {approvalStep > 1 ? <span className="material-symbols-outlined text-sm">check</span> : <span>1</span>}
+                      Takvim
+                    </div>
+                    <div className="w-8 h-0.5 bg-gray-200 dark:bg-gray-700" />
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold ${approvalStep === 2 ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-400'}`}>
+                      <span>2</span>
+                      E-posta
+                    </div>
+                  </div>
+                </div>
+                <div className="p-6 flex-1 overflow-y-auto space-y-4">
+                  {approvalStep === 1 ? (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2">
+                          <label className="text-xs font-bold text-text-muted uppercase block mb-1">Etkinlik Başlığı</label>
+                          <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white font-bold outline-none" value={calendarEvent.title} onChange={(e) => setCalendarEvent({ ...calendarEvent, title: e.target.value })} />
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-text-muted uppercase block mb-1">Tarih</label>
+                          <input type="date" className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white outline-none" value={calendarEvent.date} onChange={(e) => setCalendarEvent({ ...calendarEvent, date: e.target.value })} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-xs font-bold text-text-muted uppercase block mb-1">Başlangıç</label>
+                            <input type="time" className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white outline-none" value={calendarEvent.time} onChange={(e) => setCalendarEvent({ ...calendarEvent, time: e.target.value })} />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-text-muted uppercase block mb-1">Bitiş</label>
+                            <input type="time" className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white outline-none" value={calendarEvent.endTime} onChange={(e) => setCalendarEvent({ ...calendarEvent, endTime: e.target.value })} />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-text-muted uppercase block mb-1">Konum</label>
+                          <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white outline-none" value={calendarEvent.location} onChange={(e) => setCalendarEvent({ ...calendarEvent, location: e.target.value })} />
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-text-muted uppercase block mb-1">Katılımcı E-posta</label>
+                          <input type="email" className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white outline-none" value={calendarEvent.attendeeEmail} onChange={(e) => setCalendarEvent({ ...calendarEvent, attendeeEmail: e.target.value })} placeholder="veli@email.com" />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="text-xs font-bold text-text-muted uppercase block mb-1">Açıklama</label>
+                          <textarea className="w-full h-24 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white text-sm outline-none resize-none" value={calendarEvent.description} onChange={(e) => setCalendarEvent({ ...calendarEvent, description: e.target.value })} />
+                        </div>
+                      </div>
+                      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-start gap-3 text-sm text-blue-800 dark:text-blue-200">
+                        <span className="material-symbols-outlined shrink-0">info</span>
+                        <p>Bu etkinlik .ics dosyası olarak oluşturulacak ve veliye e-postaya eklenecektir.</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-xl text-green-700 dark:text-green-300 text-sm">
+                        <span className="material-symbols-outlined">check_circle</span>
+                        <span>Takvim etkinliği oluşturuldu ve e-postaya eklenecek.</span>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-text-muted uppercase block mb-1">Konu</label>
+                        <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white font-bold outline-none" value={generatedEmailSubject} onChange={(e) => setGeneratedEmailSubject(e.target.value)} />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-text-muted uppercase block mb-1">İçerik</label>
+                        <textarea className="w-full h-48 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-text-main dark:text-white font-mono text-sm leading-relaxed outline-none resize-none" value={generatedEmailBody} onChange={(e) => setGeneratedEmailBody(e.target.value)} />
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-white/5 rounded-xl text-sm">
+                        <span className="material-symbols-outlined text-primary">attachment</span>
+                        <div>
+                          <span className="font-bold text-text-main dark:text-white">Ek Dosya:</span>
+                          <span className="text-text-muted dark:text-gray-400 ml-2">patika-toplanti.ics</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-gray-50 dark:bg-white/5 flex justify-between gap-3">
+                  <button onClick={() => { if (approvalStep === 1) setShowEmailModal(false); else setApprovalStep(1); }} className="px-6 py-2.5 rounded-xl font-bold text-gray-500 hover:text-text-main hover:bg-gray-200 dark:hover:bg-white/10 transition-colors flex items-center gap-2">
+                    {approvalStep === 2 && <span className="material-symbols-outlined">arrow_back</span>}
+                    {approvalStep === 1 ? 'İptal' : 'Geri'}
+                  </button>
+                  {approvalStep === 1 ? (
+                    <button onClick={proceedToEmailStep} className="px-6 py-2.5 rounded-xl font-bold bg-primary text-white shadow-lg hover:bg-orange-600 transition-transform active:scale-95 flex items-center gap-2">
+                      Etkinliği Oluştur
+                      <span className="material-symbols-outlined">arrow_forward</span>
+                    </button>
+                  ) : (
+                    <button onClick={confirmStatusChange} className="px-6 py-2.5 rounded-xl font-bold bg-green-600 text-white shadow-lg hover:bg-green-700 transition-transform active:scale-95 flex items-center gap-2">
+                      <span className="material-symbols-outlined">send</span>
+                      Gönder ve Onayla
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </>
   );
 };
 
