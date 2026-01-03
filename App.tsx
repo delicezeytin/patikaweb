@@ -11,6 +11,7 @@ import StudentForm from './pages/StudentForm';
 import FoodList from './pages/FoodList';
 import Schedule from './pages/Schedule';
 import Teachers from './pages/Teachers';
+import DynamicFormPage from './pages/DynamicFormPage';
 import PublicLayout from './components/PublicLayout';
 
 const ScrollToTop = () => {
@@ -39,6 +40,7 @@ const App: React.FC = () => {
           <Route path="/food-list" element={<FoodList />} />
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/teachers" element={<Teachers />} />
+          <Route path="/form/:slug" element={<DynamicFormPage />} />
           {/* Career redirect */}
           <Route path="/career" element={<Navigate to="/apply-personnel" replace />} />
         </Route>

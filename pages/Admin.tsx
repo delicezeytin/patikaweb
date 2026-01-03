@@ -21,22 +21,29 @@ export interface FormField {
 interface CustomForm {
   id: string; // Changed from number to string for compatibility
   title: string;
+  slug: string; // URL-friendly path, auto-generated from title
   description: string;
   fields: FormField[];
   isActive: boolean;
   submissions: any[];
 }
 
-// ... (Other types remain unchanged)
-
-// ...
-
-
-
-// ... (Other states)
-
-
-
+// Turkish character conversion and slugify helper
+const slugify = (text: string): string => {
+  const turkishMap: { [key: string]: string } = {
+    'ç': 'c', 'Ç': 'C', 'ğ': 'g', 'Ğ': 'G', 'ı': 'i', 'I': 'I', 'İ': 'I',
+    'ö': 'o', 'Ö': 'O', 'ş': 's', 'Ş': 'S', 'ü': 'u', 'Ü': 'U'
+  };
+  return text
+    .split('')
+    .map(char => turkishMap[char] || char)
+    .join('')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+};
 
 type MeetingStatus = 'pending' | 'approved' | 'rejected';
 
@@ -424,7 +431,7 @@ const Admin: React.FC = () => {
     const saved = localStorage.getItem('patika_custom_forms');
     return saved ? JSON.parse(saved) : [
       {
-        id: 'contact', title: 'İletişim Formu', description: 'Web sitesi iletişim sayfası formu', isActive: true, submissions: [],
+        id: 'contact', title: 'İletişim Formu', slug: 'iletisim-formu', description: 'Web sitesi iletişim sayfası formu', isActive: true, submissions: [],
         fields: [
           { id: 'c1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Ad Soyad' },
           { id: 'c2', type: 'email', label: 'E-posta', required: true, placeholder: 'email@ornek.com' },
@@ -434,7 +441,7 @@ const Admin: React.FC = () => {
         ]
       },
       {
-        id: 'personnel', title: 'Personel Başvuru Formu', description: 'İş başvuruları için kullanılan form', isActive: true, submissions: [],
+        id: 'personnel', title: 'Personel Başvuru Formu', slug: 'personel-basvuru-formu', description: 'İş başvuruları için kullanılan form', isActive: true, submissions: [],
         fields: [
           { id: 'p1', type: 'text', label: 'Ad Soyad', required: true },
           { id: 'p2', type: 'tel', label: 'Telefon', required: true },
@@ -444,7 +451,7 @@ const Admin: React.FC = () => {
         ]
       },
       {
-        id: 'school_register', title: 'Okul Kayıt Formu', description: 'Yeni öğrenci kaydı için gerekli bilgiler', isActive: true, submissions: [],
+        id: 'school_register', title: 'Okul Kayıt Formu', slug: 'okul-kayit-formu', description: 'Yeni öğrenci kaydı için gerekli bilgiler', isActive: true, submissions: [],
         fields: [
           { id: 'f1', type: 'text', label: 'Öğrenci Adı Soyadı', required: true, placeholder: 'Ad Soyad' },
           { id: 'f2', type: 'date', label: 'Doğum Tarihi', required: true },
@@ -1479,41 +1486,59 @@ const Admin: React.FC = () => {
     <div className="max-w-6xl mx-auto animate-fadeIn space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-text-main dark:text-white">Formlar</h2>
-        <button onClick={() => { setEditingForm({ id: Date.now().toString(), title: 'Yeni Form', description: '', fields: [], isActive: true, submissions: [] }); setActiveView('form-builder'); }} className="flex items-center gap-2 rounded-xl h-11 px-5 bg-primary hover:bg-orange-600 text-white text-sm font-bold shadow-md">
+        <button onClick={() => { const title = 'Yeni Form'; setEditingForm({ id: Date.now().toString(), title, slug: slugify(title), description: '', fields: [], isActive: true, submissions: [] }); setActiveView('form-builder'); }} className="flex items-center gap-2 rounded-xl h-11 px-5 bg-primary hover:bg-orange-600 text-white text-sm font-bold shadow-md">
           <span className="material-symbols-outlined">add</span>
           Yeni Form Oluştur
         </button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {customForms.map(form => (
-          <div key={form.id} className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm space-y-4 hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start">
-              <div className="size-12 rounded-full bg-orange-100 dark:bg-orange-900/20 text-primary flex items-center justify-center">
-                <span className="material-symbols-outlined text-2xl">feed</span>
+        {customForms.map(form => {
+          const formUrl = `${window.location.origin}${window.location.pathname}#/form/${form.slug || slugify(form.title)}`;
+          return (
+            <div key={form.id} className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm space-y-4 hover:shadow-md transition-shadow">
+              <div className="flex justify-between items-start">
+                <div className="size-12 rounded-full bg-orange-100 dark:bg-orange-900/20 text-primary flex items-center justify-center">
+                  <span className="material-symbols-outlined text-2xl">feed</span>
+                </div>
+                <div className={`px-3 py-1 rounded-full text-xs font-bold ${form.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {form.isActive ? 'Aktif' : 'Pasif'}
+                </div>
               </div>
-              <div className={`px-3 py-1 rounded-full text-xs font-bold ${form.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                {form.isActive ? 'Aktif' : 'Pasif'}
+              <div>
+                <h3 className="text-lg font-bold text-text-main dark:text-white mb-1">{form.title}</h3>
+                <p className="text-sm text-text-muted line-clamp-2">{form.description || 'Açıklama yok'}</p>
               </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-text-main dark:text-white mb-1">{form.title}</h3>
-              <p className="text-sm text-text-muted line-clamp-2">{form.description || 'Açıklama yok'}</p>
-            </div>
-            <div className="pt-4 border-t border-gray-50 dark:border-white/5 flex items-center justify-between text-sm font-bold">
-              <div className="flex gap-2">
-                <button onClick={() => { setEditingForm(form); setActiveView('form-builder'); }} className="flex items-center gap-1 text-primary hover:text-orange-700">
-                  <span className="material-symbols-outlined text-lg">edit_square</span> Düzenle
+              {/* Form URL Display */}
+              <div className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-white/5 rounded-lg border border-gray-100 dark:border-white/10">
+                <span className="material-symbols-outlined text-primary text-sm">link</span>
+                <code className="text-xs text-text-muted flex-1 truncate">/form/{form.slug || slugify(form.title)}</code>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(formUrl);
+                    alert('Form linki kopyalandı!');
+                  }}
+                  className="p-1 hover:bg-gray-200 dark:hover:bg-white/10 rounded transition-colors"
+                  title="Linki Kopyala"
+                >
+                  <span className="material-symbols-outlined text-sm text-text-muted">content_copy</span>
                 </button>
-                <button onClick={() => { setEditingForm(form); setActiveView('form-submissions'); }} className="flex items-center gap-1 text-text-muted hover:text-text-main">
-                  <span className="material-symbols-outlined text-lg">list_alt</span> Başvurular ({form.submissions?.length || 0})
+              </div>
+              <div className="pt-4 border-t border-gray-50 dark:border-white/5 flex items-center justify-between text-sm font-bold">
+                <div className="flex gap-2">
+                  <button onClick={() => { setEditingForm(form); setActiveView('form-builder'); }} className="flex items-center gap-1 text-primary hover:text-orange-700">
+                    <span className="material-symbols-outlined text-lg">edit_square</span> Düzenle
+                  </button>
+                  <button onClick={() => { setEditingForm(form); setActiveView('form-submissions'); }} className="flex items-center gap-1 text-text-muted hover:text-text-main">
+                    <span className="material-symbols-outlined text-lg">list_alt</span> Başvurular ({form.submissions?.length || 0})
+                  </button>
+                </div>
+                <button onClick={() => setCustomForms(customForms.filter(f => f.id !== form.id))} className="text-gray-400 hover:text-red-500">
+                  <span className="material-symbols-outlined">delete</span>
                 </button>
               </div>
-              <button onClick={() => setCustomForms(customForms.filter(f => f.id !== form.id))} className="text-gray-400 hover:text-red-500">
-                <span className="material-symbols-outlined">delete</span>
-              </button>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
