@@ -279,13 +279,27 @@ const initialContactContent: ContactContent = {
   mapLink: "https://maps.app.goo.gl/4XhSdNG5ckydkFU67"
 };
 
-const BrandLogo = ({ className = "h-12" }: { className?: string }) => (
-  <img
-    src="/logo.png"
-    alt="Patika Çocuk Yuvası"
-    className={`${className} w-auto object-contain dark:bg-white/90 dark:rounded-lg dark:px-2 dark:py-1`}
-  />
-);
+const BrandLogo = ({ className = "h-12", onClick }: { className?: string; onClick?: () => void }) => {
+  const [imgError, setImgError] = React.useState(false);
+
+  if (imgError) {
+    return (
+      <div className={`${className} flex items-center justify-center cursor-pointer`} onClick={onClick}>
+        <span className="text-2xl font-black text-primary">PATİKA</span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src="/logo.png"
+      alt="Patika Çocuk Yuvası"
+      className={`${className} w-auto object-contain dark:bg-white/90 dark:rounded-lg dark:px-2 dark:py-1 ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+      onError={() => setImgError(true)}
+    />
+  );
+};
 
 const Admin: React.FC = () => {
   // --- OTP Authentication State ---
@@ -2347,7 +2361,9 @@ const Admin: React.FC = () => {
           <div className="w-full max-w-md">
             <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 space-y-6">
               <div className="text-center">
-                <BrandLogo className="h-16 mx-auto mb-4" />
+                <Link to="/">
+                  <BrandLogo className="h-16 mx-auto mb-4" />
+                </Link>
                 <h1 className="text-2xl font-black text-text-main dark:text-white">Yönetim Paneli</h1>
                 <p className="text-text-muted dark:text-gray-400 text-sm mt-2">Güvenli giriş için e-posta doğrulaması gereklidir</p>
               </div>
@@ -2467,9 +2483,15 @@ const Admin: React.FC = () => {
                 </div>
               )}
             </div>
-            <p className="text-center text-text-muted dark:text-gray-500 text-xs mt-6">
-              © {new Date().getFullYear()} Patika Çocuk Yuvası • Tüm hakları saklıdır
-            </p>
+            <div className="text-center mt-6 space-y-2">
+              <Link to="/" className="text-primary hover:text-orange-600 text-sm font-bold flex items-center justify-center gap-1">
+                <span className="material-symbols-outlined text-lg">home</span>
+                Ana Sayfaya Dön
+              </Link>
+              <p className="text-text-muted dark:text-gray-500 text-xs">
+                © {new Date().getFullYear()} Patika Çocuk Yuvası • Tüm hakları saklıdır
+              </p>
+            </div>
           </div>
         </div>
       )}
