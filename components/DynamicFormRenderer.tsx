@@ -24,7 +24,10 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ fields, submi
       const formData = new FormData(e.currentTarget);
       const data: any = {};
       fields.forEach(field => {
-        data[field.id] = formData.get(field.id);
+        const value = formData.get(field.id);
+        // Store with both field.id and field.label for compatibility
+        data[field.id] = value;
+        data[field.label] = value;
       });
       onSubmit(data);
     }
@@ -122,7 +125,7 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ fields, submi
       ))}
 
       <div className="pt-4">
-        <button className="w-full bg-primary hover:bg-orange-600 text-white font-bold h-14 rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+        <button type="submit" className="w-full bg-primary hover:bg-orange-600 text-white font-bold h-14 rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
           <span>{submitButtonText}</span>
           <span className="material-symbols-outlined text-sm">send</span>
         </button>
