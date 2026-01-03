@@ -1950,6 +1950,44 @@ const Admin: React.FC = () => {
             <h2 className="text-2xl font-bold text-text-main dark:text-white">{editingForm.title} Başvuruları</h2>
             <p className="text-text-muted">Toplam {editingForm.submissions?.length || 0} başvuru</p>
           </div>
+          {editingForm.submissions?.length > 0 && (
+            <button
+              onClick={() => {
+                // Generate CSV content
+                const headers = ['Tarih', ...editingForm.fields.map(f => f.label)];
+                const rows = editingForm.submissions.map(sub => {
+                  const date = sub.date ? new Date(sub.date).toLocaleDateString('tr-TR') : '-';
+                  const fieldValues = editingForm.fields.map(field => {
+                    const val = sub.data?.[field.label] || sub.data?.[field.id] || '-';
+                    return typeof val === 'object' ? JSON.stringify(val) : String(val).replace(/"/g, '""');
+                  });
+                  return [date, ...fieldValues];
+                });
+
+                // Create CSV with BOM for Excel Turkish character support
+                const BOM = '\uFEFF';
+                const csvContent = BOM + [
+                  headers.map(h => `"${h}"`).join(';'),
+                  ...rows.map(row => row.map(cell => `"${cell}"`).join(';'))
+                ].join('\n');
+
+                // Download file
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${editingForm.title.replace(/\s+/g, '_')}_Basvurular_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-95"
+            >
+              <span className="material-symbols-outlined text-lg">download</span>
+              Excel Olarak İndir
+            </button>
+          )}
         </div>
 
         <div className="bg-white dark:bg-card-dark rounded-3xl shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden">
