@@ -37,6 +37,15 @@ Okul yönetiminin tüm süreçleri tek bir yerden kontrol edebileceği kapsamlı
 #### 4. Teknik Özellikler
 *   **Veri Kalıcılığı (Persistence):** Tarayıcı `localStorage` kullanılarak verilerin (öğrenciler, öğretmenler, içerikler vb.) saklanması.
 *   **Form Yönetimi:** Dinamik form oluşturucu ve başvuru takibi.
+41: 
+42: #### 5. Personel Başvuru Yönetimi (Yeni)
+43: *   **Entegrasyon:** Web sitesindeki "İnsan Kaynakları" başvuru formunun Admin paneli ile tam entegrasyonu.
+44: *   **Veri Haritalama:** Ad, E-posta, Telefon, Pozisyon ve Ön Yazı alanlarının eksiksiz ve doğru şekilde panele aktarılması (E-posta/Telefon karışıklığı giderildi).
+45: *   **Detaylı Başvuru Görünümü:** Admin panelinde her bir form için özelleştirilmiş, tablo formatında detaylı başvuru listesi.
+46: *   **Kendi Kendini Onaran Yapı:** Form yapısındaki güncellemelerin (örn. eksik alanlar) tarayıcı verilerine otomatik yansıtılması.
+47: 
+48: **🎥 Son Entegrasyon Videosu:**
+49: ![Personel Formu Entegrasyonu](public/docs/personel_formu_entegrasyonu.webp)
 
 ## 💻 Kurulum ve Çalıştırma
 

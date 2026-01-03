@@ -14,9 +14,21 @@ export interface FormField {
 interface DynamicFormRendererProps {
   fields: FormField[];
   submitButtonText?: string;
+  onSubmit?: (data: any) => void;
 }
 
-const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ fields, submitButtonText = "Gönder" }) => {
+const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ fields, submitButtonText = "Gönder", onSubmit }) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (onSubmit) {
+      const formData = new FormData(e.currentTarget);
+      const data: any = {};
+      fields.forEach(field => {
+        data[field.id] = formData.get(field.id);
+      });
+      onSubmit(data);
+    }
+  };
 
   const renderField = (field: FormField) => {
     const commonClasses = "w-full h-12 rounded-lg border-border-color bg-background-light dark:bg-background-dark dark:border-gray-700 dark:text-white px-4 text-text-main placeholder:text-text-muted/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none";
@@ -25,6 +37,7 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ fields, submi
       case 'textarea':
         return (
           <textarea
+            name={field.id}
             className="w-full rounded-lg border-border-color bg-background-light dark:bg-background-dark dark:border-gray-700 dark:text-white p-4 text-text-main placeholder:text-text-muted/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all outline-none resize-y min-h-[120px]"
             placeholder={field.placeholder}
             required={field.required}
@@ -33,7 +46,7 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ fields, submi
       case 'select':
         return (
           <div className="relative">
-            <select className={`${commonClasses} appearance-none cursor-pointer`} required={field.required}>
+            <select name={field.id} className={`${commonClasses} appearance-none cursor-pointer`} required={field.required}>
               <option value="">Seçiniz</option>
               {field.options?.map((opt, i) => (
                 <option key={i} value={opt}>{opt}</option>
@@ -50,7 +63,7 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ fields, submi
             {field.options?.map((opt, i) => (
               <label key={i} className="flex items-center gap-3 cursor-pointer group">
                 <div className="relative flex items-center">
-                  <input type="radio" name={field.id} className="peer sr-only" required={field.required} />
+                  <input type="radio" name={field.id} value={opt} className="peer sr-only" required={field.required} />
                   <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded-full peer-checked:border-primary peer-checked:bg-primary transition-all"></div>
                   <div className="absolute inset-0 flex items-center justify-center scale-0 peer-checked:scale-100 transition-transform">
                     <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -64,7 +77,7 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ fields, submi
       case 'file':
         return (
           <div className="relative border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-6 text-center hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer group">
-            <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" required={field.required} />
+            <input type="file" name={field.id} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" required={field.required} />
             <div className="flex flex-col items-center gap-2 text-gray-400 group-hover:text-primary transition-colors">
               <span className="material-symbols-outlined text-3xl">cloud_upload</span>
               <span className="text-sm font-medium">{field.placeholder || "Dosya yüklemek için tıklayın veya sürükleyin"}</span>
@@ -75,7 +88,7 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ fields, submi
         return (
           <label className="flex items-center gap-3 cursor-pointer group select-none mt-2">
             <div className="relative flex items-center">
-              <input type="checkbox" className="peer sr-only" required={field.required} />
+              <input type="checkbox" name={field.id} className="peer sr-only" required={field.required} />
               <div className="w-6 h-6 border-2 border-gray-300 dark:border-gray-600 rounded-lg peer-checked:border-primary peer-checked:bg-primary transition-all flex items-center justify-center text-white">
                 <span className="material-symbols-outlined text-sm scale-0 peer-checked:scale-100 transition-transform">check</span>
               </div>
@@ -87,6 +100,7 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ fields, submi
         return (
           <input
             type={field.type}
+            name={field.id}
             className={commonClasses}
             placeholder={field.placeholder}
             required={field.required}
@@ -96,7 +110,7 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ fields, submi
   };
 
   return (
-    <form className="flex flex-col gap-6" onSubmit={(e) => e.preventDefault()}>
+    <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
       {fields.map((field) => (
         <label key={field.id} className="flex flex-col gap-2">
           <span className="text-sm font-bold text-text-main dark:text-gray-300 flex justify-between">

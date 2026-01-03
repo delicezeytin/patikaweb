@@ -424,7 +424,28 @@ const Admin: React.FC = () => {
   useEffect(() => { localStorage.setItem('patika_food_menu', JSON.stringify(foodMenu)); }, [foodMenu]);
   useEffect(() => { localStorage.setItem('patika_schedule', JSON.stringify(schedule)); }, [schedule]);
   useEffect(() => { localStorage.setItem('patika_applications', JSON.stringify(applications)); }, [applications]);
-  useEffect(() => { localStorage.setItem('patika_custom_forms', JSON.stringify(customForms)); }, [customForms]);
+  useEffect(() => {
+    localStorage.setItem('patika_custom_forms', JSON.stringify(customForms));
+  }, [customForms]);
+
+  // Migration for Personnel form fields to ensure Email field exists and IDs are correct
+  useEffect(() => {
+    const personnelForm = customForms.find(f => f.id === 'personnel');
+    if (personnelForm) {
+      const hasEmail = personnelForm.fields.some(f => f.id === 'email');
+      if (!hasEmail) {
+        const correctFields = [
+          { id: 'p1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Adınız Soyadınız' },
+          { id: 'p3', type: 'tel', label: 'Telefon', required: true, placeholder: 'örn: 555 123 4567' },
+          { id: 'email', type: 'email', label: 'E-posta', required: true, placeholder: 'örn: ornek@email.com' },
+          { id: 'p4', type: 'select', label: 'Başvurulan Pozisyon', required: true, options: ['Sınıf Öğretmeni', 'Yardımcı Öğretmen', 'Branş Öğretmeni', 'Temizlik Personeli', 'Mutfak Personeli', 'Hemşire', 'Psikolog', 'Diğer'] },
+          { id: 'p5', type: 'textarea', label: 'Ön Yazı', required: true, placeholder: 'Kendinizden kısaca bahsediniz...' }
+        ];
+
+        setCustomForms(prev => prev.map(f => f.id === 'personnel' ? { ...f, fields: correctFields } : f));
+      }
+    }
+  }, []); // Run check on mount
 
   // --- Helpers ---
 
@@ -1254,7 +1275,7 @@ const Admin: React.FC = () => {
               <div className="space-y-2 text-sm">
                 <div className="flex items-center gap-2 text-text-muted"><span className="material-symbols-outlined text-lg">child_care</span>{c.ageGroup}</div>
                 <div className="flex items-center gap-2 text-text-muted"><span className="material-symbols-outlined text-lg">group</span>Kapasite: {c.capacity}</div>
-                <div className="flex flex-wrap gap-1 mt-2">{c.teacherIds.map(tid => { const t = teachers.find(x => x.id === tid); return t ? <span key={tid} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full font-bold">{t.name}</span> : null; })}</div>
+                <div className="flex flex-wrap gap-1 mt-2">{c.teacherIds?.map(tid => { const t = teachers.find(x => x.id === tid); return t ? <span key={tid} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full font-bold">{t.name}</span> : null; })}</div>
               </div>
             </div>
           ))}
@@ -1404,8 +1425,8 @@ const Admin: React.FC = () => {
                 <button onClick={() => { setEditingForm(form); setActiveView('form-builder'); }} className="flex items-center gap-1 text-primary hover:text-orange-700">
                   <span className="material-symbols-outlined text-lg">edit_square</span> Düzenle
                 </button>
-                <button onClick={() => { setEditingForm(form); /* Go to submissions view */ }} className="flex items-center gap-1 text-text-muted hover:text-text-main">
-                  <span className="material-symbols-outlined text-lg">list_alt</span> Başvurular ({form.submissions.length})
+                <button onClick={() => { setEditingForm(form); setActiveView('form-submissions'); }} className="flex items-center gap-1 text-text-muted hover:text-text-main">
+                  <span className="material-symbols-outlined text-lg">list_alt</span> Başvurular ({form.submissions?.length || 0})
                 </button>
               </div>
               <button onClick={() => setCustomForms(customForms.filter(f => f.id !== form.id))} className="text-gray-400 hover:text-red-500">
@@ -1558,6 +1579,64 @@ const Admin: React.FC = () => {
                 </Droppable>
               </DragDropContext>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderFormSubmissions = () => {
+    if (!editingForm) return null;
+
+    return (
+      <div className="max-w-6xl mx-auto animate-fadeIn space-y-6 pb-20">
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={() => { setActiveView('forms'); setEditingForm(null); }} className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-text-muted">
+            <span className="material-symbols-outlined">arrow_back</span>
+          </button>
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-text-main dark:text-white">{editingForm.title} Başvuruları</h2>
+            <p className="text-text-muted">Toplam {editingForm.submissions?.length || 0} başvuru</p>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-card-dark rounded-3xl shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5">
+                  <th className="p-4 text-xs font-bold text-text-muted uppercase w-32">Tarih</th>
+                  {editingForm.fields.map(field => (
+                    <th key={field.id} className="p-4 text-xs font-bold text-text-muted uppercase whitespace-nowrap min-w-[150px]">{field.label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {editingForm.submissions?.length > 0 ? (
+                  editingForm.submissions.map((sub, idx) => (
+                    <tr key={idx} className="border-b border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                      <td className="p-4 text-sm font-medium text-text-muted whitespace-nowrap">
+                        {sub.date ? new Date(sub.date).toLocaleDateString('tr-TR') : '-'}
+                      </td>
+                      {editingForm.fields.map(field => {
+                        const val = sub.data?.[field.label] || sub.data?.[field.id] || '-';
+                        return (
+                          <td key={field.id} className="p-4 text-sm font-bold text-text-main dark:text-gray-300">
+                            {typeof val === 'object' ? JSON.stringify(val) : val}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={editingForm.fields.length + 1} className="p-12 text-center text-text-muted">
+                      Henüz başvuru bulunmuyor.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -1919,6 +1998,7 @@ const Admin: React.FC = () => {
         {activeView === 'meeting-edit' && renderMeetingEdit()}
         {activeView === 'forms' && renderForms()}
         {activeView === 'form-builder' && renderFormBuilder()}
+        {activeView === 'form-submissions' && renderFormSubmissions()}
         {activeView === 'content-management' && renderContentManagement()}
         {activeView === 'settings' && renderSettings()}
       </main>
