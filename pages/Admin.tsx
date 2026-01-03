@@ -540,25 +540,59 @@ const Admin: React.FC = () => {
     ];
   });
 
-  // Custom Forms State - with built-in deduplication
+  // Custom Forms State - with comprehensive deduplication
   const [customForms, setCustomForms] = useState<CustomForm[]>(() => {
     const saved = localStorage.getItem('patika_custom_forms');
     let forms: CustomForm[] = saved ? JSON.parse(saved) : [];
 
-    // Deduplicate on initial load - keep only first occurrence of each ID
+    // Map of old IDs to new IDs for normalization
+    const idNormalization: { [key: string]: string } = {
+      'student': 'school_register',
+      'okul_kayit': 'school_register',
+      'personel': 'personnel',
+      'iletisim': 'contact',
+    };
+
+    // Normalize old IDs to new ones
+    forms = forms.map(form => {
+      const normalizedId = idNormalization[form.id] || form.id;
+      if (normalizedId !== form.id) {
+        console.log(`[Init] Normalized form ID: ${form.id} -> ${normalizedId}`);
+        return { ...form, id: normalizedId };
+      }
+      return form;
+    });
+
+    // Deduplicate by ID - keep only first occurrence
     const seenIds = new Set<string>();
     forms = forms.filter(form => {
       if (seenIds.has(form.id)) {
-        console.log(`[Init] Removed duplicate form: ${form.title} (${form.id})`);
+        console.log(`[Init] Removed duplicate form by ID: ${form.title} (${form.id})`);
         return false;
       }
       seenIds.add(form.id);
       return true;
     });
 
-    // Store deduplicated version immediately
-    if (saved && forms.length !== JSON.parse(saved).length) {
-      localStorage.setItem('patika_custom_forms', JSON.stringify(forms));
+    // Also deduplicate by title (some old forms might have different IDs but same title)
+    const seenTitles = new Set<string>();
+    forms = forms.filter(form => {
+      const normalizedTitle = form.title.toLowerCase().trim();
+      if (seenTitles.has(normalizedTitle)) {
+        console.log(`[Init] Removed duplicate form by title: ${form.title} (${form.id})`);
+        return false;
+      }
+      seenTitles.add(normalizedTitle);
+      return true;
+    });
+
+    // Store cleaned version immediately
+    if (saved) {
+      const originalCount = JSON.parse(saved).length;
+      if (forms.length !== originalCount) {
+        console.log(`[Init] Cleaned ${originalCount - forms.length} duplicate forms`);
+        localStorage.setItem('patika_custom_forms', JSON.stringify(forms));
+      }
     }
 
     // Return forms or defaults if empty
