@@ -371,6 +371,8 @@ const Admin: React.FC = () => {
     attendeeEmail: '',
     attendeeName: ''
   });
+  const [icsDataUri, setIcsDataUri] = useState('');
+  const [googleCalendarLink, setGoogleCalendarLink] = useState('');
 
   // Teachers State
   const [teachers, setTeachers] = useState<Teacher[]>(() => {
@@ -606,8 +608,6 @@ const Admin: React.FC = () => {
       setRequests(prev => prev.map(req => req.id === requestId ? { ...req, status: newStatus } : req));
 
       if (newStatus === 'approved') {
-        generateAndDownloadICS();
-
         if (settings.emailjsServiceId && settings.emailjsTemplateId && settings.emailjsPublicKey) {
           const req = requests.find(r => r.id === requestId);
           if (req) {
@@ -619,11 +619,11 @@ const Admin: React.FC = () => {
             };
 
             emailjs.send(settings.emailjsServiceId, settings.emailjsTemplateId, emailParams, settings.emailjsPublicKey)
-              .then(() => alert("Takvim daveti indirildi ve e-posta başarıyla gönderildi!"))
-              .catch((err) => alert("Takvim daveti indirildi ancak e-posta gönderilemedi: " + JSON.stringify(err)));
+              .then(() => alert("Randevu onaylandı ve e-posta başarıyla gönderildi!"))
+              .catch((err) => alert("Randevu onaylandı ancak e-posta gönderilemedi: " + JSON.stringify(err)));
           }
         } else {
-          alert("Takvim daveti indirildi! Otomatik e-posta için Ayarlar'dan EmailJS yapılandırmasını tamamlayın.");
+          alert("Randevu onaylandı! Otomatik e-posta için Ayarlar'dan EmailJS yapılandırmasını tamamlayın.");
         }
       } else {
         alert("Durum güncellendi.");
@@ -637,7 +637,25 @@ const Admin: React.FC = () => {
     }
   };
 
-  const openGoogleCalendar = () => {
+  const proceedToEmailStep = () => {
+    // Generate ICS content for email embedding
+    const icsContent = generateICSContent();
+    setIcsDataUri(`data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}`);
+
+    // Generate Google Calendar link for the email
+    const gcalLink = generateGoogleCalendarLink();
+    setGoogleCalendarLink(gcalLink);
+
+    // Update email body to include the add-to-calendar link
+    setGeneratedEmailBody(prev => {
+      const linkSection = `\n\n📅 Takvime eklemek için:\n${gcalLink}`;
+      return prev.includes('Takvime eklemek') ? prev : prev + linkSection;
+    });
+
+    setApprovalStep(2);
+  };
+
+  const generateGoogleCalendarLink = () => {
     const [year, month, day] = calendarEvent.date.split('-').map(Number);
     const [sh, sm] = calendarEvent.time.split(':').map(Number);
     const [eh, em] = calendarEvent.endTime.split(':').map(Number);
@@ -645,12 +663,10 @@ const Admin: React.FC = () => {
     const end = new Date(year, month - 1, day, eh, em);
     const pad = (n: number) => n.toString().padStart(2, '0');
     const fmt = (d: Date) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
-    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(calendarEvent.title)}&dates=${fmt(start)}/${fmt(end)}&details=${encodeURIComponent(calendarEvent.description)}&location=${encodeURIComponent(calendarEvent.location)}${calendarEvent.attendeeEmail ? `&add=${encodeURIComponent(calendarEvent.attendeeEmail)}` : ''}`;
-    window.open(url, '_blank');
-    setApprovalStep(2);
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(calendarEvent.title)}&dates=${fmt(start)}/${fmt(end)}&details=${encodeURIComponent(calendarEvent.description)}&location=${encodeURIComponent(calendarEvent.location)}${calendarEvent.attendeeEmail ? `&add=${encodeURIComponent(calendarEvent.attendeeEmail)}` : ''}`;
   };
 
-  const generateAndDownloadICS = () => {
+  const generateICSContent = () => {
     const [year, month, day] = calendarEvent.date.split('-').map(Number);
     const [sh, sm] = calendarEvent.time.split(':').map(Number);
     const [eh, em] = calendarEvent.endTime.split(':').map(Number);
@@ -659,12 +675,7 @@ const Admin: React.FC = () => {
     const pad = (n: number) => n.toString().padStart(2, '0');
     const fmt = (d: Date) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
     const uid = `patika-${Date.now()}@patikacocukyuvasi.com`;
-    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Patika//TR', 'BEGIN:VEVENT', `UID:${uid}`, `DTSTAMP:${fmt(new Date())}`, `DTSTART:${fmt(start)}`, `DTEND:${fmt(end)}`, `SUMMARY:${calendarEvent.title}`, `DESCRIPTION:${calendarEvent.description.replace(/\n/g, '\\n')}`, `LOCATION:${calendarEvent.location}`, `ORGANIZER:mailto:${settings.smtpUser || 'info@patika.com'}`, calendarEvent.attendeeEmail ? `ATTENDEE:mailto:${calendarEvent.attendeeEmail}` : '', 'STATUS:CONFIRMED', 'END:VEVENT', 'END:VCALENDAR'].filter(Boolean).join('\r\n');
-    const blob = new Blob([ics], { type: 'text/calendar' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'patika-toplanti.ics';
-    link.click();
+    return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Patika//TR', 'BEGIN:VEVENT', `UID:${uid}`, `DTSTAMP:${fmt(new Date())}`, `DTSTART:${fmt(start)}`, `DTEND:${fmt(end)}`, `SUMMARY:${calendarEvent.title}`, `DESCRIPTION:${calendarEvent.description.replace(/\n/g, '\\n')}`, `LOCATION:${calendarEvent.location}`, `ORGANIZER:mailto:${settings.smtpUser || 'info@patika.com'}`, calendarEvent.attendeeEmail ? `ATTENDEE:mailto:${calendarEvent.attendeeEmail}` : '', 'STATUS:CONFIRMED', 'END:VEVENT', 'END:VCALENDAR'].filter(Boolean).join('\r\n');
   };
 
   const handleAddToCalendar = (req: MeetingRequest) => {
@@ -2308,7 +2319,7 @@ const Admin: React.FC = () => {
                 {approvalStep === 1 ? 'İptal' : 'Geri'}
               </button>
               {approvalStep === 1 ? (
-                <button onClick={openGoogleCalendar} className="px-6 py-2.5 rounded-xl font-bold bg-primary text-white shadow-lg hover:bg-orange-600 transition-transform active:scale-95 flex items-center gap-2">
+                <button onClick={proceedToEmailStep} className="px-6 py-2.5 rounded-xl font-bold bg-primary text-white shadow-lg hover:bg-orange-600 transition-transform active:scale-95 flex items-center gap-2">
                   Etkinliği Oluştur
                   <span className="material-symbols-outlined">arrow_forward</span>
                 </button>
