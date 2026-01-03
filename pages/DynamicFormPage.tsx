@@ -34,7 +34,8 @@ const DynamicFormPage: React.FC = () => {
             try {
                 const forms: CustomForm[] = JSON.parse(savedForms);
                 const foundForm = forms.find(f => f.slug === slug || f.id === slug);
-                if (foundForm && foundForm.isActive) {
+                // Default isActive to true if undefined (backward compatibility)
+                if (foundForm && foundForm.isActive !== false) {
                     setForm(foundForm);
                 } else {
                     setNotFound(true);
