@@ -540,10 +540,29 @@ const Admin: React.FC = () => {
     ];
   });
 
-  // Custom Forms State
+  // Custom Forms State - with built-in deduplication
   const [customForms, setCustomForms] = useState<CustomForm[]>(() => {
     const saved = localStorage.getItem('patika_custom_forms');
-    return saved ? JSON.parse(saved) : [
+    let forms: CustomForm[] = saved ? JSON.parse(saved) : [];
+
+    // Deduplicate on initial load - keep only first occurrence of each ID
+    const seenIds = new Set<string>();
+    forms = forms.filter(form => {
+      if (seenIds.has(form.id)) {
+        console.log(`[Init] Removed duplicate form: ${form.title} (${form.id})`);
+        return false;
+      }
+      seenIds.add(form.id);
+      return true;
+    });
+
+    // Store deduplicated version immediately
+    if (saved && forms.length !== JSON.parse(saved).length) {
+      localStorage.setItem('patika_custom_forms', JSON.stringify(forms));
+    }
+
+    // Return forms or defaults if empty
+    return forms.length > 0 ? forms : [
       {
         id: 'contact', title: 'İletişim Formu', slug: 'iletisim-formu', description: 'Web sitesi iletişim sayfası formu', isActive: true, submissions: [],
         fields: [
