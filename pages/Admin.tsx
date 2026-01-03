@@ -631,6 +631,7 @@ const Admin: React.FC = () => {
 
   // Editing states
   const [editingForm, setEditingForm] = useState<CustomForm | null>(null);
+  const [viewingSubmission, setViewingSubmission] = useState<{ data: any; date: string } | null>(null);
 
   // Applications State
   const [applications, setApplications] = useState<{ id: number; type: 'school' | 'staff' | 'contact'; name: string; email: string; phone: string; message: string; date: string; status: 'new' | 'reviewed' | 'contacted' }[]>(() => {
@@ -1996,31 +1997,47 @@ const Admin: React.FC = () => {
               <thead>
                 <tr className="bg-gray-50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5">
                   <th className="p-4 text-xs font-bold text-text-muted uppercase w-32">Tarih</th>
-                  {editingForm.fields.map(field => (
+                  {editingForm.fields.slice(0, 4).map(field => (
                     <th key={field.id} className="p-4 text-xs font-bold text-text-muted uppercase whitespace-nowrap min-w-[150px]">{field.label}</th>
                   ))}
+                  {editingForm.fields.length > 4 && (
+                    <th className="p-4 text-xs font-bold text-text-muted uppercase w-20">Detay</th>
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {editingForm.submissions?.length > 0 ? (
                   editingForm.submissions.map((sub, idx) => (
-                    <tr key={idx} className="border-b border-gray-50 dark:border-white/5 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                    <tr
+                      key={idx}
+                      onClick={() => setViewingSubmission(sub)}
+                      className="border-b border-gray-50 dark:border-white/5 hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors cursor-pointer"
+                    >
                       <td className="p-4 text-sm font-medium text-text-muted whitespace-nowrap">
                         {sub.date ? new Date(sub.date).toLocaleDateString('tr-TR') : '-'}
                       </td>
-                      {editingForm.fields.map(field => {
+                      {editingForm.fields.slice(0, 4).map(field => {
                         const val = sub.data?.[field.label] || sub.data?.[field.id] || '-';
+                        const displayVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
                         return (
-                          <td key={field.id} className="p-4 text-sm font-bold text-text-main dark:text-gray-300">
-                            {typeof val === 'object' ? JSON.stringify(val) : val}
+                          <td key={field.id} className="p-4 text-sm font-bold text-text-main dark:text-gray-300 max-w-[200px] truncate" title={displayVal}>
+                            {displayVal.length > 30 ? displayVal.substring(0, 30) + '...' : displayVal}
                           </td>
                         );
                       })}
+                      {editingForm.fields.length > 4 && (
+                        <td className="p-4">
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-primary">
+                            <span className="material-symbols-outlined text-sm">visibility</span>
+                            Görüntüle
+                          </span>
+                        </td>
+                      )}
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={editingForm.fields.length + 1} className="p-12 text-center text-text-muted">
+                    <td colSpan={editingForm.fields.length > 4 ? 6 : editingForm.fields.slice(0, 4).length + 1} className="p-12 text-center text-text-muted">
                       Henüz başvuru bulunmuyor.
                     </td>
                   </tr>
@@ -2029,6 +2046,72 @@ const Admin: React.FC = () => {
             </table>
           </div>
         </div>
+
+        {/* Submission Detail Modal */}
+        {viewingSubmission && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setViewingSubmission(null)}>
+            <div
+              className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden animate-fadeIn"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-700">
+                <div>
+                  <h3 className="text-xl font-black text-text-main dark:text-white">Başvuru Detayları</h3>
+                  <p className="text-sm text-text-muted mt-1">
+                    {viewingSubmission.date ? new Date(viewingSubmission.date).toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Tarih belirtilmedi'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setViewingSubmission(null)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto max-h-[60vh] space-y-4">
+                {editingForm.fields.map(field => {
+                  const val = viewingSubmission.data?.[field.label] || viewingSubmission.data?.[field.id] || '-';
+                  const displayVal = typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val);
+                  return (
+                    <div key={field.id} className="bg-gray-50 dark:bg-white/5 rounded-xl p-4">
+                      <label className="text-xs font-bold text-text-muted uppercase tracking-wider">{field.label}</label>
+                      <p className="text-text-main dark:text-white font-medium mt-1 whitespace-pre-wrap break-words">{displayVal}</p>
+                    </div>
+                  );
+                })}
+
+                {/* Show any extra data keys not in current form fields (for backward compatibility) */}
+                {viewingSubmission.data && Object.keys(viewingSubmission.data).filter(key =>
+                  !editingForm.fields.some(f => f.id === key || f.label === key)
+                ).length > 0 && (
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                      <p className="text-xs font-bold text-text-muted uppercase mb-3">Ek Bilgiler</p>
+                      {Object.entries(viewingSubmission.data)
+                        .filter(([key]) => !editingForm.fields.some(f => f.id === key || f.label === key))
+                        .map(([key, val]) => (
+                          <div key={key} className="bg-gray-50 dark:bg-white/5 rounded-xl p-4 mb-2">
+                            <label className="text-xs font-bold text-text-muted uppercase tracking-wider">{key}</label>
+                            <p className="text-text-main dark:text-white font-medium mt-1 whitespace-pre-wrap break-words">
+                              {typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val)}
+                            </p>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+              </div>
+
+              <div className="p-6 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-3">
+                <button
+                  onClick={() => setViewingSubmission(null)}
+                  className="px-5 py-2.5 text-text-muted hover:text-text-main dark:hover:text-white font-bold rounded-xl transition-colors"
+                >
+                  Kapat
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
