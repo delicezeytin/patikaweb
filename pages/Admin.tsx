@@ -1542,36 +1542,38 @@ const Admin: React.FC = () => {
                         </div>
                       )}
                       {editingForm.fields.map((field, index) => (
-                        <Draggable key={field.id} draggableId={field.id} index={index}>
-                          {(provided) => (
-                            <div ref={provided.innerRef} {...provided.draggableProps} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 group relative">
-                              <div {...provided.dragHandleProps} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-300 cursor-move hover:text-primary">
-                                <span className="material-symbols-outlined">drag_indicator</span>
-                              </div>
-                              <div className="pl-8 pr-8 space-y-3">
-                                <div className="flex gap-4">
-                                  <input value={field.label} onChange={e => updateField(field.id, { label: e.target.value })} className="flex-1 p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-transparent text-sm font-bold" placeholder="Alan Etiketi" />
-                                  <div className="flex items-center gap-2">
-                                    <input type="checkbox" checked={field.required} onChange={e => updateField(field.id, { required: e.target.checked })} id={`req-${field.id}`} />
-                                    <label htmlFor={`req-${field.id}`} className="text-xs font-bold text-text-muted">Zorunlu</label>
-                                  </div>
+                        <React.Fragment key={field.id}>
+                          <Draggable draggableId={field.id} index={index}>
+                            {(provided) => (
+                              <div ref={provided.innerRef} {...provided.draggableProps} className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-white/5 group relative">
+                                <div {...provided.dragHandleProps} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-300 cursor-move hover:text-primary">
+                                  <span className="material-symbols-outlined">drag_indicator</span>
                                 </div>
-                                {(field.type === 'text' || field.type === 'email' || field.type === 'tel' || field.type === 'number') && (
-                                  <input value={field.placeholder || ''} onChange={e => updateField(field.id, { placeholder: e.target.value })} className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/10 text-xs" placeholder="Placeholder (İpucu metni)" />
-                                )}
-                                {(field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') && (
-                                  <div className="space-y-2">
-                                    <label className="text-xs font-bold text-text-muted">Seçenekler (Virgülle ayırın)</label>
-                                    <input value={field.options?.join(', ') || ''} onChange={e => updateField(field.id, { options: e.target.value.split(',').map(s => s.trim()) })} className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/10 text-xs" placeholder="Seçenek 1, Seçenek 2" />
+                                <div className="pl-8 pr-8 space-y-3">
+                                  <div className="flex gap-4">
+                                    <input value={field.label} onChange={e => updateField(field.id, { label: e.target.value })} className="flex-1 p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-transparent text-sm font-bold" placeholder="Alan Etiketi" />
+                                    <div className="flex items-center gap-2">
+                                      <input type="checkbox" checked={field.required} onChange={e => updateField(field.id, { required: e.target.checked })} id={`req-${field.id}`} />
+                                      <label htmlFor={`req-${field.id}`} className="text-xs font-bold text-text-muted">Zorunlu</label>
+                                    </div>
                                   </div>
-                                )}
+                                  {(field.type === 'text' || field.type === 'email' || field.type === 'tel' || field.type === 'number') && (
+                                    <input value={field.placeholder || ''} onChange={e => updateField(field.id, { placeholder: e.target.value })} className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/10 text-xs" placeholder="Placeholder (İpucu metni)" />
+                                  )}
+                                  {(field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') && (
+                                    <div className="space-y-2">
+                                      <label className="text-xs font-bold text-text-muted">Seçenekler (Virgülle ayırın)</label>
+                                      <input value={field.options?.join(', ') || ''} onChange={e => updateField(field.id, { options: e.target.value.split(',').map(s => s.trim()) })} className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/10 text-xs" placeholder="Seçenek 1, Seçenek 2" />
+                                    </div>
+                                  )}
+                                </div>
+                                <button onClick={() => removeField(field.id)} className="absolute right-2 top-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <span className="material-symbols-outlined">delete</span>
+                                </button>
                               </div>
-                              <button onClick={() => removeField(field.id)} className="absolute right-2 top-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span className="material-symbols-outlined">delete</span>
-                              </button>
-                            </div>
-                          )}
-                        </Draggable>
+                            )}
+                          </Draggable>
+                        </React.Fragment>
                       ))}
                       {provided.placeholder}
                     </div>
