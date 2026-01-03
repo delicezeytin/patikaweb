@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import DynamicFormRenderer, { FormField } from '../components/DynamicFormRenderer';
+import emailjs from '@emailjs/browser';
 
 interface CustomForm {
     id: string;
@@ -10,6 +11,13 @@ interface CustomForm {
     fields: FormField[];
     isActive: boolean;
     submissions: any[];
+    notificationEmails?: string;
+}
+
+interface SystemSettings {
+    emailjsServiceId: string;
+    emailjsTemplateId: string;
+    emailjsPublicKey: string;
 }
 
 const DynamicFormPage: React.FC = () => {
@@ -17,12 +25,14 @@ const DynamicFormPage: React.FC = () => {
     const [form, setForm] = useState<CustomForm | null>(null);
     const [loading, setLoading] = useState(true);
     const [notFound, setNotFound] = useState(false);
+    const [settings, setSettings] = useState<SystemSettings | null>(null);
 
     useEffect(() => {
-        const saved = localStorage.getItem('patika_custom_forms');
-        if (saved) {
+        // Load form
+        const savedForms = localStorage.getItem('patika_custom_forms');
+        if (savedForms) {
             try {
-                const forms: CustomForm[] = JSON.parse(saved);
+                const forms: CustomForm[] = JSON.parse(savedForms);
                 const foundForm = forms.find(f => f.slug === slug || f.id === slug);
                 if (foundForm && foundForm.isActive) {
                     setForm(foundForm);
@@ -36,6 +46,17 @@ const DynamicFormPage: React.FC = () => {
         } else {
             setNotFound(true);
         }
+
+        // Load EmailJS settings
+        const savedSettings = localStorage.getItem('patika_system_settings');
+        if (savedSettings) {
+            try {
+                setSettings(JSON.parse(savedSettings));
+            } catch (e) {
+                console.error('Error loading settings', e);
+            }
+        }
+
         setLoading(false);
     }, [slug]);
 
@@ -69,6 +90,33 @@ const DynamicFormPage: React.FC = () => {
                 return f;
             });
             localStorage.setItem('patika_custom_forms', JSON.stringify(updatedForms));
+        }
+
+        // Send email notification if configured
+        if (form.notificationEmails && settings?.emailjsServiceId && settings?.emailjsTemplateId && settings?.emailjsPublicKey) {
+            const emailAddresses = form.notificationEmails.split(',').map(e => e.trim()).filter(e => e);
+
+            if (emailAddresses.length > 0) {
+                // Format submission data for email
+                const formattedData = Object.entries(submissionData)
+                    .map(([key, value]) => {
+                        const field = form.fields.find(f => f.id === key || f.label === key);
+                        const label = field?.label || key;
+                        return `${label}: ${value}`;
+                    })
+                    .join('\n');
+
+                const emailParams = {
+                    to_email: emailAddresses.join(', '),
+                    to_name: 'Patika Yönetimi',
+                    subject: `Yeni Form Başvurusu: ${form.title}`,
+                    message: `${form.title} formundan yeni bir başvuru alındı.\n\n${new Date().toLocaleString('tr-TR')}\n\n---\n\n${formattedData}`,
+                };
+
+                emailjs.send(settings.emailjsServiceId, settings.emailjsTemplateId, emailParams, settings.emailjsPublicKey)
+                    .then(() => console.log('Email notification sent successfully'))
+                    .catch((err) => console.error('Email notification failed:', err));
+            }
         }
 
         alert('Form başarıyla gönderildi!');
@@ -122,3 +170,4 @@ const DynamicFormPage: React.FC = () => {
 };
 
 export default DynamicFormPage;
+

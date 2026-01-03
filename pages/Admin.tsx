@@ -26,6 +26,7 @@ interface CustomForm {
   fields: FormField[];
   isActive: boolean;
   submissions: any[];
+  notificationEmails?: string; // Comma-separated email addresses for form submission notifications
 }
 
 // Turkish character conversion and slugify helper
@@ -489,11 +490,11 @@ const Admin: React.FC = () => {
     localStorage.setItem('patika_custom_forms', JSON.stringify(customForms));
   }, [customForms]);
 
-  // Self-healing migration: Ensure all required forms ALWAYS exist
+  // Self-healing migration: Ensure all required forms ALWAYS exist and remove duplicates
   useEffect(() => {
     const requiredForms = [
       {
-        id: 'contact', title: 'İletişim Formu', slug: 'iletisim-formu', description: 'Web sitesi iletişim sayfası formu', isActive: true, submissions: [],
+        id: 'contact', title: 'İletişim Formu', slug: 'iletisim-formu', description: 'Web sitesi iletişim sayfası formu', isActive: true, submissions: [], notificationEmails: '',
         fields: [
           { id: 'c1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Ad Soyad' },
           { id: 'c2', type: 'email', label: 'E-posta', required: true, placeholder: 'email@ornek.com' },
@@ -503,7 +504,7 @@ const Admin: React.FC = () => {
         ]
       },
       {
-        id: 'personnel', title: 'Personel Başvuru Formu', slug: 'personel-basvuru-formu', description: 'İş başvuruları için kullanılan form', isActive: true, submissions: [],
+        id: 'personnel', title: 'Personel Başvuru Formu', slug: 'personel-basvuru-formu', description: 'İş başvuruları için kullanılan form', isActive: true, submissions: [], notificationEmails: '',
         fields: [
           { id: 'p1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Adınız Soyadınız' },
           { id: 'p3', type: 'tel', label: 'Telefon', required: true, placeholder: 'örn: 555 123 4567' },
@@ -513,7 +514,7 @@ const Admin: React.FC = () => {
         ]
       },
       {
-        id: 'school_register', title: 'Okul Kayıt Formu', slug: 'okul-kayit-formu', description: 'Yeni öğrenci kaydı için gerekli bilgiler', isActive: true, submissions: [],
+        id: 'school_register', title: 'Okul Kayıt Formu', slug: 'okul-kayit-formu', description: 'Yeni öğrenci kaydı için gerekli bilgiler', isActive: true, submissions: [], notificationEmails: '',
         fields: [
           { id: 'f1', type: 'text', label: 'Öğrenci Adı Soyadı', required: true, placeholder: 'Ad Soyad' },
           { id: 'f2', type: 'date', label: 'Doğum Tarihi', required: true },
@@ -523,38 +524,54 @@ const Admin: React.FC = () => {
       }
     ];
 
-    let needsUpdate = false;
-    let updatedForms = [...customForms];
+    // STEP 1: Remove duplicates - keep only the first occurrence of each ID
+    const seenIds = new Set<string>();
+    let deduplicatedForms = customForms.filter(form => {
+      if (seenIds.has(form.id)) {
+        console.log(`[Self-Healing] Removed duplicate form: ${form.title} (${form.id})`);
+        return false;
+      }
+      seenIds.add(form.id);
+      return true;
+    });
 
+    let needsUpdate = deduplicatedForms.length !== customForms.length;
+
+    // STEP 2: Ensure all required forms exist
     requiredForms.forEach(reqForm => {
-      const existingForm = updatedForms.find(f => f.id === reqForm.id);
+      const existingForm = deduplicatedForms.find(f => f.id === reqForm.id);
       if (!existingForm) {
-        // Form doesn't exist at all - add it
-        updatedForms.push(reqForm);
+        deduplicatedForms.push(reqForm);
         needsUpdate = true;
         console.log(`[Self-Healing] Added missing form: ${reqForm.title}`);
-      } else if (reqForm.id === 'personnel') {
-        // For personnel form, ensure email field exists
-        const hasEmail = existingForm.fields.some(f => f.id === 'email');
-        if (!hasEmail) {
-          updatedForms = updatedForms.map(f => f.id === 'personnel' ? { ...f, fields: reqForm.fields, slug: reqForm.slug } : f);
-          needsUpdate = true;
+      } else {
+        // Ensure required fields exist
+        let formNeedsUpdate = false;
+        let updatedForm = { ...existingForm };
+
+        if (!existingForm.slug) {
+          updatedForm.slug = reqForm.slug;
+          formNeedsUpdate = true;
+        }
+        if (existingForm.notificationEmails === undefined) {
+          updatedForm.notificationEmails = '';
+          formNeedsUpdate = true;
+        }
+        if (reqForm.id === 'personnel' && !existingForm.fields.some(f => f.id === 'email')) {
+          updatedForm.fields = reqForm.fields;
+          formNeedsUpdate = true;
           console.log(`[Self-Healing] Fixed personnel form fields`);
         }
-        // Ensure slug exists
-        if (!existingForm.slug) {
-          updatedForms = updatedForms.map(f => f.id === 'personnel' ? { ...f, slug: reqForm.slug } : f);
+
+        if (formNeedsUpdate) {
+          deduplicatedForms = deduplicatedForms.map(f => f.id === reqForm.id ? updatedForm : f);
           needsUpdate = true;
         }
-      } else if (!existingForm.slug) {
-        // Ensure slug exists for other forms
-        updatedForms = updatedForms.map(f => f.id === reqForm.id ? { ...f, slug: reqForm.slug } : f);
-        needsUpdate = true;
       }
     });
 
     if (needsUpdate) {
-      setCustomForms(updatedForms);
+      setCustomForms(deduplicatedForms);
     }
   }, []); // Run check on mount
 
@@ -1652,12 +1669,25 @@ const Admin: React.FC = () => {
           <div className="space-y-6">
             <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm space-y-4">
               <h3 className="font-bold text-lg mb-2">Form Ayarları</h3>
-              <input value={editingForm.title} onChange={e => setEditingForm({ ...editingForm, title: e.target.value })} className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20" placeholder="Form Başlığı" />
+              <input value={editingForm.title} onChange={e => setEditingForm({ ...editingForm, title: e.target.value, slug: slugify(e.target.value) })} className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20" placeholder="Form Başlığı" />
               <textarea value={editingForm.description} onChange={e => setEditingForm({ ...editingForm, description: e.target.value })} className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20" placeholder="Form Açıklaması" rows={3} />
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={editingForm.isActive} onChange={e => setEditingForm({ ...editingForm, isActive: e.target.checked })} className="size-4 rounded text-primary focus:ring-primary" />
                 <span className="text-sm font-bold">Form Aktif</span>
               </label>
+              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                <label className="text-xs font-bold text-text-muted uppercase mb-2 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-sm">mail</span>
+                  Bildirim E-postaları
+                </label>
+                <input
+                  value={editingForm.notificationEmails || ''}
+                  onChange={e => setEditingForm({ ...editingForm, notificationEmails: e.target.value })}
+                  className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-sm"
+                  placeholder="ornek@email.com, diger@email.com"
+                />
+                <p className="text-xs text-text-muted mt-1">Form doldurulduğunda bu adreslere bildirim gönderilir. Virgülle ayırın.</p>
+              </div>
             </div>
 
             <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
