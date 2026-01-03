@@ -98,11 +98,11 @@ const Contact: React.FC = () => {
     // Find other active forms for Quick Links
     const links = [];
     const personnelForm = forms.find((f: any) => f.id === 'personnel');
-    if (personnelForm && personnelForm.isActive) {
+    if (personnelForm && personnelForm.isActive !== false) {
       links.push({ id: 'personnel', title: personnelForm.title, path: '/apply-personnel' });
     }
     const studentForm = forms.find((f: any) => f.id === 'school_register');
-    if (studentForm && studentForm.isActive) {
+    if (studentForm && studentForm.isActive !== false) {
       links.push({ id: 'student', title: studentForm.title, path: '/apply-student' });
     }
     setActiveOtherForms(links);

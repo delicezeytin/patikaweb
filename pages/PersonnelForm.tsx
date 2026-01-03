@@ -148,10 +148,10 @@ const PersonnelForm: React.FC = () => {
           <p className="text-text-muted dark:text-gray-400 mt-2">Patika ailesine katılmak için ilk adımı atın.</p>
         </div>
 
-        {formData?.isActive ? (
+        {formData && formData.isActive !== false ? (
           <DynamicFormRenderer
             fields={formData.fields || []}
-            submitButtonText={formData.submitButtonText}
+            submitButtonText="Başvuruyu Tamamla"
             onSubmit={handlePersonnelSubmit}
           />
         ) : (

@@ -1,52 +1,102 @@
 import React, { useEffect, useState } from 'react';
 import DynamicFormRenderer, { FormField } from '../components/DynamicFormRenderer';
 
-interface GenericForm {
+interface CustomForm {
   id: string;
-  name: string;
   title: string;
-  submitButtonText: string;
-  isActive: boolean;
+  slug?: string;
+  description?: string;
   fields: FormField[];
+  isActive: boolean;
+  submissions?: any[];
+  notificationEmails?: string;
 }
 
-// Default fallback data (Matches Admin.tsx)
-const defaultStudentForm: GenericForm = {
-  id: 'student', 
-  name: 'Öğrenci Ön Kayıt Formu', 
-  title: 'Öğrenci Ön Kayıt Formu', 
-  submitButtonText: 'Ön Kayıt Oluştur',
-  isActive: false, // Default is false for student form as per Admin.tsx
-  fields: [
-    { id: 's1', type: 'text', label: 'Öğrenci Adı Soyadı', required: true },
-    { id: 's2', type: 'date', label: 'Doğum Tarihi', required: true },
-    { id: 's3', type: 'radio', label: 'Cinsiyet', options: ['Kız', 'Erkek'], required: true },
-    { id: 's4', type: 'text', label: 'Veli Adı Soyadı', required: true },
-    { id: 's5', type: 'tel', label: 'Veli Telefon', required: true },
-    { id: 's6', type: 'textarea', label: 'Adres', required: true },
-  ]
-};
-
 const StudentForm: React.FC = () => {
-  const [formData, setFormData] = useState<GenericForm | null>(null);
+  const [formData, setFormData] = useState<CustomForm | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    const settings = localStorage.getItem('patika_form_settings');
-    if (settings) {
+    const savedForms = localStorage.getItem('patika_custom_forms');
+    if (savedForms) {
       try {
-        const parsed: GenericForm[] = JSON.parse(settings);
-        const form = parsed.find((f: any) => f.id === 'student');
+        const forms: CustomForm[] = JSON.parse(savedForms);
+        const form = forms.find(f => f.id === 'school_register');
         if (form) {
           setFormData(form);
-          return;
         }
       } catch (e) {
         console.error("Error parsing form settings", e);
       }
     }
-    // Fallback
-    setFormData(defaultStudentForm);
+    setLoading(false);
   }, []);
+
+  const handleSubmit = (data: FormData) => {
+    if (!formData) return;
+
+    const submissionData: { [key: string]: any } = {};
+    data.forEach((value, key) => {
+      submissionData[key] = value;
+    });
+
+    // Save submission to patika_custom_forms
+    const savedForms = localStorage.getItem('patika_custom_forms');
+    if (savedForms) {
+      const forms: CustomForm[] = JSON.parse(savedForms);
+      const updatedForms = forms.map(f => {
+        if (f.id === 'school_register') {
+          return {
+            ...f,
+            submissions: [
+              ...(f.submissions || []),
+              {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                data: submissionData
+              }
+            ]
+          };
+        }
+        return f;
+      });
+      localStorage.setItem('patika_custom_forms', JSON.stringify(updatedForms));
+    }
+
+    setSubmitted(true);
+    window.scrollTo(0, 0);
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-[900px] w-full mx-auto px-4 sm:px-10 py-20 flex items-center justify-center">
+        <div className="animate-spin size-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  if (submitted) {
+    return (
+      <div className="max-w-[900px] w-full mx-auto px-4 sm:px-10 py-12">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-12 shadow-sm text-center">
+          <div className="size-20 rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center mx-auto mb-6">
+            <span className="material-symbols-outlined text-4xl">check_circle</span>
+          </div>
+          <h2 className="text-3xl font-black text-text-main dark:text-white mb-4">Ön Kaydınız Alındı!</h2>
+          <p className="text-lg text-text-muted dark:text-gray-400 max-w-lg mx-auto">
+            Öğrenci ön kayıt formunuz başarıyla bize ulaştı. Kayıt süreciyle ilgili sizinle iletişime geçeceğiz.
+          </p>
+          <button
+            onClick={() => window.location.href = '/'}
+            className="mt-8 px-8 py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-orange-600 transition-colors"
+          >
+            Anasayfaya Dön
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[900px] w-full mx-auto px-4 sm:px-10 py-12">
@@ -56,15 +106,18 @@ const StudentForm: React.FC = () => {
             <span className="material-symbols-outlined text-3xl">child_care</span>
           </div>
           <h1 className="text-3xl font-black text-text-main dark:text-white">
-            {formData?.title || 'Öğrenci Ön Kayıt Formu'}
+            {formData?.title || 'Okul Kayıt Formu'}
           </h1>
-          <p className="text-text-muted dark:text-gray-400 mt-2">Çocuğunuzun Patika macerası burada başlıyor.</p>
+          <p className="text-text-muted dark:text-gray-400 mt-2">
+            {formData?.description || 'Çocuğunuzun Patika macerası burada başlıyor.'}
+          </p>
         </div>
 
-        {formData?.isActive ? (
-          <DynamicFormRenderer 
-            fields={formData.fields || []} 
-            submitButtonText={formData.submitButtonText} 
+        {formData && formData.isActive !== false ? (
+          <DynamicFormRenderer
+            fields={formData.fields || []}
+            submitButtonText="Ön Kayıt Oluştur"
+            onSubmit={handleSubmit}
           />
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center bg-gray-50 dark:bg-white/5 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
