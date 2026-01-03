@@ -69,6 +69,7 @@ const Contact: React.FC = () => {
   const [formData, setFormData] = useState<GenericForm | null>(null);
   const [activeOtherForms, setActiveOtherForms] = useState<{ id: string, title: string, path: string }[]>([]);
   const [content, setContent] = useState<ContactContent>(defaultContactContent);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     // Load contact page content
@@ -107,6 +108,54 @@ const Contact: React.FC = () => {
     }
     setActiveOtherForms(links);
   }, []);
+
+  const handleContactSubmit = (data: any) => {
+    if (!formData) return;
+
+    const timestamp = Date.now();
+    const dateStr = new Date().toISOString().split('T')[0];
+
+    // Save submission to patika_custom_forms
+    const savedForms = localStorage.getItem('patika_custom_forms');
+    if (savedForms) {
+      const forms = JSON.parse(savedForms);
+      const updatedForms = forms.map((f: any) => {
+        if (f.id === 'contact') {
+          return {
+            ...f,
+            submissions: [
+              ...(f.submissions || []),
+              {
+                id: timestamp,
+                date: dateStr,
+                data: data
+              }
+            ]
+          };
+        }
+        return f;
+      });
+      localStorage.setItem('patika_custom_forms', JSON.stringify(updatedForms));
+    }
+
+    // Also save to global applications for Panel Özeti view
+    const existingAppsStr = localStorage.getItem('patika_applications');
+    const existingApps = existingAppsStr ? JSON.parse(existingAppsStr) : [];
+    const newApp = {
+      id: timestamp,
+      type: 'contact',
+      name: data['Ad Soyad'] || data['c1'] || 'Bilinmiyor',
+      email: data['E-posta'] || data['c2'] || '',
+      phone: data['Telefon'] || data['c3'] || '',
+      message: data['Mesajınız'] || data['c5'] || '',
+      date: dateStr,
+      status: 'new'
+    };
+    localStorage.setItem('patika_applications', JSON.stringify([newApp, ...existingApps]));
+
+    setSubmitted(true);
+    window.scrollTo(0, 0);
+  };
 
   return (
     <div className="max-w-[1200px] w-full flex flex-col">
@@ -215,25 +264,46 @@ const Contact: React.FC = () => {
 
           <div className="lg:col-span-7">
             <div className="bg-white dark:bg-gray-800 rounded-2xl border border-border-color p-6 md:p-8 shadow-sm">
-              <h2 className="text-2xl font-bold text-text-main dark:text-white mb-6">
-                {formData?.title || 'Bize Yazın'}
-              </h2>
-
-              {formData?.isActive ? (
-                <DynamicFormRenderer
-                  fields={formData.fields || []}
-                  submitButtonText={formData.submitButtonText}
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 dark:bg-white/5 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
-                  <div className="size-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 mb-4">
-                    <span className="material-symbols-outlined text-3xl">unpublished</span>
+              {submitted ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="size-20 rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center mx-auto mb-6">
+                    <span className="material-symbols-outlined text-4xl">check_circle</span>
                   </div>
-                  <h3 className="text-lg font-bold text-text-main dark:text-white">Form Geçici Olarak Kapalı</h3>
-                  <p className="text-text-muted dark:text-gray-400 text-sm max-w-xs mt-2">
-                    İletişim formumuz şu anda bakım aşamasındadır veya başvuru kabul etmemektedir. Lütfen telefon ile ulaşınız.
+                  <h2 className="text-2xl font-black text-text-main dark:text-white mb-4">Mesajınız Alındı!</h2>
+                  <p className="text-text-muted dark:text-gray-400 max-w-md">
+                    En kısa sürede sizinle iletişime geçeceğiz. İlginiz için teşekkür ederiz.
                   </p>
+                  <button
+                    onClick={() => setSubmitted(false)}
+                    className="mt-8 px-6 py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-orange-600 transition-colors"
+                  >
+                    Yeni Mesaj Gönder
+                  </button>
                 </div>
+              ) : (
+                <>
+                  <h2 className="text-2xl font-bold text-text-main dark:text-white mb-6">
+                    {formData?.title || 'Bize Yazın'}
+                  </h2>
+
+                  {formData && formData.isActive !== false ? (
+                    <DynamicFormRenderer
+                      fields={formData.fields || []}
+                      submitButtonText="Mesajı Gönder"
+                      onSubmit={handleContactSubmit}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 dark:bg-white/5 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
+                      <div className="size-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 mb-4">
+                        <span className="material-symbols-outlined text-3xl">unpublished</span>
+                      </div>
+                      <h3 className="text-lg font-bold text-text-main dark:text-white">Form Geçici Olarak Kapalı</h3>
+                      <p className="text-text-muted dark:text-gray-400 text-sm max-w-xs mt-2">
+                        İletişim formumuz şu anda bakım aşamasındadır veya başvuru kabul etmemektedir. Lütfen telefon ile ulaşınız.
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
