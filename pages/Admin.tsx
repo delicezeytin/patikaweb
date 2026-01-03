@@ -2435,6 +2435,29 @@ const Admin: React.FC = () => {
                   )}
 
                   <button
+                    onClick={() => {
+                      const enteredOtp = otpInput.join('');
+                      if (enteredOtp.length !== 6) {
+                        setOtpError('Lütfen 6 haneli kodu tam olarak girin.');
+                        return;
+                      }
+                      if (enteredOtp === generatedOtp) {
+                        setIsAuthenticated(true);
+                        localStorage.setItem('patika_admin_session', JSON.stringify({ timestamp: Date.now(), email: loginEmail }));
+                      } else {
+                        setOtpError('Geçersiz doğrulama kodu. Lütfen tekrar deneyin.');
+                        setOtpInput(['', '', '', '', '', '']);
+                        setTimeout(() => otpInputRefs[0].current?.focus(), 100);
+                      }
+                    }}
+                    disabled={otpInput.some(d => d === '')}
+                    className="w-full py-4 bg-primary hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2"
+                  >
+                    <span className="material-symbols-outlined">login</span>
+                    Giriş Yap
+                  </button>
+
+                  <button
                     onClick={() => { setOtpSent(false); setOtpError(''); }}
                     className="w-full py-3 text-text-muted hover:text-text-main text-sm font-bold transition-colors flex items-center justify-center gap-1"
                   >
