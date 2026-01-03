@@ -73,4 +73,59 @@ Projede Node.js gereklidir.
 *   **Date Handling:** date-fns
 
 ---
+
+## ⚠️ KRİTİK YAPILANDIRMA BİLGİLERİ
+
+> [!CAUTION]
+> Aşağıdaki yapılandırmalar sistemin çalışması için kritiktir. DEĞİŞTİRMEYİN!
+
+### Zorunlu Formlar (Self-Healing)
+
+Aşağıdaki 3 form sistemde **kalıcı olarak korunur**. Silinse veya bozulsa bile otomatik olarak yeniden oluşturulur:
+
+| Form ID | Form Adı | Slug | Durum |
+|---------|----------|------|-------|
+| `contact` | İletişim Formu | `iletisim-formu` | Kalıcı ✅ |
+| `personnel` | Personel Başvuru Formu | `personel-basvuru-formu` | Kalıcı ✅ |
+| `school_register` | Okul Kayıt Formu | `okul-kayit-formu` | Kalıcı ✅ |
+
+**Self-Healing Mekanizması:** `Admin.tsx` dosyasındaki `useEffect` hook'u her sayfa yüklemesinde bu formları kontrol eder ve eksik olanları otomatik ekler.
+
+### E-posta Bildirimleri
+
+**Mevcut Sistem:** EmailJS (tarayıcı tabanlı)
+- SMTP ayarları backend gerektirdiğinden **KULLANILMIYOR**
+- E-posta gönderimi için **EmailJS yapılandırması ZORUNLU**
+
+### Form URL Yapısı
+
+Formlar dinamik olarak şu formatta erişilebilir:
+```
+https://site.com/#/form/[slug]
+```
+
+Örnek:
+- `/form/personel-basvuru-formu`
+- `/form/okul-kayit-formu`
+
+### LocalStorage Anahtarları
+
+| Anahtar | Açıklama |
+|---------|----------|
+| `patika_custom_forms` | Form tanımları ve başvuruları |
+| `patika_home_content` | Anasayfa içerikleri |
+| `patika_contact_content` | İletişim sayfası bilgileri |
+| `patika_teachers` | Öğretmen listesi |
+| `patika_classes` | Sınıf tanımları |
+| `patika_food_menu` | Haftalık yemek menüsü |
+| `patika_schedule` | Ders programı |
+| `patika_applications` | Genel başvurular |
+| `patika_meeting_forms` | Toplantı formları |
+| `patika_meeting_requests` | Toplantı talepleri |
+| `patika_system_settings` | Sistem ayarları (EmailJS vb.) |
+| `patika_about_content` | Hakkımızda sayfası |
+| `patika_tales` | Masallar içeriği |
+
+---
+
 *Patika Çocuk Yuvası için sevgiyle geliştirildi.*

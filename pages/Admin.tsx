@@ -489,22 +489,72 @@ const Admin: React.FC = () => {
     localStorage.setItem('patika_custom_forms', JSON.stringify(customForms));
   }, [customForms]);
 
-  // Migration for Personnel form fields to ensure Email field exists and IDs are correct
+  // Self-healing migration: Ensure all required forms ALWAYS exist
   useEffect(() => {
-    const personnelForm = customForms.find(f => f.id === 'personnel');
-    if (personnelForm) {
-      const hasEmail = personnelForm.fields.some(f => f.id === 'email');
-      if (!hasEmail) {
-        const correctFields = [
+    const requiredForms = [
+      {
+        id: 'contact', title: 'İletişim Formu', slug: 'iletisim-formu', description: 'Web sitesi iletişim sayfası formu', isActive: true, submissions: [],
+        fields: [
+          { id: 'c1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Ad Soyad' },
+          { id: 'c2', type: 'email', label: 'E-posta', required: true, placeholder: 'email@ornek.com' },
+          { id: 'c3', type: 'tel', label: 'Telefon', required: true, placeholder: '0555 555 55 55' },
+          { id: 'c4', type: 'select', label: 'Konu', required: true, options: ['Bilgi Alma', 'Randevu', 'Şikayet/Öneri'] },
+          { id: 'c5', type: 'textarea', label: 'Mesajınız', required: true, placeholder: 'Mesajınızı buraya yazınız...' },
+        ]
+      },
+      {
+        id: 'personnel', title: 'Personel Başvuru Formu', slug: 'personel-basvuru-formu', description: 'İş başvuruları için kullanılan form', isActive: true, submissions: [],
+        fields: [
           { id: 'p1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Adınız Soyadınız' },
           { id: 'p3', type: 'tel', label: 'Telefon', required: true, placeholder: 'örn: 555 123 4567' },
           { id: 'email', type: 'email', label: 'E-posta', required: true, placeholder: 'örn: ornek@email.com' },
           { id: 'p4', type: 'select', label: 'Başvurulan Pozisyon', required: true, options: ['Sınıf Öğretmeni', 'Yardımcı Öğretmen', 'Branş Öğretmeni', 'Temizlik Personeli', 'Mutfak Personeli', 'Hemşire', 'Psikolog', 'Diğer'] },
           { id: 'p5', type: 'textarea', label: 'Ön Yazı', required: true, placeholder: 'Kendinizden kısaca bahsediniz...' }
-        ];
-
-        setCustomForms(prev => prev.map(f => f.id === 'personnel' ? { ...f, fields: correctFields } : f));
+        ]
+      },
+      {
+        id: 'school_register', title: 'Okul Kayıt Formu', slug: 'okul-kayit-formu', description: 'Yeni öğrenci kaydı için gerekli bilgiler', isActive: true, submissions: [],
+        fields: [
+          { id: 'f1', type: 'text', label: 'Öğrenci Adı Soyadı', required: true, placeholder: 'Ad Soyad' },
+          { id: 'f2', type: 'date', label: 'Doğum Tarihi', required: true },
+          { id: 'f3', type: 'text', label: 'Veli Adı Soyadı', required: true, placeholder: 'Veli Adı' },
+          { id: 'f4', type: 'tel', label: 'İletişim Numarası', required: true, placeholder: '05XX XXX XX XX' },
+        ]
       }
+    ];
+
+    let needsUpdate = false;
+    let updatedForms = [...customForms];
+
+    requiredForms.forEach(reqForm => {
+      const existingForm = updatedForms.find(f => f.id === reqForm.id);
+      if (!existingForm) {
+        // Form doesn't exist at all - add it
+        updatedForms.push(reqForm);
+        needsUpdate = true;
+        console.log(`[Self-Healing] Added missing form: ${reqForm.title}`);
+      } else if (reqForm.id === 'personnel') {
+        // For personnel form, ensure email field exists
+        const hasEmail = existingForm.fields.some(f => f.id === 'email');
+        if (!hasEmail) {
+          updatedForms = updatedForms.map(f => f.id === 'personnel' ? { ...f, fields: reqForm.fields, slug: reqForm.slug } : f);
+          needsUpdate = true;
+          console.log(`[Self-Healing] Fixed personnel form fields`);
+        }
+        // Ensure slug exists
+        if (!existingForm.slug) {
+          updatedForms = updatedForms.map(f => f.id === 'personnel' ? { ...f, slug: reqForm.slug } : f);
+          needsUpdate = true;
+        }
+      } else if (!existingForm.slug) {
+        // Ensure slug exists for other forms
+        updatedForms = updatedForms.map(f => f.id === reqForm.id ? { ...f, slug: reqForm.slug } : f);
+        needsUpdate = true;
+      }
+    });
+
+    if (needsUpdate) {
+      setCustomForms(updatedForms);
     }
   }, []); // Run check on mount
 
