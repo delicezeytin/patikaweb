@@ -219,6 +219,58 @@ const initialAboutContent: AboutContent = {
   ]
 };
 
+// --- Homepage Content ---
+interface HomeContent {
+  heroTitle: string;
+  heroSubtitle: string;
+  heroImage: string;
+  primaryButtonText: string;
+  primaryButtonLink: string;
+  secondaryButtonText: string;
+  secondaryButtonLink: string;
+  valuesTitle: string;
+  valuesSubtitle: string;
+  values: { title: string; text: string; icon: string }[];
+}
+
+const initialHomeContent: HomeContent = {
+  heroTitle: "Patika'da Mutlu Adımlar",
+  heroSubtitle: "Çocuğunuzun dünyaya ilk adımları için sevgi dolu, güvenli ve eğitici bir ortam hazırladık.",
+  heroImage: "https://lh3.googleusercontent.com/aida-public/AB6AXuBKkBtmpwhIX5KPxEgKI9zWs4svarIXcB1OZmLOigX0jzCFwcO2zjv_pYzq0bkdHKpWowLwr7ahocm6bA42dTHgnb6j_UBwIlw-kpe2fIhKOlbp8SOWv9NgGWm2uys4pnyqiuP3zZ9NfQDiyw72zo4LZJSbSbrrGo86d5SjWWfbVqiydSWq_Bzyx5NzHhYKd1cXcQ_TWVQ64WochSWtVJV4kVa4ADz1_amSMQIWsalNn6fRHRBzZ1rVpn9eIgNw_G6HRkLLyYa_Hg",
+  primaryButtonText: "Patika'ya Dair",
+  primaryButtonLink: "/about",
+  secondaryButtonText: "Masallar ve Gerçekler",
+  secondaryButtonLink: "/masallar-ve-gercekler",
+  valuesTitle: "Neden Patika?",
+  valuesSubtitle: "Çocuklarınızın gelişimi ve mutluluğu bizim önceliğimiz. Onlara ev sıcaklığında bir okul deneyimi sunuyoruz.",
+  values: [
+    { title: "Güvenli Ortam", text: "7/24 güvenlik sistemleri ve çocuk dostu mimari ile her zaman korunaklı alanlar.", icon: "security" },
+    { title: "Besleyici Öğünler", text: "Diyetisyen kontrolünde hazırlanan, gelişimlerini destekleyen organik ve dengeli menüler.", icon: "restaurant_menu" },
+    { title: "Eğitici Aktiviteler", text: "Montessori temelli, yaratıcılığı ve öğrenmeyi teşvik eden zengin günlük programlar.", icon: "school" }
+  ]
+};
+
+// --- Contact Page Content ---
+interface ContactContent {
+  pageTitle: string;
+  pageSubtitle: string;
+  address: string;
+  phone: string;
+  phoneHours: string;
+  email: string;
+  mapLink: string;
+}
+
+const initialContactContent: ContactContent = {
+  pageTitle: "Bize Ulaşın",
+  pageSubtitle: "Sorularınız mı var? Tanışmak için sabırsızlanıyoruz. Çocuğunuzun geleceği için en doğru adımı birlikte atalım.",
+  address: "Ortakentyahşi Mahallesi, Hıral Sk. No:6, 48420 Bodrum/Muğla",
+  phone: "+90 (552) 804 41 40",
+  phoneHours: "Hafta içi 08:00 - 18:00",
+  email: "patikayuva@gmail.com",
+  mapLink: "https://maps.app.goo.gl/4XhSdNG5ckydkFU67"
+};
+
 const BrandLogo = ({ className = "h-12" }: { className?: string }) => (
   <img
     src="/logo.png"
@@ -446,6 +498,22 @@ const Admin: React.FC = () => {
       }
     }
   }, []); // Run check on mount
+
+  // Homepage Content State
+  const [homeContent, setHomeContent] = useState<HomeContent>(() => {
+    const saved = localStorage.getItem('patika_home_content');
+    return saved ? JSON.parse(saved) : initialHomeContent;
+  });
+
+  // Contact Page Content State
+  const [contactContent, setContactContent] = useState<ContactContent>(() => {
+    const saved = localStorage.getItem('patika_contact_content');
+    return saved ? JSON.parse(saved) : initialContactContent;
+  });
+
+  // Persistence for Home and Contact Content
+  useEffect(() => { localStorage.setItem('patika_home_content', JSON.stringify(homeContent)); }, [homeContent]);
+  useEffect(() => { localStorage.setItem('patika_contact_content', JSON.stringify(contactContent)); }, [contactContent]);
 
   // --- Helpers ---
 
@@ -1646,7 +1714,7 @@ const Admin: React.FC = () => {
   };
 
   // Content Management State
-  const [contentTab, setContentTab] = useState<'about' | 'tales'>('about');
+  const [contentTab, setContentTab] = useState<'home' | 'about' | 'tales' | 'contact'>('home');
 
   const renderContentManagement = () => {
     return (
@@ -1654,20 +1722,159 @@ const Admin: React.FC = () => {
         <h2 className="text-2xl font-bold text-text-main dark:text-white">İçerik Yönetimi</h2>
 
         {/* Tabs */}
-        <div className="flex gap-4 border-b border-gray-100 dark:border-white/5 pb-2">
+        <div className="flex flex-wrap gap-2 border-b border-gray-100 dark:border-white/5 pb-2">
+          <button
+            onClick={() => setContentTab('home')}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${contentTab === 'home' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}
+          >
+            Anasayfa
+          </button>
           <button
             onClick={() => setContentTab('about')}
-            className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${contentTab === 'about' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${contentTab === 'about' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}
           >
             Hakkımızda
           </button>
           <button
+            onClick={() => setContentTab('contact')}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${contentTab === 'contact' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}
+          >
+            İletişim
+          </button>
+          <button
             onClick={() => setContentTab('tales')}
-            className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${contentTab === 'tales' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${contentTab === 'tales' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}
           >
             Masallar
           </button>
         </div>
+
+        {/* Homepage Content Tab */}
+        {contentTab === 'home' && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm p-6 space-y-6">
+            <h3 className="font-bold text-lg text-text-main dark:text-white">Anasayfa İçerikleri</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-text-muted mb-1">Hero Başlık</label>
+                <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.heroTitle} onChange={(e) => setHomeContent({ ...homeContent, heroTitle: e.target.value })} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-text-muted mb-1">Hero Alt Başlık</label>
+                <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-20" value={homeContent.heroSubtitle} onChange={(e) => setHomeContent({ ...homeContent, heroSubtitle: e.target.value })} />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-text-muted mb-1">Birincil Buton Metni</label>
+                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.primaryButtonText} onChange={(e) => setHomeContent({ ...homeContent, primaryButtonText: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-text-muted mb-1">Birincil Buton Linki</label>
+                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.primaryButtonLink} onChange={(e) => setHomeContent({ ...homeContent, primaryButtonLink: e.target.value })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-text-muted mb-1">İkincil Buton Metni</label>
+                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.secondaryButtonText} onChange={(e) => setHomeContent({ ...homeContent, secondaryButtonText: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-text-muted mb-1">İkincil Buton Linki</label>
+                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.secondaryButtonLink} onChange={(e) => setHomeContent({ ...homeContent, secondaryButtonLink: e.target.value })} />
+                </div>
+              </div>
+              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Değerlerimiz Bölümü</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Bölüm Başlığı</label>
+                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.valuesTitle} onChange={(e) => setHomeContent({ ...homeContent, valuesTitle: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Bölüm Alt Başlığı</label>
+                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.valuesSubtitle} onChange={(e) => setHomeContent({ ...homeContent, valuesSubtitle: e.target.value })} />
+                  </div>
+                </div>
+                {homeContent.values.map((val, idx) => (
+                  <div key={idx} className="mb-4 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2">
+                      <input
+                        className="col-span-3 p-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 font-bold"
+                        placeholder="Başlık"
+                        value={val.title}
+                        onChange={(e) => {
+                          const newValues = [...homeContent.values];
+                          newValues[idx].title = e.target.value;
+                          setHomeContent({ ...homeContent, values: newValues });
+                        }}
+                      />
+                      <input
+                        className="p-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 text-sm"
+                        placeholder="İkon (material)"
+                        value={val.icon}
+                        onChange={(e) => {
+                          const newValues = [...homeContent.values];
+                          newValues[idx].icon = e.target.value;
+                          setHomeContent({ ...homeContent, values: newValues });
+                        }}
+                      />
+                    </div>
+                    <textarea
+                      className="w-full p-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 text-sm"
+                      placeholder="Açıklama"
+                      value={val.text}
+                      onChange={(e) => {
+                        const newValues = [...homeContent.values];
+                        newValues[idx].text = e.target.value;
+                        setHomeContent({ ...homeContent, values: newValues });
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Contact Content Tab */}
+        {contentTab === 'contact' && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm p-6 space-y-6">
+            <h3 className="font-bold text-lg text-text-main dark:text-white">İletişim Sayfası İçerikleri</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-text-muted mb-1">Sayfa Başlığı</label>
+                <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.pageTitle} onChange={(e) => setContactContent({ ...contactContent, pageTitle: e.target.value })} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-text-muted mb-1">Sayfa Alt Başlığı</label>
+                <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-20" value={contactContent.pageSubtitle} onChange={(e) => setContactContent({ ...contactContent, pageSubtitle: e.target.value })} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-text-muted mb-1">Adres</label>
+                <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-20" value={contactContent.address} onChange={(e) => setContactContent({ ...contactContent, address: e.target.value })} />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-text-muted mb-1">Telefon</label>
+                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.phone} onChange={(e) => setContactContent({ ...contactContent, phone: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-text-muted mb-1">Telefon Saatleri</label>
+                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.phoneHours} onChange={(e) => setContactContent({ ...contactContent, phoneHours: e.target.value })} />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-text-muted mb-1">E-posta</label>
+                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.email} onChange={(e) => setContactContent({ ...contactContent, email: e.target.value })} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-text-muted mb-1">Harita Linki</label>
+                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.mapLink} onChange={(e) => setContactContent({ ...contactContent, mapLink: e.target.value })} />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {contentTab === 'about' && (
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm p-6 space-y-6">

@@ -11,6 +11,26 @@ interface GenericForm {
   fields: FormField[];
 }
 
+interface ContactContent {
+  pageTitle: string;
+  pageSubtitle: string;
+  address: string;
+  phone: string;
+  phoneHours: string;
+  email: string;
+  mapLink: string;
+}
+
+const defaultContactContent: ContactContent = {
+  pageTitle: "Bize Ulaşın",
+  pageSubtitle: "Sorularınız mı var? Tanışmak için sabırsızlanıyoruz. Çocuğunuzun geleceği için en doğru adımı birlikte atalım.",
+  address: "Ortakentyahşi Mahallesi, Hıral Sk. No:6, 48420 Bodrum/Muğla",
+  phone: "+90 (552) 804 41 40",
+  phoneHours: "Hafta içi 08:00 - 18:00",
+  email: "patikayuva@gmail.com",
+  mapLink: "https://maps.app.goo.gl/4XhSdNG5ckydkFU67"
+};
+
 // Default data fallback (Matches Admin.tsx)
 const defaultFormsData: GenericForm[] = [
   {
@@ -48,10 +68,16 @@ const defaultFormsData: GenericForm[] = [
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState<GenericForm | null>(null);
   const [activeOtherForms, setActiveOtherForms] = useState<{ id: string, title: string, path: string }[]>([]);
+  const [content, setContent] = useState<ContactContent>(defaultContactContent);
 
   useEffect(() => {
+    // Load contact page content
+    const savedContent = localStorage.getItem('patika_contact_content');
+    if (savedContent) {
+      setContent(JSON.parse(savedContent));
+    }
+
     // Check admin settings for form availability, fallback to default if empty
-    // Updated key to match Admin.tsx
     const settings = localStorage.getItem('patika_custom_forms');
     let forms: GenericForm[] = defaultFormsData;
 
@@ -82,16 +108,14 @@ const Contact: React.FC = () => {
     setActiveOtherForms(links);
   }, []);
 
-  const mapLink = "https://maps.app.goo.gl/4XhSdNG5ckydkFU67";
-
   return (
     <div className="max-w-[1200px] w-full flex flex-col">
       <section className="px-4 sm:px-10 pt-12 pb-8">
         <div className="max-w-[960px] mx-auto">
           <div className="flex flex-col gap-4 text-center md:text-left">
-            <h1 className="text-text-main dark:text-white text-4xl md:text-5xl font-black tracking-tighter">Bize Ulaşın</h1>
+            <h1 className="text-text-main dark:text-white text-4xl md:text-5xl font-black tracking-tighter">{content.pageTitle}</h1>
             <p className="text-text-muted dark:text-gray-400 text-lg font-normal max-w-2xl">
-              Sorularınız mı var? Tanışmak için sabırsızlanıyoruz. Çocuğunuzun geleceği için en doğru adımı birlikte atalım.
+              {content.pageSubtitle}
             </p>
           </div>
         </div>
@@ -108,12 +132,12 @@ const Contact: React.FC = () => {
                 <div>
                   <h3 className="font-bold text-text-main dark:text-white mb-1">Adres</h3>
                   <p className="text-text-muted dark:text-gray-400 text-sm leading-relaxed">
-                    Ortakentyahşi Mahallesi,<br />
-                    Hıral Sk. No:6,<br />
-                    48420 Bodrum/Muğla
+                    {content.address.split(',').map((part, idx) => (
+                      <span key={idx}>{part.trim()}{idx < content.address.split(',').length - 1 && <br />}</span>
+                    ))}
                   </p>
                   <a
-                    href={mapLink}
+                    href={content.mapLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-xs font-bold text-primary mt-3 hover:underline bg-primary/5 px-2 py-1 rounded-md transition-colors"
@@ -129,8 +153,8 @@ const Contact: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="font-bold text-text-main dark:text-white mb-1">Telefon</h3>
-                  <a className="text-text-muted dark:text-gray-400 text-sm hover:text-primary transition-colors" href="tel:+905528044140">+90 (552) 804 41 40</a>
-                  <p className="text-xs text-text-muted dark:text-gray-500 mt-1">Hafta içi 08:00 - 18:00</p>
+                  <a className="text-text-muted dark:text-gray-400 text-sm hover:text-primary transition-colors" href={`tel:${content.phone.replace(/[^+\d]/g, '')}`}>{content.phone}</a>
+                  <p className="text-xs text-text-muted dark:text-gray-500 mt-1">{content.phoneHours}</p>
                 </div>
               </div>
               <div className="flex gap-4 p-4 rounded-xl border border-border-color bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow">
@@ -139,7 +163,7 @@ const Contact: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="font-bold text-text-main dark:text-white mb-1">E-posta</h3>
-                  <a className="text-text-muted dark:text-gray-400 text-sm hover:text-primary transition-colors" href="mailto:patikayuva@gmail.com">patikayuva@gmail.com</a>
+                  <a className="text-text-muted dark:text-gray-400 text-sm hover:text-primary transition-colors" href={`mailto:${content.email}`}>{content.email}</a>
                 </div>
               </div>
             </div>
@@ -179,7 +203,7 @@ const Contact: React.FC = () => {
               </div>
               <a
                 className="absolute bottom-4 right-4 bg-white text-xs font-bold px-3 py-1.5 rounded-lg shadow hover:bg-gray-50 text-text-main flex items-center gap-1"
-                href={mapLink}
+                href={content.mapLink}
                 target="_blank"
                 rel="noopener noreferrer"
               >

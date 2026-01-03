@@ -11,6 +11,42 @@ interface SchoolDocument {
   bg: string;
 }
 
+interface HomeContent {
+  heroTitle: string;
+  heroSubtitle: string;
+  heroImage: string;
+  primaryButtonText: string;
+  primaryButtonLink: string;
+  secondaryButtonText: string;
+  secondaryButtonLink: string;
+  valuesTitle: string;
+  valuesSubtitle: string;
+  values: { title: string; text: string; icon: string }[];
+}
+
+const defaultHomeContent: HomeContent = {
+  heroTitle: "Patika'da Mutlu Adımlar",
+  heroSubtitle: "Çocuğunuzun dünyaya ilk adımları için sevgi dolu, güvenli ve eğitici bir ortam hazırladık.",
+  heroImage: "https://lh3.googleusercontent.com/aida-public/AB6AXuBKkBtmpwhIX5KPxEgKI9zWs4svarIXcB1OZmLOigX0jzCFwcO2zjv_pYzq0bkdHKpWowLwr7ahocm6bA42dTHgnb6j_UBwIlw-kpe2fIhKOlbp8SOWv9NgGWm2uys4pnyqiuP3zZ9NfQDiyw72zo4LZJSbSbrrGo86d5SjWWfbVqiydSWq_Bzyx5NzHhYKd1cXcQ_TWVQ64WochSWtVJV4kVa4ADz1_amSMQIWsalNn6fRHRBzZ1rVpn9eIgNw_G6HRkLLyYa_Hg",
+  primaryButtonText: "Patika'ya Dair",
+  primaryButtonLink: "/about",
+  secondaryButtonText: "Masallar ve Gerçekler",
+  secondaryButtonLink: "/masallar-ve-gercekler",
+  valuesTitle: "Neden Patika?",
+  valuesSubtitle: "Çocuklarınızın gelişimi ve mutluluğu bizim önceliğimiz. Onlara ev sıcaklığında bir okul deneyimi sunuyoruz.",
+  values: [
+    { title: "Güvenli Ortam", text: "7/24 güvenlik sistemleri ve çocuk dostu mimari ile her zaman korunaklı alanlar.", icon: "security" },
+    { title: "Besleyici Öğünler", text: "Diyetisyen kontrolünde hazırlanan, gelişimlerini destekleyen organik ve dengeli menüler.", icon: "restaurant_menu" },
+    { title: "Eğitici Aktiviteler", text: "Montessori temelli, yaratıcılığı ve öğrenmeyi teşvik eden zengin günlük programlar.", icon: "school" }
+  ]
+};
+
+const iconColors: { [key: string]: { text: string; bg: string } } = {
+  security: { text: 'text-primary', bg: 'bg-orange-50 dark:bg-orange-900/20' },
+  restaurant_menu: { text: 'text-secondary', bg: 'bg-red-50 dark:bg-red-900/20' },
+  school: { text: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+};
+
 const Home: React.FC = () => {
   const [documents, setDocuments] = useState<SchoolDocument[]>([
     { id: 'reg', name: "Öğrenci Kayıt Formu", info: "PDF • 2.4 MB", icon: "description", color: "text-secondary", bg: "bg-red-50 dark:bg-red-900/20" },
@@ -18,22 +54,29 @@ const Home: React.FC = () => {
     { id: 'trip', name: "Gezi İzin Belgesi", info: "DOCX • 500 KB", icon: "directions_bus", color: "text-green-600", bg: "bg-green-50 dark:bg-green-900/20" }
   ]);
 
+  const [content, setContent] = useState<HomeContent>(defaultHomeContent);
+
   useEffect(() => {
-    const saved = localStorage.getItem('patika_documents');
-    if (saved) {
-      setDocuments(JSON.parse(saved));
+    const savedDocs = localStorage.getItem('patika_documents');
+    if (savedDocs) {
+      setDocuments(JSON.parse(savedDocs));
+    }
+    const savedContent = localStorage.getItem('patika_home_content');
+    if (savedContent) {
+      setContent(JSON.parse(savedContent));
     }
   }, []);
-
-  // Hero image (same for mobile and desktop - split layout handles it well)
-  const heroImage = "https://lh3.googleusercontent.com/aida-public/AB6AXuBKkBtmpwhIX5KPxEgKI9zWs4svarIXcB1OZmLOigX0jzCFwcO2zjv_pYzq0bkdHKpWowLwr7ahocm6bA42dTHgnb6j_UBwIlw-kpe2fIhKOlbp8SOWv9NgGWm2uys4pnyqiuP3zZ9NfQDiyw72zo4LZJSbSbrrGo86d5SjWWfbVqiydSWq_Bzyx5NzHhYKd1cXcQ_TWVQ64WochSWtVJV4kVa4ADz1_amSMQIWsalNn6fRHRBzZ1rVpn9eIgNw_G6HRkLLyYa_Hg";
 
   return (
     <div className="max-w-[1200px] w-full flex flex-col">
       <ResponsiveHero
-        mobileImage={heroImage}
-        title="Patika'da Mutlu Adımlar"
-        subtitle="Çocuğunuzun dünyaya ilk adımları için sevgi dolu, güvenli ve eğitici bir ortam hazırladık."
+        mobileImage={content.heroImage}
+        title={content.heroTitle}
+        subtitle={content.heroSubtitle}
+        primaryButtonText={content.primaryButtonText}
+        primaryButtonLink={content.primaryButtonLink}
+        secondaryButtonText={content.secondaryButtonText}
+        secondaryButtonLink={content.secondaryButtonLink}
       />
 
       <section className="px-4 sm:px-10 py-12">
@@ -41,46 +84,29 @@ const Home: React.FC = () => {
           <div className="flex flex-col gap-3 text-center sm:text-left">
             <h2 className="text-secondary font-bold tracking-widest text-xs uppercase">Değerlerimiz</h2>
             <h1 className="text-text-main dark:text-white text-3xl sm:text-4xl font-bold leading-tight">
-              Neden Patika?
+              {content.valuesTitle}
             </h1>
             <p className="text-text-muted dark:text-gray-400 text-lg font-normal max-w-2xl">
-              Çocuklarınızın gelişimi ve mutluluğu bizim önceliğimiz. Onlara ev sıcaklığında bir okul deneyimi sunuyoruz.
+              {content.valuesSubtitle}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="flex flex-col gap-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 p-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="size-12 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined text-[32px]">security</span>
-              </div>
-              <div className="flex flex-col gap-2">
-                <h3 className="text-text-main dark:text-white text-xl font-bold">Güvenli Ortam</h3>
-                <p className="text-text-muted dark:text-gray-400 text-sm leading-relaxed">
-                  7/24 güvenlik sistemleri ve çocuk dostu mimari ile her zaman korunaklı alanlar.
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-col gap-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 p-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="size-12 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-secondary">
-                <span className="material-symbols-outlined text-[32px]">restaurant_menu</span>
-              </div>
-              <div className="flex flex-col gap-2">
-                <h3 className="text-text-main dark:text-white text-xl font-bold">Besleyici Öğünler</h3>
-                <p className="text-text-muted dark:text-gray-400 text-sm leading-relaxed">
-                  Diyetisyen kontrolünde hazırlanan, gelişimlerini destekleyen organik ve dengeli menüler.
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-col gap-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 p-6 shadow-sm hover:shadow-md transition-shadow">
-              <div className="size-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600">
-                <span className="material-symbols-outlined text-[32px]">school</span>
-              </div>
-              <div className="flex flex-col gap-2">
-                <h3 className="text-text-main dark:text-white text-xl font-bold">Eğitici Aktiviteler</h3>
-                <p className="text-text-muted dark:text-gray-400 text-sm leading-relaxed">
-                  Montessori temelli, yaratıcılığı ve öğrenmeyi teşvik eden zengin günlük programlar.
-                </p>
-              </div>
-            </div>
+            {content.values.map((val, idx) => {
+              const colors = iconColors[val.icon] || { text: 'text-primary', bg: 'bg-orange-50 dark:bg-orange-900/20' };
+              return (
+                <div key={idx} className="flex flex-col gap-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <div className={`size-12 rounded-xl ${colors.bg} flex items-center justify-center ${colors.text}`}>
+                    <span className="material-symbols-outlined text-[32px]">{val.icon}</span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-text-main dark:text-white text-xl font-bold">{val.title}</h3>
+                    <p className="text-text-muted dark:text-gray-400 text-sm leading-relaxed">
+                      {val.text}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
