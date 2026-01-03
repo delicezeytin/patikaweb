@@ -33,13 +33,11 @@ const StudentForm: React.FC = () => {
     setLoading(false);
   }, []);
 
-  const handleSubmit = (data: FormData) => {
+  const handleSubmit = (data: any) => {
     if (!formData) return;
 
-    const submissionData: { [key: string]: any } = {};
-    data.forEach((value, key) => {
-      submissionData[key] = value;
-    });
+    // Data is already a plain object from DynamicFormRenderer (with both field.id and field.label keys)
+    const submissionData = data;
 
     // Save submission to patika_custom_forms
     const savedForms = localStorage.getItem('patika_custom_forms');
@@ -63,6 +61,21 @@ const StudentForm: React.FC = () => {
       });
       localStorage.setItem('patika_custom_forms', JSON.stringify(updatedForms));
     }
+
+    // Also save to global applications for Panel Özeti view
+    const existingAppsStr = localStorage.getItem('patika_applications');
+    const existingApps = existingAppsStr ? JSON.parse(existingAppsStr) : [];
+    const newApp = {
+      id: Date.now(),
+      type: 'school',
+      name: data['Öğrenci Adı Soyadı'] || data['f1'] || 'Bilinmiyor',
+      email: '',
+      phone: data['İletişim Numarası'] || data['f4'] || '',
+      message: `Veli: ${data['Veli Adı Soyadı'] || data['f3'] || 'Belirtilmedi'}`,
+      date: new Date().toISOString().split('T')[0],
+      status: 'new'
+    };
+    localStorage.setItem('patika_applications', JSON.stringify([newApp, ...existingApps]));
 
     setSubmitted(true);
     window.scrollTo(0, 0);
