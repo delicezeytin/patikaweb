@@ -43,47 +43,52 @@ const About: React.FC = () => {
       />
 
       <section className="px-4 sm:px-10 py-12">
-        <div className="flex flex-col gap-6 text-center max-w-[960px] mx-auto">
-          <h2 className="text-3xl font-bold text-text-main dark:text-white">Her Çocuk Bir Keşif Yolculuğudur</h2>
+        <div className="flex flex-col gap-8 text-center max-w-[960px] mx-auto">
+          <h2 className="text-3xl font-bold text-text-main dark:text-white">Patika'ya Dair</h2>
           <div className="w-20 h-1 bg-primary mx-auto rounded-full"></div>
-          <p className="text-text-muted dark:text-gray-300 text-lg leading-relaxed">
-            Patika Çocuk Yuvası olarak, her çocuğun biricik olduğuna inanıyor ve onların potansiyellerini keşfetmeleri için oyun temelli, sevgi dolu bir ortam sunuyoruz. Eğitim yolculuğumuzda merak duygusunu her zaman canlı tutuyor, doğanın ritmiyle uyumlu bir öğrenme süreci tasarlıyoruz. Burada çocuklar sadece öğrenci değil, kendi dünyalarının kaşifleridir.
+          <p className="text-text-muted dark:text-gray-300 text-lg leading-relaxed text-left sm:text-center">
+            Patika, 1999’dan bu yana Bodrum’da, çocukların doğayla temas ederek, sevgiyle ve kendi ritimlerinde büyüdüğü; çocukluğun ilk yıllarına eşlik eden bir yuvadır.
+            <br /><br />
+            Masal ile gerçeğin iç içe geçtiği bu yolculukta, her çocuk kendi patikasında yürür; bizler ise onlara güvenli, samimi ve yaşayan bir alan sunarız.
           </p>
         </div>
       </section>
 
-      <section className="px-4 sm:px-10 py-12 bg-white dark:bg-gray-800 rounded-3xl mx-4 sm:mx-10 shadow-sm border border-gray-100 dark:border-gray-700">
+      <section className="px-4 sm:px-10 py-12 bg-gray-50 dark:bg-white/5 rounded-3xl mx-4 sm:mx-10 my-8">
         <div className="max-w-[1100px] mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-background-light dark:bg-[#1f1812] rounded-2xl p-8 border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                <span className="material-symbols-outlined text-8xl text-primary">target</span>
-              </div>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                  <span className="material-symbols-outlined">flag</span>
-                </div>
-                <h3 className="text-2xl font-bold text-text-main dark:text-white">{content.missionTitle}</h3>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-text-main dark:text-white">Masallar ve Gerçekler Yaklaşımımız</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col gap-4 h-full">
+              <div className="flex items-center gap-4 text-purple-600 dark:text-purple-400">
+                <span className="material-symbols-outlined text-4xl">auto_stories</span>
+                <h3 className="text-xl font-bold">Masallar</h3>
               </div>
               <p className="text-text-muted dark:text-gray-300 leading-relaxed">
-                {content.missionText}
+                Masallar, çocukların dünyayı anlamlandırma biçimidir. Burada çocuklardan hızlı olmaları, yetişmeleri ya da benzemeleri beklenmez. Sormaya, denemeye, durmaya ve yeniden başlamaya alan açılır. Masallar bu alanı yumuşatır.
               </p>
+              <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700 font-medium text-purple-700 dark:text-purple-300 text-sm">
+                "Biri hayal kurmayı öğretir."
+              </div>
             </div>
-            <div className="bg-background-light dark:bg-[#1f1812] rounded-2xl p-8 border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                <span className="material-symbols-outlined text-8xl text-accent-red">visibility</span>
-              </div>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="size-12 rounded-full bg-accent-red/10 flex items-center justify-center text-accent-red">
-                  <span className="material-symbols-outlined">visibility</span>
-                </div>
-                <h3 className="text-2xl font-bold text-text-main dark:text-white">{content.visionTitle}</h3>
+
+            <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col gap-4 h-full">
+              <div className="flex items-center gap-4 text-orange-600 dark:text-orange-400">
+                <span className="material-symbols-outlined text-4xl">nature_people</span>
+                <h3 className="text-xl font-bold">Gerçekler</h3>
               </div>
               <p className="text-text-muted dark:text-gray-300 leading-relaxed">
-                {content.visionText}
+                Gerçekler ise o dünyada nasıl duracaklarını öğrenme hâli. Gerçekler, korkutmak için değil; güven duygusu oluşturmak için vardır. İkisi arasındaki denge, çocuğun kendi adımlarını bulmasına izin verir.
               </p>
+              <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700 font-medium text-orange-700 dark:text-orange-300 text-sm">
+                "Diğeri ayakta kalmayı öğretir."
+              </div>
             </div>
           </div>
+          <p className="text-center mt-10 text-text-muted dark:text-gray-400 italic max-w-3xl mx-auto text-lg">
+            "Patika'da bu ikisi birbirinin karşıtı değil, tamamlayıcısıdır. Çocuklar masallarla düşünür, gerçeklerle dener. Patika, çocukların hayattan kopmadan büyüyebileceği bir yol olarak düşünülür. Ne yalnızca düşle, ne yalnızca kuralla ilerler."
+          </p>
         </div>
       </section>
 
@@ -148,6 +153,30 @@ const About: React.FC = () => {
           <div className="flex-1 w-full max-w-md">
             <div className="aspect-square rounded-2xl overflow-hidden shadow-xl rotate-3 hover:rotate-0 transition-transform duration-500">
               <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqo2cU3z2rtFktndE2C-UIILIMHTYzJXNGPo5vpocPgxmOzQGHTbQ9cOGtgcGPAfE4bRG3qzIiL1zUhmfbMMhZm20BM2SdoJJxKwsM9oxCg3NwuF0nWGYaYezlKh9uazYnaxCRV1bf-zxVFccxcUzNTad0OULBfQWab0E9RqOW02x0qEoCLlioqE7MbZrbkCQoB4ZC-IRCBGpL2k_5SMX3G1OnDlMTrNplXI8pe8IrCLtM-mgJQSAMiQTw9hLvFoGNQg4C-Z66rg" alt="Teacher helping a young student" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 sm:px-10 py-16 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-800">
+        <div className="max-w-[800px] mx-auto text-center">
+          <div className="mb-8">
+            <span className="inline-block p-3 rounded-full bg-primary/10 text-primary mb-4">
+              <span className="material-symbols-outlined text-3xl">calendar_month</span>
+            </span>
+            <h2 className="text-3xl font-bold text-text-main dark:text-white">Patika Tanışma Günleri</h2>
+          </div>
+          <div className="space-y-6 text-lg text-text-muted dark:text-gray-300 leading-relaxed">
+            <p>
+              Okulumuzu yakından tanımak, bahçemizi gezmek ve eğitim yaklaşımımız üzerine sohbet etmek isteyen; önümüzdeki eğitim–öğretim döneminde Patika’yı düşünen aileleri <strong>Patika Tanışma Günleri</strong>’ne davet ediyoruz.
+            </p>
+            <p>
+              Tanıtım günlerimiz, her yıl <strong>Şubat</strong> ayında Patika Çocuk Yuvası’nda düzenlenir ve <strong>16.45 – 18.00</strong> saatleri arasında gerçekleştirilir.
+            </p>
+            <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/20 p-6 rounded-2xl mt-8">
+              <p className="font-bold text-text-main dark:text-white">
+                Tanışma günleri için randevular, Şubat ayı boyunca iletişim numaramız aracılığıyla alınmaktadır.
+              </p>
             </div>
           </div>
         </div>

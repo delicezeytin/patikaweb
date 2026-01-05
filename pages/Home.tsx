@@ -139,6 +139,12 @@ const Home: React.FC = () => {
             </div>
             <h2 className="text-text-main dark:text-white text-2xl font-bold tracking-tight">Veli İşlemleri ve Formlar</h2>
           </div>
+          <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/20 rounded-xl p-4 flex items-start gap-3">
+            <span className="material-symbols-outlined text-orange-500 mt-0.5">info</span>
+            <p className="text-sm text-text-main dark:text-gray-200">
+              Bu alan ve formlar, yalnızca kayıt dönemlerinde aktif olacaktır. Dönem dışı başvurularınız için lütfen iletişim sayfamızdan bilgi alınız.
+            </p>
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             <div className="flex flex-col gap-4">
               <h3 className="text-lg font-bold text-text-main dark:text-gray-200">Randevu Oluşturun</h3>
