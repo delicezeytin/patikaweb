@@ -5,7 +5,7 @@ import ResponsiveHero from '../components/ResponsiveHero';
 interface SchoolDocument {
   id: string;
   name: string;
-  info: string;
+  url: string;
   icon: string;
   color: string;
   bg: string;
@@ -13,35 +13,45 @@ interface SchoolDocument {
 
 interface HomeContent {
   heroTitle: string;
-  heroSubtitle: string;
   heroImage: string;
   primaryButtonText: string;
   primaryButtonLink: string;
   secondaryButtonText: string;
   secondaryButtonLink: string;
   valuesTitle: string;
-  valuesSubtitle: string;
   values: { title: string; text: string; icon: string }[];
+  talesTitle: string;
+  talesText: string;
+  talesHighlight: string;
+  realityTitle: string;
+  realityText: string;
+  realityHighlight: string;
+  formsTitle: string;
 }
 
 const defaultHomeContent: HomeContent = {
   heroTitle: "Patika'da Yürümek",
-  heroSubtitle: "Masalların eşlik ettiği, gerçek hayata açılan bir yol.",
   heroImage: "https://lh3.googleusercontent.com/aida-public/AB6AXuBKkBtmpwhIX5KPxEgKI9zWs4svarIXcB1OZmLOigX0jzCFwcO2zjv_pYzq0bkdHKpWowLwr7ahocm6bA42dTHgnb6j_UBwIlw-kpe2fIhKOlbp8SOWv9NgGWm2uys4pnyqiuP3zZ9NfQDiyw72zo4LZJSbSbrrGo86d5SjWWfbVqiydSWq_Bzyx5NzHhYKd1cXcQ_TWVQ64WochSWtVJV4kVa4ADz1_amSMQIWsalNn6fRHRBzZ1rVpn9eIgNw_G6HRkLLyYa_Hg",
   primaryButtonText: "Patika'ya Dair",
   primaryButtonLink: "/about",
   secondaryButtonText: "Masallar ve Gerçekler",
-  secondaryButtonLink: "/stories",
+  secondaryButtonLink: "/masallar-ve-gercekler",
   valuesTitle: "Neden Masallar ve Gerçekler Dünyası?",
-  valuesSubtitle: "",
-  values: []
+  values: [],
+  talesTitle: "Masallar",
+  talesText: "Hikâyeler, oyunlar ve semboller aracılığıyla çocukların hayal gücüne alan açılır.",
+  talesHighlight: "Masallar, doğruyu öğretmek için değil; düşünmeye davet etmek için vardır.",
+  realityTitle: "Gerçekler",
+  realityText: "Günlük yaşam, ilişkiler ve sorumluluklar çocuğun anlayabileceği bir dille deneyimlenir.",
+  realityHighlight: "Gerçekler, korkutmak için değil; güven duygusu oluşturmak için vardır.",
+  formsTitle: "Formlar"
 };
 
 const Home: React.FC = () => {
   const [documents, setDocuments] = useState<SchoolDocument[]>([
-    { id: 'reg', name: "Öğrenci Kayıt Formu", info: "PDF • 2.4 MB", icon: "description", color: "text-secondary", bg: "bg-red-50 dark:bg-red-900/20" },
-    { id: 'health', name: "Sağlık Bilgi Formu", info: "PDF • 1.1 MB", icon: "medical_services", color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-900/20" },
-    { id: 'trip', name: "Gezi İzin Belgesi", info: "DOCX • 500 KB", icon: "directions_bus", color: "text-green-600", bg: "bg-green-50 dark:bg-green-900/20" }
+    { id: 'reg', name: "Öğrenci Kayıt Formu", url: "#", icon: "description", color: "text-secondary", bg: "bg-red-50 dark:bg-red-900/20" },
+    { id: 'health', name: "Sağlık Bilgi Formu", url: "#", icon: "medical_services", color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-900/20" },
+    { id: 'trip', name: "Gezi İzin Belgesi", url: "#", icon: "directions_bus", color: "text-green-600", bg: "bg-green-50 dark:bg-green-900/20" }
   ]);
 
   const [content, setContent] = useState<HomeContent>(defaultHomeContent);
@@ -51,13 +61,14 @@ const Home: React.FC = () => {
     if (savedDocs) {
       setDocuments(JSON.parse(savedDocs));
     }
-    // Using v2 key to force update content for user
-    const savedContent = localStorage.getItem('patika_home_content_v2');
+
+    // Using v3 key to force update content for user
+    const savedContent = localStorage.getItem('patika_home_content_v3');
     if (savedContent) {
       setContent(JSON.parse(savedContent));
     } else {
       // Clear old content to avoid confusion
-      localStorage.removeItem('patika_home_content');
+      localStorage.removeItem('patika_home_content_v2');
     }
   }, []);
 
@@ -66,7 +77,7 @@ const Home: React.FC = () => {
       <ResponsiveHero
         mobileImage={content.heroImage}
         title={content.heroTitle}
-        subtitle={content.heroSubtitle}
+        subtitle=""
         badge=""
         primaryButtonText={content.primaryButtonText}
         primaryButtonLink={content.primaryButtonLink}
@@ -77,7 +88,6 @@ const Home: React.FC = () => {
       <section className="px-4 sm:px-10 py-12">
         <div className="flex flex-col gap-10">
           <div className="flex flex-col gap-3 text-center sm:text-left">
-            <h2 className="text-secondary font-bold tracking-widest text-xs uppercase">Felsefemiz</h2>
             <h1 className="text-text-main dark:text-white text-3xl sm:text-4xl font-bold leading-tight">
               {content.valuesTitle}
             </h1>
@@ -91,14 +101,14 @@ const Home: React.FC = () => {
                   <span className="material-symbols-outlined text-4xl">auto_stories</span>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-gray-800 dark:text-white mb-4 group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors">Masallar</h3>
+                  <h3 className="text-2xl font-black text-gray-800 dark:text-white mb-4 group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors">{content.talesTitle}</h3>
                   <div className="space-y-4">
                     <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">
-                      Hikâyeler, oyunlar ve semboller aracılığıyla çocukların hayal gücüne alan açılır.
+                      {content.talesText}
                     </p>
                     <div className="flex items-center gap-3 text-purple-700 dark:text-purple-300 font-medium bg-white/50 dark:bg-white/5 p-4 rounded-xl backdrop-blur-sm">
                       <span className="material-symbols-outlined">lightbulb</span>
-                      <p className="text-sm">Masallar, doğruyu öğretmek için değil; <br /><strong>düşünmeye davet etmek için vardır.</strong></p>
+                      <p className="text-sm" dangerouslySetInnerHTML={{ __html: content.talesHighlight.replace(/\n/g, '<br />') }}></p>
                     </div>
                   </div>
                 </div>
@@ -113,14 +123,14 @@ const Home: React.FC = () => {
                   <span className="material-symbols-outlined text-4xl">nature_people</span>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-gray-800 dark:text-white mb-4 group-hover:text-orange-700 dark:group-hover:text-orange-300 transition-colors">Gerçekler</h3>
+                  <h3 className="text-2xl font-black text-gray-800 dark:text-white mb-4 group-hover:text-orange-700 dark:group-hover:text-orange-300 transition-colors">{content.realityTitle}</h3>
                   <div className="space-y-4">
                     <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">
-                      Günlük yaşam, ilişkiler ve sorumluluklar çocuğun anlayabileceği bir dille deneyimlenir.
+                      {content.realityText}
                     </p>
                     <div className="flex items-center gap-3 text-orange-700 dark:text-orange-300 font-medium bg-white/50 dark:bg-white/5 p-4 rounded-xl backdrop-blur-sm">
                       <span className="material-symbols-outlined">verified_user</span>
-                      <p className="text-sm">Gerçekler, korkutmak için değil; <br /><strong>güven duygusu oluşturmak için vardır.</strong></p>
+                      <p className="text-sm" dangerouslySetInnerHTML={{ __html: content.realityHighlight.replace(/\n/g, '<br />') }}></p>
                     </div>
                   </div>
                 </div>
@@ -131,64 +141,54 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+      {/* Dynamic Values Section */}
+      {content.values && content.values.length > 0 && (
+        <section className="px-4 sm:px-10 py-12 max-w-[1200px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {content.values.map((val, idx) => (
+              <div key={idx} className="p-8 rounded-3xl bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10 shadow-sm hover:shadow-xl transition-all duration-300 group">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 group-hover:bg-primary text-primary group-hover:text-white flex items-center justify-center mb-6 transition-colors">
+                  <span className="material-symbols-outlined text-3xl">{val.icon}</span>
+                </div>
+                <h3 className="text-xl font-bold text-text-main dark:text-white mb-3">{val.title}</h3>
+                <p className="text-text-muted dark:text-gray-400 leading-relaxed">{val.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="px-4 sm:px-10 py-12 bg-gray-50 dark:bg-white/5 my-8 rounded-3xl mx-4 sm:mx-10">
         <div className="flex flex-col gap-8">
           <div className="flex items-center gap-3 border-b border-gray-200 dark:border-gray-700 pb-4">
             <div className="p-2 bg-primary/10 rounded-lg text-primary">
               <span className="material-symbols-outlined">diversity_3</span>
             </div>
-            <h2 className="text-text-main dark:text-white text-2xl font-bold tracking-tight">Veli İşlemleri ve Formlar</h2>
+            <h2 className="text-text-main dark:text-white text-2xl font-bold tracking-tight">{content.formsTitle}</h2>
           </div>
-          <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/20 rounded-xl p-4 flex items-start gap-3">
-            <span className="material-symbols-outlined text-orange-500 mt-0.5">info</span>
-            <p className="text-sm text-text-main dark:text-gray-200">
-              Bu alan ve formlar, yalnızca kayıt dönemlerinde aktif olacaktır. Dönem dışı başvurularınız için lütfen iletişim sayfamızdan bilgi alınız.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div className="flex flex-col gap-4">
-              <h3 className="text-lg font-bold text-text-main dark:text-gray-200">Randevu Oluşturun</h3>
-              <div className="flex flex-col sm:flex-row items-stretch justify-between gap-6 rounded-2xl bg-white dark:bg-gray-800 p-5 shadow-sm border border-gray-100 dark:border-gray-700">
-                <div className="flex flex-[3] flex-col justify-between gap-4">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary">calendar_month</span>
-                      <p className="text-text-main dark:text-white text-lg font-bold leading-tight">Veli Toplantısı</p>
-                    </div>
-                    <p className="text-text-muted dark:text-gray-400 text-sm font-normal leading-relaxed">
-                      Öğretmenlerimizle birebir görüşmek ve çocuğunuzun gelişimi hakkında konuşmak için online randevu alın.
-                    </p>
-                  </div>
-                  <Link to="/appointment" className="flex items-center justify-center gap-2 rounded-xl h-10 px-6 bg-primary text-white text-sm font-bold w-fit hover:bg-orange-600 transition-colors">
-                    <span>Randevu Oluştur</span>
-                    <span className="material-symbols-outlined text-lg">arrow_forward</span>
-                  </Link>
-                </div>
-                <div
-                  className="w-full sm:w-1/3 aspect-video sm:aspect-square bg-cover bg-center rounded-xl"
-                  style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDfd3fUs1gNISGRcSQJAumQhYrSso-xLAb_KUqarxSqO5NLVy2Kd6Jt9D2x7u3_ehpiDIJeouYIwJm0fK_J1VDmf3wd6Bjnuzs9oLLcBJIdzywH2Vqrwuy_jV_-PW2VzPPcVjLTZw5oqbZ-DHYpJk0aM5hOx6gCntjtYggn28cuJPtZaxWUDupv9_GbZAEh3_a5El7UjWHIMf7GAp2Wqf3JVVGn8nDSXFSCSXXwNmKjz7F9ZUxa2aJ3v6gkdvGvZDWJDNZkK6HW_w")' }}
+
+          <div className="flex flex-col gap-4">
+            {/* Hızlı Erişim Formları header removed */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {documents.map((form, i) => (
+                <a
+                  key={i}
+                  href={form.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center justify-between p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-primary/50 dark:hover:border-primary/50 transition-colors cursor-pointer shadow-sm"
                 >
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col gap-4">
-              <h3 className="text-lg font-bold text-text-main dark:text-gray-200">Hızlı Erişim Formları</h3>
-              <div className="flex flex-col gap-3">
-                {documents.map((form, i) => (
-                  <div key={i} className="group flex items-center justify-between p-4 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-primary/50 dark:hover:border-primary/50 transition-colors cursor-pointer shadow-sm">
-                    <div className="flex items-center gap-4">
-                      <div className={`size-10 rounded-full ${form.bg} flex items-center justify-center ${form.color}`}>
-                        <span className="material-symbols-outlined">{form.icon}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-text-main dark:text-white font-bold text-sm group-hover:text-primary transition-colors">{form.name}</span>
-                        <span className="text-xs text-text-muted dark:text-gray-400">{form.info}</span>
-                      </div>
+                  <div className="flex items-center gap-4">
+                    <div className={`size-10 rounded-full ${form.bg} flex items-center justify-center ${form.color}`}>
+                      <span className="material-symbols-outlined">{form.icon}</span>
                     </div>
-                    <span className="material-symbols-outlined text-gray-400 group-hover:text-primary">download</span>
+                    <div className="flex flex-col">
+                      <span className="text-text-main dark:text-white font-bold text-sm group-hover:text-primary transition-colors">{form.name}</span>
+                    </div>
                   </div>
-                ))}
-              </div>
+                  <span className="material-symbols-outlined text-gray-400 group-hover:text-primary">download</span>
+                </a>
+              ))}
             </div>
           </div>
         </div>

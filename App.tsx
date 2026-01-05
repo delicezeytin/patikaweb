@@ -2,7 +2,7 @@ import React from 'react';
 import { HashRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Home from './pages/Home';
 import About from './pages/About';
-import Stories from './pages/Stories';
+import MeetingDays from './pages/MeetingDays';
 import Contact from './pages/Contact';
 import Admin from './pages/Admin';
 import Appointment from './pages/Appointment';
@@ -32,7 +32,7 @@ const App: React.FC = () => {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
-          <Route path="/stories" element={<Stories />} />
+          <Route path="/meeting-days" element={<MeetingDays />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/appointment" element={<Appointment />} />
           <Route path="/apply-personnel" element={<PersonnelForm />} />

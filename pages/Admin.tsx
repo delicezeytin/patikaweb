@@ -178,12 +178,8 @@ interface Tale {
 
 interface AboutContent {
   heroTitle: string;
-  heroSubtitle: string;
-  missionTitle: string;
-  missionText: string;
-  visionTitle: string;
-  visionText: string;
-  values: { title: string; text: string }[];
+  introTitle: string;
+  introText: string;
 }
 
 const initialTales: Tale[] = [
@@ -215,42 +211,46 @@ const initialTales: Tale[] = [
 
 const initialAboutContent: AboutContent = {
   heroTitle: "Patika'da Yaşam ve Öğrenme",
-  heroSubtitle: "Çocuklarınızın güvenle büyüyeceği, doğayla iç içe, sevgi dolu ve keşif odaklı bir yuva.",
-  missionTitle: "Misyonumuz",
-  missionText: "Çocukların doğal merakını destekleyen, özgüvenli, yaratıcı ve sosyal sorumluluk bilinci yüksek bireyler yetiştirmek için güvenli bir alan sağlamak. Her adımda sevgiyi ve saygıyı temel alarak, aile sıcaklığında bir eğitim yuvası olmak.",
-  visionTitle: "Vizyonumuz",
-  visionText: "Yenilikçi eğitim modelleriyle çocuk gelişiminde öncü, doğa ile teknolojiyi dengeli kullanan ve mutlu çocukların yetiştiği örnek gösterilen bir okul öncesi eğitim kurumu olmak.",
-  values: [
-    { title: "Güvenlik ve Hijyen", text: "En yüksek standartlarda fiziksel güvenlik ve temizlik protokolleri." },
-    { title: "Bireysel İlgi", text: "Her çocuğun kendi hızında gelişimine saygı duyan özel yaklaşım." },
-    { title: "Aile İşbirliği", text: "Şeffaf iletişim ve ebeveynlerin eğitime aktif katılımı." }
-  ]
+  introTitle: "Patika’ya Dair",
+  introText: "Patika, 1999’dan bu yana Bodrum’da, çocukların doğayla temas ederek, sevgiyle ve kendi ritimlerinde büyüdüğü; çocukluğun ilk yıllarına eşlik eden bir yuvadır.\n\nMasal ile gerçeğin iç içe geçtiği bu yolculukta, her çocuk kendi patikasında yürür; bizler ise onlara güvenli, samimi ve yaşayan bir alan sunarız."
 };
 
 // --- Homepage Content ---
 interface HomeContent {
   heroTitle: string;
-  heroSubtitle: string;
   heroImage: string;
   primaryButtonText: string;
   primaryButtonLink: string;
   secondaryButtonText: string;
   secondaryButtonLink: string;
   valuesTitle: string;
-  valuesSubtitle: string;
+
+  talesTitle: string;
+  talesText: string;
+  talesHighlight: string;
+  realityTitle: string;
+  realityText: string;
+  realityHighlight: string;
+  formsTitle: string;
   values: { title: string; text: string; icon: string }[];
 }
 
 const initialHomeContent: HomeContent = {
   heroTitle: "Patika'da Mutlu Adımlar",
-  heroSubtitle: "Çocuğunuzun dünyaya ilk adımları için sevgi dolu, güvenli ve eğitici bir ortam hazırladık.",
   heroImage: "https://lh3.googleusercontent.com/aida-public/AB6AXuBKkBtmpwhIX5KPxEgKI9zWs4svarIXcB1OZmLOigX0jzCFwcO2zjv_pYzq0bkdHKpWowLwr7ahocm6bA42dTHgnb6j_UBwIlw-kpe2fIhKOlbp8SOWv9NgGWm2uys4pnyqiuP3zZ9NfQDiyw72zo4LZJSbSbrrGo86d5SjWWfbVqiydSWq_Bzyx5NzHhYKd1cXcQ_TWVQ64WochSWtVJV4kVa4ADz1_amSMQIWsalNn6fRHRBzZ1rVpn9eIgNw_G6HRkLLyYa_Hg",
   primaryButtonText: "Patika'ya Dair",
   primaryButtonLink: "/about",
   secondaryButtonText: "Masallar ve Gerçekler",
   secondaryButtonLink: "/masallar-ve-gercekler",
-  valuesTitle: "Neden Patika?",
-  valuesSubtitle: "Çocuklarınızın gelişimi ve mutluluğu bizim önceliğimiz. Onlara ev sıcaklığında bir okul deneyimi sunuyoruz.",
+  valuesTitle: "Neden Masallar ve Gerçekler Dünyası?",
+
+  talesTitle: "Masallar",
+  talesText: "Hikâyeler, oyunlar ve semboller aracılığıyla çocukların hayal gücüne alan açılır.",
+  talesHighlight: "Masallar, doğruyu öğretmek için değil; düşünmeye davet etmek için vardır.",
+  realityTitle: "Gerçekler",
+  realityText: "Günlük yaşam, ilişkiler ve sorumluluklar çocuğun anlayabileceği bir dille deneyimlenir.",
+  realityHighlight: "Gerçekler, korkutmak için değil; güven duygusu oluşturmak için vardır.",
+  formsTitle: "Formlar",
   values: [
     { title: "Güvenli Ortam", text: "7/24 güvenlik sistemleri ve çocuk dostu mimari ile her zaman korunaklı alanlar.", icon: "security" },
     { title: "Besleyici Öğünler", text: "Diyetisyen kontrolünde hazırlanan, gelişimlerini destekleyen organik ve dengeli menüler.", icon: "restaurant_menu" },
@@ -267,6 +267,7 @@ interface ContactContent {
   phoneHours: string;
   email: string;
   mapLink: string;
+  quickLinksTitle: string;
 }
 
 const initialContactContent: ContactContent = {
@@ -276,7 +277,33 @@ const initialContactContent: ContactContent = {
   phone: "+90 (552) 804 41 40",
   phoneHours: "Hafta içi 08:00 - 18:00",
   email: "patikayuva@gmail.com",
-  mapLink: "https://maps.app.goo.gl/4XhSdNG5ckydkFU67"
+  mapLink: "https://maps.app.goo.gl/4XhSdNG5ckydkFU67",
+  quickLinksTitle: "Hızlı Başvuru Bağlantıları"
+};
+
+// --- Meeting Days Content ---
+interface MeetingDaysContent {
+  heroTitle: string;
+  heroImage: string;
+  sectionTitle: string;
+  introText: string;
+  scheduleTitle: string;
+  scheduleTime: string;
+  descriptionText: string;
+  formInfoTitle: string;
+  formInfoText: string;
+}
+
+const initialMeetingDaysContent: MeetingDaysContent = {
+  heroTitle: "Tanışma Günleri",
+  heroImage: "https://lh3.googleusercontent.com/aida-public/AB6AXuBKkBtmpwhIX5KPxEgKI9zWs4svarIXcB1OZmLOigX0jzCFwcO2zjv_pYzq0bkdHKpWowLwr7ahocm6bA42dTHgnb6j_UBwIlw-kpe2fIhKOlbp8SOWv9NgGWm2uys4pnyqiuP3zZ9NfQDiyw72zo4LZJSbSbrrGo86d5SjWWfbVqiydSWq_Bzyx5NzHhYKd1cXcQ_TWVQ64WochSWtVJV4kVa4ADz1_amSMQIWsalNn6fRHRBzZ1rVpn9eIgNw_G6HRkLLyYa_Hg",
+  sectionTitle: "Patika Tanışma Günleri",
+  introText: "Okulumuzu yakından tanımak, bahçemizi gezmek ve eğitim yaklaşımımız üzerine sohbet etmek isteyen; önümüzdeki eğitim–öğretim döneminde Patika’yı düşünen aileleri **Patika Tanışma Günleri**’ne davet ediyoruz.",
+  scheduleTitle: "Şubat Ayı Boyunca",
+  scheduleTime: "Hafta İçi, 16.45 – 18.00 saatleri arasında",
+  descriptionText: "Tanıtım günlerimiz, her yıl **Şubat** ayında Patika Çocuk Yuvası’nda düzenlenir. Bu süreçte hem okulumuzun fiziki imkanlarını görebilir hem de eğitim kadromuzla tanışarak merak ettiğiniz soruları sorabilirsiniz.",
+  formInfoTitle: "Form Bilgilendirmesi:",
+  formInfoText: "Yandaki başvuru formu şu anda görüntüleme modundadır. Randevu talepleriniz için lütfen iletişim numaramızdan bize ulaşınız."
 };
 
 const BrandLogo = ({ className = "h-12", onClick }: { className?: string; onClick?: () => void }) => {
@@ -432,9 +459,11 @@ const Admin: React.FC = () => {
   });
 
   // Content Management State
-  const [tales, setTales] = useState<Tale[]>(() => {
-    const saved = localStorage.getItem('patika_tales');
-    return saved ? JSON.parse(saved) : initialTales;
+  const [contentTab, setContentTab] = useState<'home' | 'about' | 'contact' | 'meetingDays' | 'documents'>('home');
+
+  const [homeContent, setHomeContent] = useState<HomeContent>(() => {
+    const saved = localStorage.getItem('patika_home_content_v3');
+    return saved ? JSON.parse(saved) : initialHomeContent;
   });
 
   const [aboutContent, setAboutContent] = useState<AboutContent>(() => {
@@ -442,28 +471,59 @@ const Admin: React.FC = () => {
     return saved ? JSON.parse(saved) : initialAboutContent;
   });
 
-  const [editingTale, setEditingTale] = useState<Tale | null>(null);
+  // Contact Content
 
-  // Persistence Effects
-  useEffect(() => {
-    localStorage.setItem('patika_meeting_forms', JSON.stringify(forms));
-  }, [forms]);
+
+  const [contactContent, setContactContent] = useState<ContactContent>(() => {
+    const saved = localStorage.getItem('patika_contact_content_v2');
+    return saved ? JSON.parse(saved) : {
+      pageTitle: "Bize Ulaşın",
+      pageSubtitle: "",
+      address: "Müskebi Mahallesi, Hıral Sokak No: 6/A Ortakent – Bodrum / Muğla",
+      phone: "+90 (552) 804 41 40",
+      phoneHours: "Hafta içi 09:00 - 17:00",
+      email: "patikayuva@gmail.com",
+      mapLink: "https://maps.app.goo.gl/4XhSdNG5ckydkFU67",
+      quickLinksTitle: "Hızlı Başvuru Bağlantıları"
+    };
+  });
+
+  const [meetingDaysContent, setMeetingDaysContent] = useState<MeetingDaysContent>(() => {
+    const saved = localStorage.getItem('patika_meeting_days_content');
+    return saved ? JSON.parse(saved) : initialMeetingDaysContent;
+  });
+
+  // Documents State
+  interface SchoolDocument {
+    id: string;
+    name: string;
+    url: string;
+    icon: string;
+    color: string;
+    bg: string;
+  }
+
+  const [documents, setDocuments] = useState<SchoolDocument[]>(() => {
+    const saved = localStorage.getItem('patika_documents');
+    return saved ? JSON.parse(saved) : [
+      { id: 'reg', name: "Öğrenci Kayıt Formu", url: "/files/kayit_formu.pdf", icon: "description", color: "text-secondary", bg: "bg-red-50 dark:bg-red-900/20" },
+      { id: 'health', name: "Sağlık Bilgi Formu", url: "/files/saglik_formu.pdf", icon: "medical_services", color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-900/20" },
+      { id: 'trip', name: "Gezi İzin Belgesi", url: "/files/gezi_izin.docx", icon: "directions_bus", color: "text-green-600", bg: "bg-green-50 dark:bg-green-900/20" }
+    ];
+  });
+  const [editingDocument, setEditingDocument] = useState<SchoolDocument | null>(null);
+
+  const saveContent = (type: 'home' | 'about' | 'contact' | 'meetingDays') => {
+    if (type === 'home') localStorage.setItem('patika_home_content_v3', JSON.stringify(homeContent));
+    if (type === 'about') localStorage.setItem('patika_about_content', JSON.stringify(aboutContent));
+    if (type === 'contact') localStorage.setItem('patika_contact_content_v2', JSON.stringify(contactContent));
+    if (type === 'meetingDays') localStorage.setItem('patika_meeting_days_content', JSON.stringify(meetingDaysContent));
+    alert('İçerik güncellendi!');
+  };
 
   useEffect(() => {
-    localStorage.setItem('patika_meeting_requests', JSON.stringify(requests));
-  }, [requests]);
-
-  useEffect(() => {
-    localStorage.setItem('patika_system_settings', JSON.stringify(settings));
-  }, [settings]);
-
-  useEffect(() => {
-    localStorage.setItem('patika_tales', JSON.stringify(tales));
-  }, [tales]);
-
-  useEffect(() => {
-    localStorage.setItem('patika_about_content', JSON.stringify(aboutContent));
-  }, [aboutContent]);
+    localStorage.setItem('patika_documents', JSON.stringify(documents));
+  }, [documents]);
 
   // Edit Form Temporary State
   const [editFormData, setEditFormData] = useState<MeetingForm | null>(null);
@@ -688,6 +748,17 @@ const Admin: React.FC = () => {
           { id: 'f3', type: 'text', label: 'Veli Adı Soyadı', required: true, placeholder: 'Veli Adı' },
           { id: 'f4', type: 'tel', label: 'İletişim Numarası', required: true, placeholder: '05XX XXX XX XX' },
         ]
+      },
+      {
+        id: 'meeting_request', title: 'Tanışma Günü Başvuru Formu', slug: 'tanisma-gunu-basvuru', description: 'Veli tanışma günleri için başvuru formu', isActive: true, submissions: [], notificationEmails: '',
+        fields: [
+          { id: 'm1', type: 'text', label: 'Veli Adı Soyadı', required: true, placeholder: 'Adınız Soyadınız' },
+          { id: 'm2', type: 'text', label: 'Öğrenci Adı Soyadı', required: true, placeholder: 'Öğrencinin Adı Soyadı' },
+          { id: 'm3', type: 'tel', label: 'İletişim Numarası', required: true, placeholder: '05XX XXX XX XX' },
+          { id: 'm4', type: 'email', label: 'E-posta Adresi', required: true, placeholder: 'email@ornek.com' },
+          { id: 'm5', type: 'select', label: 'Görüşme Tercihi', required: true, options: ['Hafta İçi Sabah', 'Hafta İçi Öğleden Sonra', 'Fark etmez'] },
+          { id: 'm6', type: 'textarea', label: 'Notlarınız', required: false, placeholder: 'Varsa belirtmek istediğiniz özel durumlar...' }
+        ]
       }
     ];
 
@@ -742,21 +813,7 @@ const Admin: React.FC = () => {
     }
   }, []); // Run check on mount
 
-  // Homepage Content State
-  const [homeContent, setHomeContent] = useState<HomeContent>(() => {
-    const saved = localStorage.getItem('patika_home_content');
-    return saved ? JSON.parse(saved) : initialHomeContent;
-  });
 
-  // Contact Page Content State
-  const [contactContent, setContactContent] = useState<ContactContent>(() => {
-    const saved = localStorage.getItem('patika_contact_content');
-    return saved ? JSON.parse(saved) : initialContactContent;
-  });
-
-  // Persistence for Home and Contact Content
-  useEffect(() => { localStorage.setItem('patika_home_content', JSON.stringify(homeContent)); }, [homeContent]);
-  useEffect(() => { localStorage.setItem('patika_contact_content', JSON.stringify(contactContent)); }, [contactContent]);
 
   // --- Helpers ---
 
@@ -1197,6 +1254,19 @@ const Admin: React.FC = () => {
                     <td className="px-6 py-5 text-right">
                       <div className="flex items-center justify-end gap-3">
                         <button
+                          onClick={() => {
+                            const url = `${window.location.origin}/#/appointment?id=${form.id}`;
+                            navigator.clipboard.writeText(url).then(() => {
+                              alert('Bağlantı kopyalandı: ' + url);
+                            });
+                          }}
+                          className="text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors flex items-center gap-1"
+                          title="Bağlantıyı Kopyala"
+                        >
+                          <span className="material-symbols-outlined text-lg">link</span>
+                          <span className="hidden sm:inline">Link</span>
+                        </button>
+                        <button
                           onClick={() => handleManageClick(form.id)}
                           className="text-primary hover:text-orange-600 font-bold text-sm transition-colors"
                         >
@@ -1216,8 +1286,8 @@ const Admin: React.FC = () => {
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 
   const renderMeetingManagement = () => {
@@ -2116,8 +2186,6 @@ const Admin: React.FC = () => {
     );
   };
 
-  // Content Management State
-  const [contentTab, setContentTab] = useState<'home' | 'about' | 'tales' | 'contact'>('home');
 
   const renderContentManagement = () => {
     return (
@@ -2145,10 +2213,17 @@ const Admin: React.FC = () => {
             İletişim
           </button>
           <button
-            onClick={() => setContentTab('tales')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${contentTab === 'tales' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}
+            onClick={() => setContentTab('meetingDays')}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${contentTab === 'meetingDays' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}
           >
-            Masallar
+            Tanışma Günleri
+          </button>
+
+          <button
+            onClick={() => setContentTab('documents')}
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${contentTab === 'documents' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}
+          >
+            Dokümanlar
           </button>
         </div>
 
@@ -2161,10 +2236,7 @@ const Admin: React.FC = () => {
                 <label className="block text-xs font-bold text-text-muted mb-1">Hero Başlık</label>
                 <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.heroTitle} onChange={(e) => setHomeContent({ ...homeContent, heroTitle: e.target.value })} />
               </div>
-              <div>
-                <label className="block text-xs font-bold text-text-muted mb-1">Hero Alt Başlık</label>
-                <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-20" value={homeContent.heroSubtitle} onChange={(e) => setHomeContent({ ...homeContent, heroSubtitle: e.target.value })} />
-              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-text-muted mb-1">Birincil Buton Metni</label>
@@ -2186,16 +2258,51 @@ const Admin: React.FC = () => {
                 </div>
               </div>
               <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Masallar ve Gerçekler Bölümü</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Masallar Başlık</label>
+                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.talesTitle || ''} onChange={(e) => setHomeContent({ ...homeContent, talesTitle: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Masallar Metin</label>
+                    <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.talesText || ''} onChange={(e) => setHomeContent({ ...homeContent, talesText: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Masallar Vurgu</label>
+                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.talesHighlight || ''} onChange={(e) => setHomeContent({ ...homeContent, talesHighlight: e.target.value })} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Gerçekler Başlık</label>
+                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.realityTitle || ''} onChange={(e) => setHomeContent({ ...homeContent, realityTitle: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Gerçekler Metin</label>
+                    <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.realityText || ''} onChange={(e) => setHomeContent({ ...homeContent, realityText: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Gerçekler Vurgu</label>
+                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.realityHighlight || ''} onChange={(e) => setHomeContent({ ...homeContent, realityHighlight: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Formlar Bölümü</h4>
+                <div>
+                  <label className="block text-xs font-bold text-text-muted mb-1">Formlar Alanı Başlığı</label>
+                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.formsTitle || ''} onChange={(e) => setHomeContent({ ...homeContent, formsTitle: e.target.value })} />
+                </div>
+              </div>
+              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
                 <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Değerlerimiz Bölümü</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block text-xs font-bold text-text-muted mb-1">Bölüm Başlığı</label>
                     <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.valuesTitle} onChange={(e) => setHomeContent({ ...homeContent, valuesTitle: e.target.value })} />
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-text-muted mb-1">Bölüm Alt Başlığı</label>
-                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.valuesSubtitle} onChange={(e) => setHomeContent({ ...homeContent, valuesSubtitle: e.target.value })} />
-                  </div>
+
                 </div>
                 {homeContent.values.map((val, idx) => (
                   <div key={idx} className="mb-4 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
@@ -2235,6 +2342,78 @@ const Admin: React.FC = () => {
                 ))}
               </div>
             </div>
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={() => saveContent('home')}
+                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
+              >
+                Değişiklikleri Kaydet
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Meeting Days Content Tab */}
+        {contentTab === 'meetingDays' && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm p-6 space-y-6">
+            <h3 className="font-bold text-lg text-text-main dark:text-white">Tanışma Günleri İçerikleri</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-text-muted mb-1">Sayfa Başlığı (Hero)</label>
+                <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.heroTitle} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, heroTitle: e.target.value })} />
+              </div>
+              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Tanıtım Bölümü</h4>
+                <div className="grid grid-cols-1 gap-4 mb-4">
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Bölüm Başlığı</label>
+                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.sectionTitle} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, sectionTitle: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Giriş Metni (Markdown Kullanılabilir: **kalın**)</label>
+                    <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-32" value={meetingDaysContent.introText} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, introText: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Takvim Kutusu</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Takvim Başlığı (örn: Şubat Ayı Boyunca)</label>
+                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.scheduleTitle} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, scheduleTitle: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Takvim Zamanı</label>
+                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.scheduleTime} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, scheduleTime: e.target.value })} />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-text-muted mb-1">Detay Metni</label>
+                  <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-24" value={meetingDaysContent.descriptionText} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, descriptionText: e.target.value })} />
+                </div>
+              </div>
+              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Form Bilgilendrome Kutusu</h4>
+                <div className="grid grid-cols-1 gap-4 mb-4">
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Kutu Başlığı</label>
+                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.formInfoTitle} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, formInfoTitle: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Kutu Metni</label>
+                    <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-20" value={meetingDaysContent.formInfoText} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, formInfoText: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={() => saveContent('meetingDays')}
+                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
+              >
+                Değişiklikleri Kaydet
+              </button>
+            </div>
           </div>
         )}
 
@@ -2265,6 +2444,10 @@ const Admin: React.FC = () => {
                   <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.phoneHours} onChange={(e) => setContactContent({ ...contactContent, phoneHours: e.target.value })} />
                 </div>
               </div>
+              <div>
+                <label className="block text-xs font-bold text-text-muted mb-1">Hızlı Başvuru Bağlantıları Başlığı</label>
+                <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.quickLinksTitle || ''} onChange={(e) => setContactContent({ ...contactContent, quickLinksTitle: e.target.value })} />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-text-muted mb-1">E-posta</label>
@@ -2275,6 +2458,14 @@ const Admin: React.FC = () => {
                   <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.mapLink} onChange={(e) => setContactContent({ ...contactContent, mapLink: e.target.value })} />
                 </div>
               </div>
+            </div>
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={() => saveContent('contact')}
+                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
+              >
+                Değişiklikleri Kaydet
+              </button>
             </div>
           </div>
         )}
@@ -2287,113 +2478,186 @@ const Admin: React.FC = () => {
                 <label className="block text-xs font-bold text-text-muted mb-1">Hero Başlık</label>
                 <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={aboutContent.heroTitle} onChange={(e) => setAboutContent({ ...aboutContent, heroTitle: e.target.value })} />
               </div>
-              <div>
-                <label className="block text-xs font-bold text-text-muted mb-1">Hero Alt Başlık</label>
-                <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-20" value={aboutContent.heroSubtitle} onChange={(e) => setAboutContent({ ...aboutContent, heroSubtitle: e.target.value })} />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-text-muted mb-1">Misyon Başlık</label>
-                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={aboutContent.missionTitle} onChange={(e) => setAboutContent({ ...aboutContent, missionTitle: e.target.value })} />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-text-muted mb-1">Vizyon Başlık</label>
-                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={aboutContent.visionTitle} onChange={(e) => setAboutContent({ ...aboutContent, visionTitle: e.target.value })} />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-text-muted mb-1">Misyon Metni</label>
-                  <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-32" value={aboutContent.missionText} onChange={(e) => setAboutContent({ ...aboutContent, missionText: e.target.value })} />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-text-muted mb-1">Vizyon Metni</label>
-                  <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-32" value={aboutContent.visionText} onChange={(e) => setAboutContent({ ...aboutContent, visionText: e.target.value })} />
+
+
+              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Tanıtım ve Bakış Açısı</h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Tanıtım Başlığı (Patika'ya Dair)</label>
+                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={aboutContent.introTitle || ''} onChange={(e) => setAboutContent({ ...aboutContent, introTitle: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Tanıtım Metni</label>
+                    <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-32" value={aboutContent.introText || ''} onChange={(e) => setAboutContent({ ...aboutContent, introText: e.target.value })} />
+                  </div>
+
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
-                <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Değerlerimiz</h4>
-                {aboutContent.values.map((val, idx) => (
-                  <div key={idx} className="mb-4 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
-                    <input
-                      className="w-full mb-2 p-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 font-bold"
-                      value={val.title}
-                      onChange={(e) => {
-                        const newValues = [...aboutContent.values];
-                        newValues[idx].title = e.target.value;
-                        setAboutContent({ ...aboutContent, values: newValues });
-                      }}
-                    />
-                    <textarea
-                      className="w-full p-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 text-sm"
-                      value={val.text}
-                      onChange={(e) => {
-                        const newValues = [...aboutContent.values];
-                        newValues[idx].text = e.target.value;
-                        setAboutContent({ ...aboutContent, values: newValues });
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
+            </div>
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={() => saveContent('about')}
+                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
+              >
+                Değişiklikleri Kaydet
+              </button>
             </div>
           </div>
         )}
 
-        {contentTab === 'tales' && (
+        {contentTab === 'documents' && (
           <div className="space-y-6">
             <div className="flex justify-end">
               <button
-                onClick={() => setEditingTale({ id: Date.now(), title: '', description: '', content: '', imageUrl: '', isActive: true })}
+                onClick={() => setEditingDocument({ id: Date.now().toString(), name: '', url: '', icon: 'description', color: 'text-secondary', bg: 'bg-red-50 dark:bg-red-900/20' })}
                 className="flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-xl font-bold shadow-md hover:bg-orange-600 transition-colors"
               >
                 <span className="material-symbols-outlined">add</span>
-                Yeni Masal Ekle
+                Yeni Doküman Ekle
               </button>
             </div>
 
-            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${editingTale ? 'hidden' : ''}`}>
-              {tales.map(tale => (
-                <div key={tale.id} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden group">
-                  <div className="h-40 bg-gray-100 relative">
-                    <img src={tale.imageUrl || 'https://via.placeholder.com/300x200'} alt={tale.title} className="w-full h-full object-cover" />
-                    <div className="absolute top-2 right-2 flex gap-1 bg-white/90 backdrop-blur rounded-lg p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => setEditingTale(tale)} className="p-1 hover:text-primary"><span className="material-symbols-outlined text-lg">edit</span></button>
-                      <button onClick={() => { if (confirm('Bu masalı silmek istediğinize emin misiniz?')) setTales(tales.filter(t => t.id !== tale.id)) }} className="p-1 hover:text-red-500"><span className="material-symbols-outlined text-lg">delete</span></button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {documents.map(doc => (
+                <div key={doc.id} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className={`size-10 shrink-0 rounded-full ${doc.bg} flex items-center justify-center ${doc.color}`}>
+                      <span className="material-symbols-outlined">{doc.icon}</span>
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-bold text-sm text-text-main dark:text-white truncate">{doc.name}</span>
+                      <span className="text-xs text-text-muted truncate">{doc.url}</span>
                     </div>
                   </div>
-                  <div className="p-4">
-                    <h4 className="font-bold text-lg mb-1">{tale.title}</h4>
-                    <p className="text-xs text-text-muted line-clamp-2">{tale.description}</p>
+                  <div className="flex items-center gap-1 shrink-0 ml-2">
+                    <button onClick={() => setEditingDocument(doc)} className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg text-text-muted hover:text-primary transition-colors">
+                      <span className="material-symbols-outlined text-lg">edit</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm('Bu dokümanı silmek istediğinize emin misiniz?')) {
+                          setDocuments(documents.filter(d => d.id !== doc.id));
+                        }
+                      }}
+                      className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-400 hover:text-red-500 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-lg">delete</span>
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
 
-            {editingTale && (
-              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-white/5 shadow-2xl p-6 space-y-4 animate-slideIn">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold">{tales.find(t => t.id === editingTale.id) ? 'Masalı Düzenle' : 'Yeni Masal'}</h3>
-                  <button onClick={() => setEditingTale(null)}><span className="material-symbols-outlined">close</span></button>
-                </div>
-                <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" placeholder="Masal Başlığı" value={editingTale.title} onChange={(e) => setEditingTale({ ...editingTale, title: e.target.value })} />
-                <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" placeholder="Kapak Görseli URL" value={editingTale.imageUrl} onChange={(e) => setEditingTale({ ...editingTale, imageUrl: e.target.value })} />
-                <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-20" placeholder="Kısa Açıklama" value={editingTale.description} onChange={(e) => setEditingTale({ ...editingTale, description: e.target.value })} />
-                <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-64 font-serif leading-relaxed" placeholder="Masalın Tam İçeriği..." value={editingTale.content} onChange={(e) => setEditingTale({ ...editingTale, content: e.target.value })} />
-                <div className="flex justify-end gap-3 pt-4">
-                  <button onClick={() => setEditingTale(null)} className="px-5 py-2 text-gray-500 font-bold">İptal</button>
-                  <button
-                    onClick={() => {
-                      const exists = tales.find(t => t.id === editingTale.id);
-                      if (exists) setTales(tales.map(t => t.id === editingTale.id ? editingTale : t));
-                      else setTales([...tales, editingTale]);
-                      setEditingTale(null);
-                    }}
-                    className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg"
-                  >
-                    Kaydet
-                  </button>
+            {editingDocument && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg shadow-2xl p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-text-main dark:text-white">
+                      {documents.find(d => d.id === editingDocument.id) ? 'Dokümanı Düzenle' : 'Yeni Doküman'}
+                    </h3>
+                    <button onClick={() => setEditingDocument(null)} className="text-gray-400 hover:text-red-500">
+                      <span className="material-symbols-outlined">close</span>
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Doküman Adı</label>
+                    <input
+                      className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-main dark:text-white"
+                      value={editingDocument.name}
+                      onChange={(e) => setEditingDocument({ ...editingDocument, name: e.target.value })}
+                      placeholder="Örn: Kayıt Formu"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Dosya Yükle</label>
+                    <div className="flex flex-col gap-2">
+                      <input
+                        type="file"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setEditingDocument({ ...editingDocument, url: `/files/${file.name}` });
+                          }
+                        }}
+                        className="block w-full text-sm text-text-muted
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-xl file:border-0
+                                file:text-sm file:font-bold
+                                file:bg-primary file:text-white
+                                hover:file:bg-orange-600
+                                cursor-pointer
+                            "
+                      />
+                      <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
+                        <span className="material-symbols-outlined text-text-muted">link</span>
+                        <code className="text-sm font-mono text-text-main dark:text-white truncate flex-1">{editingDocument.url || 'Dosya seçilmedi'}</code>
+                      </div>
+                      <p className="text-xs text-orange-500 bg-orange-50 dark:bg-orange-900/10 p-2 rounded-lg border border-orange-100 dark:border-orange-900/20">
+                        <strong>Bilgi:</strong> Web sitemiz statik yapıdadır. Dosyasını seçtiğiniz dokümanı, proje klasöründeki <code>/public/files/</code> dizinine manuel olarak eklemeniz gerekmektedir.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">İkon (Material Symbol)</label>
+                      <input
+                        className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-main dark:text-white"
+                        value={editingDocument.icon}
+                        onChange={(e) => setEditingDocument({ ...editingDocument, icon: e.target.value })}
+                        placeholder="description"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Renk Teması</label>
+                      <select
+                        className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-main dark:text-white appearance-none"
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          let theme = { color: 'text-secondary', bg: 'bg-red-50 dark:bg-red-900/20' };
+                          if (val === 'blue') theme = { color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' };
+                          if (val === 'green') theme = { color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' };
+                          if (val === 'orange') theme = { color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' };
+                          if (val === 'purple') theme = { color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' };
+                          setEditingDocument({ ...editingDocument, ...theme });
+                        }}
+                        defaultValue={
+                          editingDocument.color.includes('blue') ? 'blue' :
+                            editingDocument.color.includes('green') ? 'green' :
+                              editingDocument.color.includes('orange') ? 'orange' :
+                                editingDocument.color.includes('purple') ? 'purple' : 'red'
+                        }
+                      >
+                        <option value="red">Kırmızı</option>
+                        <option value="blue">Mavi</option>
+                        <option value="green">Yeşil</option>
+                        <option value="orange">Turuncu</option>
+                        <option value="purple">Mor</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/5">
+                    <button onClick={() => setEditingDocument(null)} className="px-5 py-2 text-gray-500 font-bold hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">İptal</button>
+                    <button
+                      onClick={() => {
+                        const exists = documents.find(d => d.id === editingDocument.id);
+                        if (exists) {
+                          setDocuments(documents.map(d => d.id === editingDocument.id ? editingDocument : d));
+                        } else {
+                          setDocuments([...documents, editingDocument]);
+                        }
+                        setEditingDocument(null);
+                      }}
+                      className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
+                    >
+                      Kaydet
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -2402,6 +2666,7 @@ const Admin: React.FC = () => {
       </div>
     );
   };
+
 
   const renderSettings = () => (
     <div className="max-w-2xl mx-auto animate-fadeIn space-y-6">

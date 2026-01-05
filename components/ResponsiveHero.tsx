@@ -25,9 +25,9 @@ const ResponsiveHero: React.FC<ResponsiveHeroProps> = ({
     title,
     subtitle,
     badge,
-    primaryButtonText = "Ziyaret Planla",
+    primaryButtonText,
     primaryButtonLink = "/appointment",
-    secondaryButtonText = "Detaylı Bilgi",
+    secondaryButtonText,
     secondaryButtonLink = "/about",
     className = ''
 }) => {
@@ -53,20 +53,27 @@ const ResponsiveHero: React.FC<ResponsiveHeroProps> = ({
                     <p className="text-white/90 text-lg font-normal leading-relaxed max-w-xl drop-shadow-md">
                         {subtitle}
                     </p>
-                    <div className="flex flex-wrap gap-3 pt-2">
-                        <Link
-                            to={primaryButtonLink}
-                            className="flex items-center justify-center rounded-xl h-12 px-6 bg-primary hover:bg-orange-600 text-white text-sm font-bold transition-transform active:scale-95 shadow-lg shadow-orange-500/20"
-                        >
-                            {primaryButtonText}
-                        </Link>
-                        <Link
-                            to={secondaryButtonLink}
-                            className="flex items-center justify-center rounded-xl h-12 px-6 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border border-white/30 text-sm font-bold transition-colors"
-                        >
-                            {secondaryButtonText}
-                        </Link>
-                    </div>
+
+                    {(primaryButtonText || secondaryButtonText) && (
+                        <div className="flex flex-wrap gap-3 pt-2">
+                            {primaryButtonText && (
+                                <Link
+                                    to={primaryButtonLink}
+                                    className="flex items-center justify-center rounded-xl h-12 px-6 bg-primary hover:bg-orange-600 text-white text-sm font-bold transition-transform active:scale-95 shadow-lg shadow-orange-500/20"
+                                >
+                                    {primaryButtonText}
+                                </Link>
+                            )}
+                            {secondaryButtonText && (
+                                <Link
+                                    to={secondaryButtonLink}
+                                    className="flex items-center justify-center rounded-xl h-12 px-6 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border border-white/30 text-sm font-bold transition-colors"
+                                >
+                                    {secondaryButtonText}
+                                </Link>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -85,20 +92,27 @@ const ResponsiveHero: React.FC<ResponsiveHeroProps> = ({
                     <p className="text-text-muted dark:text-gray-400 text-lg font-normal leading-relaxed">
                         {subtitle}
                     </p>
-                    <div className="flex flex-wrap gap-4 pt-2">
-                        <Link
-                            to={primaryButtonLink}
-                            className="flex items-center justify-center rounded-xl h-12 px-8 bg-primary hover:bg-orange-600 text-white text-base font-bold transition-transform active:scale-95 shadow-lg shadow-orange-500/20"
-                        >
-                            {primaryButtonText}
-                        </Link>
-                        <Link
-                            to={secondaryButtonLink}
-                            className="flex items-center justify-center rounded-xl h-12 px-8 bg-transparent hover:bg-gray-50 dark:hover:bg-white/5 text-text-main dark:text-white border border-gray-200 dark:border-gray-700 text-base font-bold transition-colors"
-                        >
-                            {secondaryButtonText}
-                        </Link>
-                    </div>
+
+                    {(primaryButtonText || secondaryButtonText) && (
+                        <div className="flex flex-wrap gap-4 pt-2">
+                            {primaryButtonText && (
+                                <Link
+                                    to={primaryButtonLink}
+                                    className="flex items-center justify-center rounded-xl h-12 px-8 bg-primary hover:bg-orange-600 text-white text-base font-bold transition-transform active:scale-95 shadow-lg shadow-orange-500/20"
+                                >
+                                    {primaryButtonText}
+                                </Link>
+                            )}
+                            {secondaryButtonText && (
+                                <Link
+                                    to={secondaryButtonLink}
+                                    className="flex items-center justify-center rounded-xl h-12 px-8 bg-transparent hover:bg-gray-50 dark:hover:bg-white/5 text-text-main dark:text-white border border-gray-200 dark:border-gray-700 text-base font-bold transition-colors"
+                                >
+                                    {secondaryButtonText}
+                                </Link>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Right Image */}

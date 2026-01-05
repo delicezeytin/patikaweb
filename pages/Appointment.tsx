@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 // Types must match Admin.tsx exactly for local storage data
 interface Teacher {
@@ -85,6 +85,7 @@ const initialDefaultForms: MeetingForm[] = [
 ];
 
 const Appointment: React.FC = () => {
+  const location = useLocation(); // Hook to get URL params
   // Step 1: Verification, 2: Class, 3: Date, 4: Info, 5: Success
   const [step, setStep] = useState(1);
 
@@ -140,7 +141,25 @@ const Appointment: React.FC = () => {
           return;
         }
 
-        const activeForm = forms.find(f => f.isActive);
+        // Logic to determine which form to load
+        let activeForm: MeetingForm | undefined;
+
+        // 1. Try to get ID from URL query param
+        const searchParams = new URLSearchParams(location.search);
+        const urlId = searchParams.get('id');
+
+        if (urlId) {
+          activeForm = forms.find(f => f.id.toString() === urlId);
+          if (!activeForm) {
+            console.warn(`Form with ID ${urlId} not found.`);
+            // If ID is provided but not found, DO NOT fallback. Show error.
+            setNoActiveForm(true);
+            return;
+          }
+        } else {
+          // 2. If NO ID provided, fallback to the first 'isActive' form
+          activeForm = forms.find(f => f.isActive);
+        }
 
         if (!activeForm) {
           console.warn("No active form found in list");

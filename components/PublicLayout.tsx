@@ -7,17 +7,16 @@ const PublicLayout: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const linkClass = (path: string) => `text-sm font-medium transition-colors ${
-    isActive(path) 
-      ? 'text-primary font-bold' 
-      : 'text-text-main dark:text-gray-200 hover:text-primary'
-  }`;
+  const linkClass = (path: string) => `text-sm font-medium transition-colors ${isActive(path)
+    ? 'text-primary font-bold'
+    : 'text-text-main dark:text-gray-200 hover:text-primary'
+    }`;
 
   const BrandLogo = ({ className = "h-12" }: { className?: string }) => (
-    <img 
-      src="/logo.png" 
-      alt="Patika Çocuk Yuvası" 
-      className={`${className} w-auto object-contain dark:bg-white/90 dark:rounded-lg dark:px-2 dark:py-1 transition-all`} 
+    <img
+      src="/logo.png"
+      alt="Patika Çocuk Yuvası"
+      className={`${className} w-auto object-contain dark:bg-white/90 dark:rounded-lg dark:px-2 dark:py-1 transition-all`}
     />
   );
 
@@ -30,9 +29,9 @@ const PublicLayout: React.FC = () => {
       {/* Playful Background Pattern */}
       {/* This fills the empty gray space with "sprinkled" colors/shapes */}
       {/* Opacity reduced to 25% for better readability */}
-      <div 
+      <div
         className="fixed inset-0 z-0 pointer-events-none opacity-25"
-        style={{ 
+        style={{
           backgroundImage: `url("${backgroundPattern}")`,
           backgroundSize: '100px 100px',
         }}
@@ -44,16 +43,16 @@ const PublicLayout: React.FC = () => {
             <Link to="/" className="flex items-center gap-3 group">
               <BrandLogo className="h-14" />
             </Link>
-            
+
             <nav className="hidden md:flex items-center gap-8">
               <Link to="/" className={linkClass('/')}>Anasayfa</Link>
               <Link to="/about" className={linkClass('/about')}>Patika'ya Dair</Link>
-              <Link to="/stories" className={linkClass('/stories')}>Masallar ve Gerçekler</Link>
+              <Link to="/meeting-days" className={linkClass('/meeting-days')}>Tanışma Günleri</Link>
               <Link to="/contact" className={linkClass('/contact')}>İletişim</Link>
             </nav>
 
             <div className="md:hidden">
-              <button 
+              <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="text-text-main dark:text-white p-2"
               >
@@ -68,7 +67,7 @@ const PublicLayout: React.FC = () => {
           <div className="md:hidden border-t border-gray-100 dark:border-white/5 bg-white dark:bg-background-dark px-4 py-4 flex flex-col gap-4 shadow-lg">
             <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={linkClass('/')}>Anasayfa</Link>
             <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className={linkClass('/about')}>Patika'ya Dair</Link>
-            <Link to="/stories" onClick={() => setIsMobileMenuOpen(false)} className={linkClass('/stories')}>Masallar ve Gerçekler</Link>
+            <Link to="/meeting-days" onClick={() => setIsMobileMenuOpen(false)} className={linkClass('/meeting-days')}>Tanışma Günleri</Link>
             <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className={linkClass('/contact')}>İletişim</Link>
           </div>
         )}
@@ -82,12 +81,15 @@ const PublicLayout: React.FC = () => {
         <div className="max-w-[1200px] mx-auto w-full">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
             <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-2">
-                 <BrandLogo className="h-10" />
-              </div>
-              <p className="text-sm text-text-muted dark:text-gray-400 leading-relaxed">
-                Çocuklarımızın yarınlarına ışık tutan, sevgi dolu eğitim yuvamız.
-              </p>
+              <Link to="/" className="flex items-center gap-2 mb-4 group">
+                <div className="bg-white p-2 rounded-xl group-hover:shadow-lg transition-all duration-300">
+                  <span className="material-symbols-outlined text-3xl text-primary">diversity_3</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-black text-xl text-text-main dark:text-white leading-none">PATİKA</span>
+                  <span className="text-xs font-bold text-text-muted dark:text-gray-400 tracking-widest">ÇOCUK YUVASI</span>
+                </div>
+              </Link>
               <div className="flex gap-4 mt-2">
                 <a className="text-gray-400 hover:text-primary transition-colors" href="#"><span className="material-symbols-outlined">public</span></a>
                 <a className="text-gray-400 hover:text-primary transition-colors" href="#"><span className="material-symbols-outlined">photo_camera</span></a>
@@ -99,7 +101,7 @@ const PublicLayout: React.FC = () => {
               <div className="flex flex-col gap-3">
                 <div className="flex items-start gap-3">
                   <span className="material-symbols-outlined text-primary text-xl mt-0.5">location_on</span>
-                  <span className="text-sm text-text-muted dark:text-gray-400">Ortakentyahşi Mahallesi,<br/>Hıral Sk. No:6,<br/>48420 Bodrum/Muğla</span>
+                  <span className="text-sm text-text-muted dark:text-gray-400">Ortakentyahşi Mahallesi,<br />Hıral Sk. No:6,<br />48420 Bodrum/Muğla</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="material-symbols-outlined text-primary text-xl">call</span>
@@ -114,9 +116,10 @@ const PublicLayout: React.FC = () => {
             <div className="flex flex-col gap-4">
               <h3 className="text-text-main dark:text-white font-bold text-base">Hızlı Erişim</h3>
               <div className="flex flex-col gap-2">
-                <Link className="text-sm text-text-muted dark:text-gray-400 hover:text-primary transition-colors" to="/food-list">Yemek Listesi</Link>
-                <Link className="text-sm text-text-muted dark:text-gray-400 hover:text-primary transition-colors" to="/schedule">Ders Programı</Link>
-                <Link className="text-sm text-text-muted dark:text-gray-400 hover:text-primary transition-colors" to="/teachers">Öğretmenlerimiz</Link>
+                {/* Hidden until functionality is ready */}
+                {/* <Link className="text-sm text-text-muted dark:text-gray-400 hover:text-primary transition-colors" to="/food-list">Yemek Listesi</Link> */}
+                {/* <Link className="text-sm text-text-muted dark:text-gray-400 hover:text-primary transition-colors" to="/schedule">Ders Programı</Link> */}
+                {/* <Link className="text-sm text-text-muted dark:text-gray-400 hover:text-primary transition-colors" to="/teachers">Öğretmenlerimiz</Link> */}
                 <Link className="text-sm text-text-muted dark:text-gray-400 hover:text-primary transition-colors" to="/career">Kariyer</Link>
                 <Link className="text-sm text-text-muted dark:text-gray-400 hover:text-primary transition-colors font-medium" to="/admin">Yönetim Paneli</Link>
               </div>

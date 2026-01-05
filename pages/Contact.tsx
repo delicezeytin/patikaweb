@@ -19,16 +19,18 @@ interface ContactContent {
   phoneHours: string;
   email: string;
   mapLink: string;
+  quickLinksTitle: string;
 }
 
 const defaultContactContent: ContactContent = {
   pageTitle: "Bize Ulaşın",
-  pageSubtitle: "Sorularınız mı var? Tanışmak için sabırsızlanıyoruz. Çocuğunuzun geleceği için en doğru adımı birlikte atalım.",
+  pageSubtitle: "",
   address: "Müskebi Mahallesi, Hıral Sokak No: 6/A Ortakent – Bodrum / Muğla",
   phone: "+90 (552) 804 41 40",
   phoneHours: "Hafta içi 09:00 - 17:00",
   email: "patikayuva@gmail.com",
-  mapLink: "https://maps.app.goo.gl/4XhSdNG5ckydkFU67"
+  mapLink: "https://maps.app.goo.gl/4XhSdNG5ckydkFU67",
+  quickLinksTitle: "Hızlı Başvuru Bağlantıları"
 };
 
 // Default data fallback (Matches Admin.tsx)
@@ -105,10 +107,12 @@ const Contact: React.FC = () => {
     if (personnelForm && personnelForm.isActive !== false) {
       links.push({ id: 'personnel', title: personnelForm.title, path: '/apply-personnel' });
     }
+    /* TEMPORARILY DISABLED AS PER USER REQUEST
     const studentForm = forms.find((f: any) => f.id === 'school_register');
     if (studentForm && studentForm.isActive !== false) {
       links.push({ id: 'student', title: studentForm.title, path: '/apply-student' });
     }
+    */
     setActiveOtherForms(links);
   }, []);
 
@@ -181,7 +185,7 @@ const Contact: React.FC = () => {
               <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-white/5 dark:to-white/10 rounded-xl p-6 border border-border-color">
                 <h3 className="font-bold text-text-main dark:text-white mb-4 flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary">link</span>
-                  Hızlı Başvuru Bağlantıları
+                  {content.quickLinksTitle}
                 </h3>
                 <div className="flex flex-col gap-3">
                   {activeOtherForms.map(link => (
