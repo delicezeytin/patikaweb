@@ -25,26 +25,16 @@ interface HomeContent {
 }
 
 const defaultHomeContent: HomeContent = {
-  heroTitle: "Patika'da Mutlu Adımlar",
-  heroSubtitle: "Çocuğunuzun dünyaya ilk adımları için sevgi dolu, güvenli ve eğitici bir ortam hazırladık.",
+  heroTitle: "Patika'da Yürümek",
+  heroSubtitle: "Masalların eşlik ettiği, gerçek hayata açılan bir yol.",
   heroImage: "https://lh3.googleusercontent.com/aida-public/AB6AXuBKkBtmpwhIX5KPxEgKI9zWs4svarIXcB1OZmLOigX0jzCFwcO2zjv_pYzq0bkdHKpWowLwr7ahocm6bA42dTHgnb6j_UBwIlw-kpe2fIhKOlbp8SOWv9NgGWm2uys4pnyqiuP3zZ9NfQDiyw72zo4LZJSbSbrrGo86d5SjWWfbVqiydSWq_Bzyx5NzHhYKd1cXcQ_TWVQ64WochSWtVJV4kVa4ADz1_amSMQIWsalNn6fRHRBzZ1rVpn9eIgNw_G6HRkLLyYa_Hg",
   primaryButtonText: "Patika'ya Dair",
   primaryButtonLink: "/about",
   secondaryButtonText: "Masallar ve Gerçekler",
-  secondaryButtonLink: "/masallar-ve-gercekler",
-  valuesTitle: "Neden Patika?",
-  valuesSubtitle: "Çocuklarınızın gelişimi ve mutluluğu bizim önceliğimiz. Onlara ev sıcaklığında bir okul deneyimi sunuyoruz.",
-  values: [
-    { title: "Güvenli Ortam", text: "7/24 güvenlik sistemleri ve çocuk dostu mimari ile her zaman korunaklı alanlar.", icon: "security" },
-    { title: "Besleyici Öğünler", text: "Diyetisyen kontrolünde hazırlanan, gelişimlerini destekleyen organik ve dengeli menüler.", icon: "restaurant_menu" },
-    { title: "Eğitici Aktiviteler", text: "Montessori temelli, yaratıcılığı ve öğrenmeyi teşvik eden zengin günlük programlar.", icon: "school" }
-  ]
-};
-
-const iconColors: { [key: string]: { text: string; bg: string } } = {
-  security: { text: 'text-primary', bg: 'bg-orange-50 dark:bg-orange-900/20' },
-  restaurant_menu: { text: 'text-secondary', bg: 'bg-red-50 dark:bg-red-900/20' },
-  school: { text: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+  secondaryButtonLink: "/stories",
+  valuesTitle: "Neden Masallar ve Gerçekler Dünyası?",
+  valuesSubtitle: "",
+  values: []
 };
 
 const Home: React.FC = () => {
@@ -61,9 +51,13 @@ const Home: React.FC = () => {
     if (savedDocs) {
       setDocuments(JSON.parse(savedDocs));
     }
-    const savedContent = localStorage.getItem('patika_home_content');
+    // Using v2 key to force update content for user
+    const savedContent = localStorage.getItem('patika_home_content_v2');
     if (savedContent) {
       setContent(JSON.parse(savedContent));
+    } else {
+      // Clear old content to avoid confusion
+      localStorage.removeItem('patika_home_content');
     }
   }, []);
 
@@ -73,6 +67,7 @@ const Home: React.FC = () => {
         mobileImage={content.heroImage}
         title={content.heroTitle}
         subtitle={content.heroSubtitle}
+        badge=""
         primaryButtonText={content.primaryButtonText}
         primaryButtonLink={content.primaryButtonLink}
         secondaryButtonText={content.secondaryButtonText}
@@ -82,31 +77,56 @@ const Home: React.FC = () => {
       <section className="px-4 sm:px-10 py-12">
         <div className="flex flex-col gap-10">
           <div className="flex flex-col gap-3 text-center sm:text-left">
-            <h2 className="text-secondary font-bold tracking-widest text-xs uppercase">Değerlerimiz</h2>
+            <h2 className="text-secondary font-bold tracking-widest text-xs uppercase">Felsefemiz</h2>
             <h1 className="text-text-main dark:text-white text-3xl sm:text-4xl font-bold leading-tight">
               {content.valuesTitle}
             </h1>
-            <p className="text-text-muted dark:text-gray-400 text-lg font-normal max-w-2xl">
-              {content.valuesSubtitle}
-            </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {content.values.map((val, idx) => {
-              const colors = iconColors[val.icon] || { text: 'text-primary', bg: 'bg-orange-50 dark:bg-orange-900/20' };
-              return (
-                <div key={idx} className="flex flex-col gap-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800 p-6 shadow-sm hover:shadow-md transition-shadow">
-                  <div className={`size-12 rounded-xl ${colors.bg} flex items-center justify-center ${colors.text}`}>
-                    <span className="material-symbols-outlined text-[32px]">{val.icon}</span>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <h3 className="text-text-main dark:text-white text-xl font-bold">{val.title}</h3>
-                    <p className="text-text-muted dark:text-gray-400 text-sm leading-relaxed">
-                      {val.text}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Masallar Card */}
+            <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 p-8 hover:shadow-lg transition-all duration-300">
+              <div className="flex flex-col gap-6 relative z-10">
+                <div className="size-16 rounded-2xl bg-white dark:bg-white/10 shadow-sm flex items-center justify-center text-purple-600 dark:text-purple-300">
+                  <span className="material-symbols-outlined text-4xl">auto_stories</span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-gray-800 dark:text-white mb-4 group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors">Masallar</h3>
+                  <div className="space-y-4">
+                    <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">
+                      Hikâyeler, oyunlar ve semboller aracılığıyla çocukların hayal gücüne alan açılır.
                     </p>
+                    <div className="flex items-center gap-3 text-purple-700 dark:text-purple-300 font-medium bg-white/50 dark:bg-white/5 p-4 rounded-xl backdrop-blur-sm">
+                      <span className="material-symbols-outlined">lightbulb</span>
+                      <p className="text-sm">Masallar, doğruyu öğretmek için değil; <br /><strong>düşünmeye davet etmek için vardır.</strong></p>
+                    </div>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+              <div className="absolute -bottom-10 -right-10 size-64 bg-purple-200/50 dark:bg-purple-900/30 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700"></div>
+            </div>
+
+            {/* Gerçekler Card */}
+            <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 p-8 hover:shadow-lg transition-all duration-300">
+              <div className="flex flex-col gap-6 relative z-10">
+                <div className="size-16 rounded-2xl bg-white dark:bg-white/10 shadow-sm flex items-center justify-center text-orange-600 dark:text-orange-300">
+                  <span className="material-symbols-outlined text-4xl">nature_people</span>
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-gray-800 dark:text-white mb-4 group-hover:text-orange-700 dark:group-hover:text-orange-300 transition-colors">Gerçekler</h3>
+                  <div className="space-y-4">
+                    <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed">
+                      Günlük yaşam, ilişkiler ve sorumluluklar çocuğun anlayabileceği bir dille deneyimlenir.
+                    </p>
+                    <div className="flex items-center gap-3 text-orange-700 dark:text-orange-300 font-medium bg-white/50 dark:bg-white/5 p-4 rounded-xl backdrop-blur-sm">
+                      <span className="material-symbols-outlined">verified_user</span>
+                      <p className="text-sm">Gerçekler, korkutmak için değil; <br /><strong>güven duygusu oluşturmak için vardır.</strong></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute -bottom-10 -right-10 size-64 bg-orange-200/50 dark:bg-orange-900/30 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700"></div>
+            </div>
           </div>
         </div>
       </section>

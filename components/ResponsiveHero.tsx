@@ -24,7 +24,7 @@ const ResponsiveHero: React.FC<ResponsiveHeroProps> = ({
     desktopImage,
     title,
     subtitle,
-    badge = "Yeni Dönem Kayıtları Başladı",
+    badge,
     primaryButtonText = "Ziyaret Planla",
     primaryButtonLink = "/appointment",
     secondaryButtonText = "Detaylı Bilgi",
@@ -42,9 +42,11 @@ const ResponsiveHero: React.FC<ResponsiveHeroProps> = ({
             >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 <div className="relative flex flex-col gap-4 text-left max-w-2xl">
-                    <span className="inline-flex w-fit items-center rounded-full bg-white/20 backdrop-blur-sm px-3 py-1 text-xs font-bold text-white tracking-wide uppercase">
-                        {badge}
-                    </span>
+                    {badge && (
+                        <span className="inline-flex w-fit items-center rounded-full bg-white/20 backdrop-blur-sm px-3 py-1 text-xs font-bold text-white tracking-wide uppercase">
+                            {badge}
+                        </span>
+                    )}
                     <h1 className="text-white text-4xl sm:text-5xl font-black leading-tight tracking-tight drop-shadow-lg">
                         {title}
                     </h1>
@@ -72,15 +74,13 @@ const ResponsiveHero: React.FC<ResponsiveHeroProps> = ({
             <div className="hidden lg:grid grid-cols-2 gap-0 bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-xl ring-1 ring-gray-100 dark:ring-white/5">
                 {/* Left Content */}
                 <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-16 gap-6 z-10">
-                    <span className="inline-flex w-fit items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-bold text-secondary tracking-wide uppercase">
-                        {badge}
-                    </span>
+                    {badge && (
+                        <span className="inline-flex w-fit items-center rounded-full bg-secondary/10 px-3 py-1 text-xs font-bold text-secondary tracking-wide uppercase">
+                            {badge}
+                        </span>
+                    )}
                     <h1 className="text-text-main dark:text-white text-4xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight">
-                        {title.includes("Patika") ? (
-                            <>Patika'da <br className="hidden lg:block" />Mutlu Adımlar</>
-                        ) : (
-                            title
-                        )}
+                        {title}
                     </h1>
                     <p className="text-text-muted dark:text-gray-400 text-lg font-normal leading-relaxed">
                         {subtitle}
