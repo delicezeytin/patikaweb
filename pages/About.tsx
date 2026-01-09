@@ -16,7 +16,8 @@ const defaultContent = {
   ],
   introTitle: "Patika’ya Dair",
   introText: "Patika, 1999’dan bu yana Bodrum’da, çocukların doğayla temas ederek, sevgiyle ve kendi ritimlerinde büyüdüğü; çocukluğun ilk yıllarına eşlik eden bir yuvadır.\n\nMasal ile gerçeğin iç içe geçtiği bu yolculukta, her çocuk kendi patikasında yürür; bizler ise onlara güvenli, samimi ve yaşayan bir alan sunarız.",
-
+  perspectiveTitle: "Bakış Açımız; Masallar ve Gerçekler",
+  perspectiveText: "Masallar, çocukların dünyayı anlamlandırma biçimidir. Gerçekler ise o dünyada nasıl duracaklarını öğrenme hâli.\n\nPatika’da bu ikisi birbirinin karşıtı değil, tamamlayıcısıdır. Çocuklar masallarla düşünür, gerçeklerle dener. Biri hayal kurmayı, diğeriyse ayakta kalmayı öğretir.\n\nBurada çocuklardan hızlı olmaları, yetişmeleri ya da benzemeleri beklenmez. Sormaya, denemeye, durmaya ve yeniden başlamaya alan açılır. Masallar bu alanı yumuşatır; gerçekler ise güvenli kılar.\n\nPatika, çocukların hayattan kopmadan büyüyebileceği bir yol olarak düşünülür. Ne yalnızca düşle, ne yalnızca kuralla ilerler. İkisi arasındaki denge, çocuğun kendi adımlarını bulmasına izin verir."
 };
 
 const About: React.FC = () => {
@@ -25,7 +26,7 @@ const About: React.FC = () => {
   useEffect(() => {
     const saved = localStorage.getItem('patika_about_content');
     if (saved) {
-      setContent(JSON.parse(saved));
+      setContent({ ...defaultContent, ...JSON.parse(saved) });
     }
   }, []);
 
@@ -63,6 +64,17 @@ const About: React.FC = () => {
                     <p key={idx}>{paragraph}</p>
                   ))}
                 </div>
+
+                {content.perspectiveTitle && (
+                  <div className="mt-8 pt-8 border-t border-gray-200 dark:border-white/10">
+                    <h3 className="text-2xl font-black text-text-main dark:text-white mb-4">{content.perspectiveTitle}</h3>
+                    <div className="space-y-4">
+                      {content.perspectiveText && content.perspectiveText.split('\n\n').map((paragraph, idx) => (
+                        <p key={idx}>{paragraph}</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
 

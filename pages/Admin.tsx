@@ -180,6 +180,8 @@ interface AboutContent {
   heroTitle: string;
   introTitle: string;
   introText: string;
+  perspectiveTitle: string;
+  perspectiveText: string;
 }
 
 const initialTales: Tale[] = [
@@ -212,7 +214,9 @@ const initialTales: Tale[] = [
 const initialAboutContent: AboutContent = {
   heroTitle: "Patika'da Yaşam ve Öğrenme",
   introTitle: "Patika’ya Dair",
-  introText: "Patika, 1999’dan bu yana Bodrum’da, çocukların doğayla temas ederek, sevgiyle ve kendi ritimlerinde büyüdüğü; çocukluğun ilk yıllarına eşlik eden bir yuvadır.\n\nMasal ile gerçeğin iç içe geçtiği bu yolculukta, her çocuk kendi patikasında yürür; bizler ise onlara güvenli, samimi ve yaşayan bir alan sunarız."
+  introText: "Patika, 1999’dan bu yana Bodrum’da, çocukların doğayla temas ederek, sevgiyle ve kendi ritimlerinde büyüdüğü; çocukluğun ilk yıllarına eşlik eden bir yuvadır.\n\nMasal ile gerçeğin iç içe geçtiği bu yolculukta, her çocuk kendi patikasında yürür; bizler ise onlara güvenli, samimi ve yaşayan bir alan sunarız.",
+  perspectiveTitle: "Bakış Açımız; Masallar ve Gerçekler",
+  perspectiveText: "Masallar, çocukların dünyayı anlamlandırma biçimidir. Gerçekler ise o dünyada nasıl duracaklarını öğrenme hâli.\n\nPatika’da bu ikisi birbirinin karşıtı değil, tamamlayıcısıdır. Çocuklar masallarla düşünür, gerçeklerle dener. Biri hayal kurmayı, diğeriyse ayakta kalmayı öğretir.\n\nBurada çocuklardan hızlı olmaları, yetişmeleri ya da benzemeleri beklenmez. Sormaya, denemeye, durmaya ve yeniden başlamaya alan açılır. Masallar bu alanı yumuşatır; gerçekler ise güvenli kılar.\n\nPatika, çocukların hayattan kopmadan büyüyebileceği bir yol olarak düşünülür. Ne yalnızca düşle, ne yalnızca kuralla ilerler. İkisi arasındaki denge, çocuğun kendi adımlarını bulmasına izin verir."
 };
 
 // --- Homepage Content ---
@@ -251,11 +255,7 @@ const initialHomeContent: HomeContent = {
   realityText: "Günlük yaşam, ilişkiler ve sorumluluklar çocuğun anlayabileceği bir dille deneyimlenir.",
   realityHighlight: "Gerçekler, korkutmak için değil; güven duygusu oluşturmak için vardır.",
   formsTitle: "Formlar",
-  values: [
-    { title: "Güvenli Ortam", text: "7/24 güvenlik sistemleri ve çocuk dostu mimari ile her zaman korunaklı alanlar.", icon: "security" },
-    { title: "Besleyici Öğünler", text: "Diyetisyen kontrolünde hazırlanan, gelişimlerini destekleyen organik ve dengeli menüler.", icon: "restaurant_menu" },
-    { title: "Eğitici Aktiviteler", text: "Montessori temelli, yaratıcılığı ve öğrenmeyi teşvik eden zengin günlük programlar.", icon: "school" }
-  ]
+  values: []
 };
 
 // --- Contact Page Content ---
@@ -468,7 +468,7 @@ const Admin: React.FC = () => {
 
   const [aboutContent, setAboutContent] = useState<AboutContent>(() => {
     const saved = localStorage.getItem('patika_about_content');
-    return saved ? JSON.parse(saved) : initialAboutContent;
+    return saved ? { ...initialAboutContent, ...JSON.parse(saved) } : initialAboutContent;
   });
 
   // Contact Content
@@ -2204,7 +2204,7 @@ const Admin: React.FC = () => {
             onClick={() => setContentTab('about')}
             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${contentTab === 'about' ? 'bg-primary text-white shadow-md' : 'text-text-muted hover:bg-gray-50 dark:hover:bg-white/5'}`}
           >
-            Hakkımızda
+            Patika'ya Dair
           </button>
           <button
             onClick={() => setContentTab('contact')}
@@ -2258,6 +2258,17 @@ const Admin: React.FC = () => {
                 </div>
               </div>
               <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Ana Bölüm Başlığı</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Bölüm Başlığı</label>
+                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.valuesTitle} onChange={(e) => setHomeContent({ ...homeContent, valuesTitle: e.target.value })} />
+                  </div>
+
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
                 <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Masallar ve Gerçekler Bölümü</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
@@ -2295,295 +2306,292 @@ const Admin: React.FC = () => {
                   <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.formsTitle || ''} onChange={(e) => setHomeContent({ ...homeContent, formsTitle: e.target.value })} />
                 </div>
               </div>
-              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
-                <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Değerlerimiz Bölümü</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-xs font-bold text-text-muted mb-1">Bölüm Başlığı</label>
-                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={homeContent.valuesTitle} onChange={(e) => setHomeContent({ ...homeContent, valuesTitle: e.target.value })} />
-                  </div>
 
+
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={() => saveContent('home')}
+                  className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
+                >
+                  Değişiklikleri Kaydet
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+        }
+
+        {/* Meeting Days Content Tab */}
+        {
+          contentTab === 'meetingDays' && (
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm p-6 space-y-6">
+              <h3 className="font-bold text-lg text-text-main dark:text-white">Tanışma Günleri İçerikleri</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-text-muted mb-1">Sayfa Başlığı (Hero)</label>
+                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.heroTitle} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, heroTitle: e.target.value })} />
                 </div>
-                {homeContent.values.map((val, idx) => (
-                  <div key={idx} className="mb-4 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2">
-                      <input
-                        className="col-span-3 p-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 font-bold"
-                        placeholder="Başlık"
-                        value={val.title}
-                        onChange={(e) => {
-                          const newValues = [...homeContent.values];
-                          newValues[idx].title = e.target.value;
-                          setHomeContent({ ...homeContent, values: newValues });
-                        }}
-                      />
-                      <input
-                        className="p-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 text-sm"
-                        placeholder="İkon (material)"
-                        value={val.icon}
-                        onChange={(e) => {
-                          const newValues = [...homeContent.values];
-                          newValues[idx].icon = e.target.value;
-                          setHomeContent({ ...homeContent, values: newValues });
-                        }}
-                      />
+                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                  <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Tanıtım Bölümü</h4>
+                  <div className="grid grid-cols-1 gap-4 mb-4">
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Bölüm Başlığı</label>
+                      <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.sectionTitle} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, sectionTitle: e.target.value })} />
                     </div>
-                    <textarea
-                      className="w-full p-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 text-sm"
-                      placeholder="Açıklama"
-                      value={val.text}
-                      onChange={(e) => {
-                        const newValues = [...homeContent.values];
-                        newValues[idx].text = e.target.value;
-                        setHomeContent({ ...homeContent, values: newValues });
-                      }}
-                    />
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Giriş Metni (Markdown Kullanılabilir: **kalın**)</label>
+                      <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-32" value={meetingDaysContent.introText} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, introText: e.target.value })} />
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                  <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Takvim Kutusu</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Takvim Başlığı (örn: Şubat Ayı Boyunca)</label>
+                      <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.scheduleTitle} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, scheduleTitle: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Takvim Zamanı</label>
+                      <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.scheduleTime} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, scheduleTime: e.target.value })} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-text-muted mb-1">Detay Metni</label>
+                    <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-24" value={meetingDaysContent.descriptionText} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, descriptionText: e.target.value })} />
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                  <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Form Bilgilendrome Kutusu</h4>
+                  <div className="grid grid-cols-1 gap-4 mb-4">
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Kutu Başlığı</label>
+                      <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.formInfoTitle} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, formInfoTitle: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Kutu Metni</label>
+                      <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-20" value={meetingDaysContent.formInfoText} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, formInfoText: e.target.value })} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={() => saveContent('meetingDays')}
+                  className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
+                >
+                  Değişiklikleri Kaydet
+                </button>
+              </div>
+            </div>
+          )
+        }
+
+        {/* Contact Content Tab */}
+        {
+          contentTab === 'contact' && (
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm p-6 space-y-6">
+              <h3 className="font-bold text-lg text-text-main dark:text-white">İletişim Sayfası İçerikleri</h3>
+
+              <div className="space-y-6">
+                {/* Genel Ayarlar */}
+                <div>
+                  <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Genel Ayarlar</h4>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Sayfa Başlığı</label>
+                      <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.pageTitle} onChange={(e) => setContactContent({ ...contactContent, pageTitle: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Sayfa Alt Başlığı</label>
+                      <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-20" value={contactContent.pageSubtitle} onChange={(e) => setContactContent({ ...contactContent, pageSubtitle: e.target.value })} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* İletişim Bilgileri */}
+                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                  <h4 className="font-bold text-md text-text-main dark:text-white mb-3">İletişim Bilgileri</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Adres</label>
+                      <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-20" value={contactContent.address} onChange={(e) => setContactContent({ ...contactContent, address: e.target.value })} />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-text-muted mb-1">Telefon</label>
+                        <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.phone} onChange={(e) => setContactContent({ ...contactContent, phone: e.target.value })} />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-text-muted mb-1">Telefon Saatleri</label>
+                        <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.phoneHours} onChange={(e) => setContactContent({ ...contactContent, phoneHours: e.target.value })} />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">E-posta</label>
+                      <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.email} onChange={(e) => setContactContent({ ...contactContent, email: e.target.value })} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Harita ve Diğer */}
+                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                  <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Harita ve Bağlantılar</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Harita Linki (Google Maps)</label>
+                      <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.mapLink} onChange={(e) => setContactContent({ ...contactContent, mapLink: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Hızlı Başvuru Bağlantıları Başlığı</label>
+                      <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.quickLinksTitle || ''} onChange={(e) => setContactContent({ ...contactContent, quickLinksTitle: e.target.value })} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={() => saveContent('contact')}
+                  className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
+                >
+                  Değişiklikleri Kaydet
+                </button>
+              </div>
+            </div>
+          )
+        }
+
+        {
+          contentTab === 'about' && (
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm p-6 space-y-6">
+              <h3 className="font-bold text-lg text-text-main dark:text-white">Patika'ya Dair Sayfası İçerikleri</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-text-muted mb-1">Hero Başlık</label>
+                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={aboutContent.heroTitle} onChange={(e) => setAboutContent({ ...aboutContent, heroTitle: e.target.value })} />
+                </div>
+
+
+                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                  <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Tanıtım ve Bakış Açısı</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Tanıtım Başlığı (Patika'ya Dair)</label>
+                      <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={aboutContent.introTitle || ''} onChange={(e) => setAboutContent({ ...aboutContent, introTitle: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Tanıtım Metni</label>
+                      <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-32" value={aboutContent.introText || ''} onChange={(e) => setAboutContent({ ...aboutContent, introText: e.target.value })} />
+                    </div>
+
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-100 dark:border-white/5">
+                  <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Bakış Açısı ve Felsefe</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Başlık (Bakış Açımız; Masallar ve Gerçekler)</label>
+                      <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={aboutContent.perspectiveTitle || ''} onChange={(e) => setAboutContent({ ...aboutContent, perspectiveTitle: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Metin İçeriği</label>
+                      <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-64" value={aboutContent.perspectiveText || ''} onChange={(e) => setAboutContent({ ...aboutContent, perspectiveText: e.target.value })} />
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+              <div className="flex justify-end pt-4">
+                <button
+                  onClick={() => saveContent('about')}
+                  className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
+                >
+                  Değişiklikleri Kaydet
+                </button>
+              </div>
+            </div>
+          )
+        }
+
+        {
+          contentTab === 'documents' && (
+            <div className="space-y-6">
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setEditingDocument({ id: Date.now().toString(), name: '', url: '', icon: 'description', color: 'text-secondary', bg: 'bg-red-50 dark:bg-red-900/20' })}
+                  className="flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-xl font-bold shadow-md hover:bg-orange-600 transition-colors"
+                >
+                  <span className="material-symbols-outlined">add</span>
+                  Yeni Doküman Ekle
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {documents.map(doc => (
+                  <div key={doc.id} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className={`size-10 shrink-0 rounded-full ${doc.bg} flex items-center justify-center ${doc.color}`}>
+                        <span className="material-symbols-outlined">{doc.icon}</span>
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-bold text-sm text-text-main dark:text-white truncate">{doc.name}</span>
+                        <span className="text-xs text-text-muted truncate">{doc.url}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0 ml-2">
+                      <button onClick={() => setEditingDocument(doc)} className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg text-text-muted hover:text-primary transition-colors">
+                        <span className="material-symbols-outlined text-lg">edit</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm('Bu dokümanı silmek istediğinize emin misiniz?')) {
+                            setDocuments(documents.filter(d => d.id !== doc.id));
+                          }
+                        }}
+                        className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-400 hover:text-red-500 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-lg">delete</span>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
-            <div className="flex justify-end pt-4">
-              <button
-                onClick={() => saveContent('home')}
-                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
-              >
-                Değişiklikleri Kaydet
-              </button>
-            </div>
-          </div>
-        )}
 
-        {/* Meeting Days Content Tab */}
-        {contentTab === 'meetingDays' && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm p-6 space-y-6">
-            <h3 className="font-bold text-lg text-text-main dark:text-white">Tanışma Günleri İçerikleri</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-text-muted mb-1">Sayfa Başlığı (Hero)</label>
-                <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.heroTitle} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, heroTitle: e.target.value })} />
-              </div>
-              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
-                <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Tanıtım Bölümü</h4>
-                <div className="grid grid-cols-1 gap-4 mb-4">
-                  <div>
-                    <label className="block text-xs font-bold text-text-muted mb-1">Bölüm Başlığı</label>
-                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.sectionTitle} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, sectionTitle: e.target.value })} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-text-muted mb-1">Giriş Metni (Markdown Kullanılabilir: **kalın**)</label>
-                    <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-32" value={meetingDaysContent.introText} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, introText: e.target.value })} />
-                  </div>
-                </div>
-              </div>
-              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
-                <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Takvim Kutusu</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-xs font-bold text-text-muted mb-1">Takvim Başlığı (örn: Şubat Ayı Boyunca)</label>
-                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.scheduleTitle} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, scheduleTitle: e.target.value })} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-text-muted mb-1">Takvim Zamanı</label>
-                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.scheduleTime} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, scheduleTime: e.target.value })} />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-text-muted mb-1">Detay Metni</label>
-                  <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-24" value={meetingDaysContent.descriptionText} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, descriptionText: e.target.value })} />
-                </div>
-              </div>
-              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
-                <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Form Bilgilendrome Kutusu</h4>
-                <div className="grid grid-cols-1 gap-4 mb-4">
-                  <div>
-                    <label className="block text-xs font-bold text-text-muted mb-1">Kutu Başlığı</label>
-                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={meetingDaysContent.formInfoTitle} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, formInfoTitle: e.target.value })} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-text-muted mb-1">Kutu Metni</label>
-                    <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-20" value={meetingDaysContent.formInfoText} onChange={(e) => setMeetingDaysContent({ ...meetingDaysContent, formInfoText: e.target.value })} />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end pt-4">
-              <button
-                onClick={() => saveContent('meetingDays')}
-                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
-              >
-                Değişiklikleri Kaydet
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Contact Content Tab */}
-        {contentTab === 'contact' && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm p-6 space-y-6">
-            <h3 className="font-bold text-lg text-text-main dark:text-white">İletişim Sayfası İçerikleri</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-text-muted mb-1">Sayfa Başlığı</label>
-                <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.pageTitle} onChange={(e) => setContactContent({ ...contactContent, pageTitle: e.target.value })} />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-text-muted mb-1">Sayfa Alt Başlığı</label>
-                <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-20" value={contactContent.pageSubtitle} onChange={(e) => setContactContent({ ...contactContent, pageSubtitle: e.target.value })} />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-text-muted mb-1">Adres</label>
-                <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-20" value={contactContent.address} onChange={(e) => setContactContent({ ...contactContent, address: e.target.value })} />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-text-muted mb-1">Telefon</label>
-                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.phone} onChange={(e) => setContactContent({ ...contactContent, phone: e.target.value })} />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-text-muted mb-1">Telefon Saatleri</label>
-                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.phoneHours} onChange={(e) => setContactContent({ ...contactContent, phoneHours: e.target.value })} />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-text-muted mb-1">Hızlı Başvuru Bağlantıları Başlığı</label>
-                <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.quickLinksTitle || ''} onChange={(e) => setContactContent({ ...contactContent, quickLinksTitle: e.target.value })} />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-text-muted mb-1">E-posta</label>
-                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.email} onChange={(e) => setContactContent({ ...contactContent, email: e.target.value })} />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-text-muted mb-1">Harita Linki</label>
-                  <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={contactContent.mapLink} onChange={(e) => setContactContent({ ...contactContent, mapLink: e.target.value })} />
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end pt-4">
-              <button
-                onClick={() => saveContent('contact')}
-                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
-              >
-                Değişiklikleri Kaydet
-              </button>
-            </div>
-          </div>
-        )}
-
-        {contentTab === 'about' && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm p-6 space-y-6">
-            <h3 className="font-bold text-lg text-text-main dark:text-white">Hakkımızda Sayfası İçerikleri</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-text-muted mb-1">Hero Başlık</label>
-                <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={aboutContent.heroTitle} onChange={(e) => setAboutContent({ ...aboutContent, heroTitle: e.target.value })} />
-              </div>
-
-
-              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
-                <h4 className="font-bold text-md text-text-main dark:text-white mb-3">Tanıtım ve Bakış Açısı</h4>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-text-muted mb-1">Tanıtım Başlığı (Patika'ya Dair)</label>
-                    <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5" value={aboutContent.introTitle || ''} onChange={(e) => setAboutContent({ ...aboutContent, introTitle: e.target.value })} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-text-muted mb-1">Tanıtım Metni</label>
-                    <textarea className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-32" value={aboutContent.introText || ''} onChange={(e) => setAboutContent({ ...aboutContent, introText: e.target.value })} />
-                  </div>
-
-                </div>
-              </div>
-
-            </div>
-            <div className="flex justify-end pt-4">
-              <button
-                onClick={() => saveContent('about')}
-                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
-              >
-                Değişiklikleri Kaydet
-              </button>
-            </div>
-          </div>
-        )}
-
-        {contentTab === 'documents' && (
-          <div className="space-y-6">
-            <div className="flex justify-end">
-              <button
-                onClick={() => setEditingDocument({ id: Date.now().toString(), name: '', url: '', icon: 'description', color: 'text-secondary', bg: 'bg-red-50 dark:bg-red-900/20' })}
-                className="flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-xl font-bold shadow-md hover:bg-orange-600 transition-colors"
-              >
-                <span className="material-symbols-outlined">add</span>
-                Yeni Doküman Ekle
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {documents.map(doc => (
-                <div key={doc.id} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-white/5 shadow-sm">
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <div className={`size-10 shrink-0 rounded-full ${doc.bg} flex items-center justify-center ${doc.color}`}>
-                      <span className="material-symbols-outlined">{doc.icon}</span>
+              {editingDocument && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg shadow-2xl p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-bold text-text-main dark:text-white">
+                        {documents.find(d => d.id === editingDocument.id) ? 'Dokümanı Düzenle' : 'Yeni Doküman'}
+                      </h3>
+                      <button onClick={() => setEditingDocument(null)} className="text-gray-400 hover:text-red-500">
+                        <span className="material-symbols-outlined">close</span>
+                      </button>
                     </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-bold text-sm text-text-main dark:text-white truncate">{doc.name}</span>
-                      <span className="text-xs text-text-muted truncate">{doc.url}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0 ml-2">
-                    <button onClick={() => setEditingDocument(doc)} className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg text-text-muted hover:text-primary transition-colors">
-                      <span className="material-symbols-outlined text-lg">edit</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (confirm('Bu dokümanı silmek istediğinize emin misiniz?')) {
-                          setDocuments(documents.filter(d => d.id !== doc.id));
-                        }
-                      }}
-                      className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-400 hover:text-red-500 transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-lg">delete</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
 
-            {editingDocument && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg shadow-2xl p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-text-main dark:text-white">
-                      {documents.find(d => d.id === editingDocument.id) ? 'Dokümanı Düzenle' : 'Yeni Doküman'}
-                    </h3>
-                    <button onClick={() => setEditingDocument(null)} className="text-gray-400 hover:text-red-500">
-                      <span className="material-symbols-outlined">close</span>
-                    </button>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-text-muted mb-1">Doküman Adı</label>
-                    <input
-                      className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-main dark:text-white"
-                      value={editingDocument.name}
-                      onChange={(e) => setEditingDocument({ ...editingDocument, name: e.target.value })}
-                      placeholder="Örn: Kayıt Formu"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-text-muted mb-1">Dosya Yükle</label>
-                    <div className="flex flex-col gap-2">
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Doküman Adı</label>
                       <input
-                        type="file"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setEditingDocument({ ...editingDocument, url: `/files/${file.name}` });
-                          }
-                        }}
-                        className="block w-full text-sm text-text-muted
+                        className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-main dark:text-white"
+                        value={editingDocument.name}
+                        onChange={(e) => setEditingDocument({ ...editingDocument, name: e.target.value })}
+                        placeholder="Örn: Kayıt Formu"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-text-muted mb-1">Dosya Yükle</label>
+                      <div className="flex flex-col gap-2">
+                        <input
+                          type="file"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setEditingDocument({ ...editingDocument, url: `/files/${file.name}` });
+                            }
+                          }}
+                          className="block w-full text-sm text-text-muted
                                 file:mr-4 file:py-2 file:px-4
                                 file:rounded-xl file:border-0
                                 file:text-sm file:font-bold
@@ -2591,79 +2599,80 @@ const Admin: React.FC = () => {
                                 hover:file:bg-orange-600
                                 cursor-pointer
                             "
-                      />
-                      <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
-                        <span className="material-symbols-outlined text-text-muted">link</span>
-                        <code className="text-sm font-mono text-text-main dark:text-white truncate flex-1">{editingDocument.url || 'Dosya seçilmedi'}</code>
+                        />
+                        <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
+                          <span className="material-symbols-outlined text-text-muted">link</span>
+                          <code className="text-sm font-mono text-text-main dark:text-white truncate flex-1">{editingDocument.url || 'Dosya seçilmedi'}</code>
+                        </div>
+                        <p className="text-xs text-orange-500 bg-orange-50 dark:bg-orange-900/10 p-2 rounded-lg border border-orange-100 dark:border-orange-900/20">
+                          <strong>Bilgi:</strong> Web sitemiz statik yapıdadır. Dosyasını seçtiğiniz dokümanı, proje klasöründeki <code>/public/files/</code> dizinine manuel olarak eklemeniz gerekmektedir.
+                        </p>
                       </div>
-                      <p className="text-xs text-orange-500 bg-orange-50 dark:bg-orange-900/10 p-2 rounded-lg border border-orange-100 dark:border-orange-900/20">
-                        <strong>Bilgi:</strong> Web sitemiz statik yapıdadır. Dosyasını seçtiğiniz dokümanı, proje klasöründeki <code>/public/files/</code> dizinine manuel olarak eklemeniz gerekmektedir.
-                      </p>
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-text-muted mb-1">İkon (Material Symbol)</label>
-                      <input
-                        className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-main dark:text-white"
-                        value={editingDocument.icon}
-                        onChange={(e) => setEditingDocument({ ...editingDocument, icon: e.target.value })}
-                        placeholder="description"
-                      />
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-text-muted mb-1">İkon (Material Symbol)</label>
+                        <input
+                          className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-main dark:text-white"
+                          value={editingDocument.icon}
+                          onChange={(e) => setEditingDocument({ ...editingDocument, icon: e.target.value })}
+                          placeholder="description"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-text-muted mb-1">Renk Teması</label>
+                        <select
+                          className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-main dark:text-white appearance-none"
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            let theme = { color: 'text-secondary', bg: 'bg-red-50 dark:bg-red-900/20' };
+                            if (val === 'blue') theme = { color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' };
+                            if (val === 'green') theme = { color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' };
+                            if (val === 'orange') theme = { color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' };
+                            if (val === 'purple') theme = { color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' };
+                            setEditingDocument({ ...editingDocument, ...theme });
+                          }}
+                          defaultValue={
+                            editingDocument.color.includes('blue') ? 'blue' :
+                              editingDocument.color.includes('green') ? 'green' :
+                                editingDocument.color.includes('orange') ? 'orange' :
+                                  editingDocument.color.includes('purple') ? 'purple' : 'red'
+                          }
+                        >
+                          <option value="red">Kırmızı</option>
+                          <option value="blue">Mavi</option>
+                          <option value="green">Yeşil</option>
+                          <option value="orange">Turuncu</option>
+                          <option value="purple">Mor</option>
+                        </select>
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-xs font-bold text-text-muted mb-1">Renk Teması</label>
-                      <select
-                        className="w-full p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-text-main dark:text-white appearance-none"
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          let theme = { color: 'text-secondary', bg: 'bg-red-50 dark:bg-red-900/20' };
-                          if (val === 'blue') theme = { color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' };
-                          if (val === 'green') theme = { color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' };
-                          if (val === 'orange') theme = { color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' };
-                          if (val === 'purple') theme = { color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' };
-                          setEditingDocument({ ...editingDocument, ...theme });
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/5">
+                      <button onClick={() => setEditingDocument(null)} className="px-5 py-2 text-gray-500 font-bold hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">İptal</button>
+                      <button
+                        onClick={() => {
+                          const exists = documents.find(d => d.id === editingDocument.id);
+                          if (exists) {
+                            setDocuments(documents.map(d => d.id === editingDocument.id ? editingDocument : d));
+                          } else {
+                            setDocuments([...documents, editingDocument]);
+                          }
+                          setEditingDocument(null);
                         }}
-                        defaultValue={
-                          editingDocument.color.includes('blue') ? 'blue' :
-                            editingDocument.color.includes('green') ? 'green' :
-                              editingDocument.color.includes('orange') ? 'orange' :
-                                editingDocument.color.includes('purple') ? 'purple' : 'red'
-                        }
+                        className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
                       >
-                        <option value="red">Kırmızı</option>
-                        <option value="blue">Mavi</option>
-                        <option value="green">Yeşil</option>
-                        <option value="orange">Turuncu</option>
-                        <option value="purple">Mor</option>
-                      </select>
+                        Kaydet
+                      </button>
                     </div>
-                  </div>
-
-                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/5">
-                    <button onClick={() => setEditingDocument(null)} className="px-5 py-2 text-gray-500 font-bold hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">İptal</button>
-                    <button
-                      onClick={() => {
-                        const exists = documents.find(d => d.id === editingDocument.id);
-                        if (exists) {
-                          setDocuments(documents.map(d => d.id === editingDocument.id ? editingDocument : d));
-                        } else {
-                          setDocuments([...documents, editingDocument]);
-                        }
-                        setEditingDocument(null);
-                      }}
-                      className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
-                    >
-                      Kaydet
-                    </button>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+              )}
+            </div>
+          )
+        }
+      </div >
     );
   };
 
@@ -2810,7 +2819,7 @@ const Admin: React.FC = () => {
               {!otpSent ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="text-xs font-bold text-text-muted uppercase mb-2 block">E-posta Adresi</label>
+                    <label className="text-xs font-bold text-text-muted uppercase mb-2 block">E-posta Adresi (patikayuva@gmail.com)</label>
                     <input
                       type="email"
                       value={loginEmail}
