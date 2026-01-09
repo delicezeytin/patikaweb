@@ -1,0 +1,184 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Admin users who can access the panel
+model AdminUser {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  otpCodes  OtpCode[]
+}
+
+// OTP codes for authentication
+model OtpCode {
+  id        Int       @id @default(autoincrement())
+  code      String
+  adminId   Int
+  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  
+  @@index([adminId])
+  @@index([code])
+}
+
+// Page content (Home, About, Contact, MeetingDays)
+model PageContent {
+  id        Int      @id @default(autoincrement())
+  pageType  String   @unique // 'home', 'about', 'contact', 'meetingDays'
+  content   Json     // Flexible JSON for different page structures
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Teachers
+model Teacher {
+  id        Int            @id @default(autoincrement())
+  name      String
+  role      String
+  branch    String
+  image     String         // Material symbol name
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  classes   TeacherClass[]
+}
+
+// Classes
+model Class {
+  id        Int            @id @default(autoincrement())
+  name      String
+  capacity  Int
+  ageGroup  String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  teachers  TeacherClass[]
+}
+
+// Many-to-many relation between Teachers and Classes
+model TeacherClass {
+  teacherId Int
+  classId   Int
+  teacher   Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  class     Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  
+  @@id([teacherId, classId])
+}
+
+// Custom Forms (Contact, Personnel, School Register, etc.)
+model CustomForm {
+  id                 String           @id
+  title              String
+  slug               String           @unique
+  description        String?          @db.Text
+  fields             Json             // Form field definitions
+  isActive           Boolean          @default(true)
+  notificationEmails String?          @db.Text
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  submissions        FormSubmission[]
+}
+
+// Form Submissions
+model FormSubmission {
+  id        Int        @id @default(autoincrement())
+  formId    String
+  form      CustomForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  data      Json       // Submitted form data
+  status    String     @default("new") // 'new', 'reviewed', 'contacted'
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  @@index([formId])
+}
+
+// Weekly Food Menu
+model WeeklyMenu {
+  id        Int      @id @default(autoincrement())
+  day       String   @unique // 'Pazartesi', 'Salı', etc.
+  breakfast String   @db.Text
+  lunch     String   @db.Text
+  snack     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Daily Schedule
+model Schedule {
+  id        Int      @id @default(autoincrement())
+  time      String   // '08:30-09:00'
+  activity  String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Documents (PDF files, forms, etc.)
+model Document {
+  id        String   @id
+  name      String
+  url       String
+  icon      String
+  color     String
+  bg        String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Meeting Forms (for appointment scheduling)
+model MeetingForm {
+  id              Int              @id @default(autoincrement())
+  title           String
+  dates           Json             // Array of date strings
+  dailyStartTime  String
+  dailyEndTime    String
+  durationMinutes Int
+  bufferMinutes   Int
+  isActive        Boolean          @default(true)
+  classes         Json             // ClassConfig array
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  requests        MeetingRequest[]
+}
+
+// Meeting Requests (appointment bookings)
+model MeetingRequest {
+  id          Int         @id @default(autoincrement())
+  formId      Int
+  form        MeetingForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  parentName  String
+  studentName String
+  date        String
+  time        String
+  status      String      @default("pending") // 'pending', 'approved', 'rejected'
+  classId     Int?
+  className   String?
+  teacherId   Int?
+  email       String?
+  phone       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@index([formId])
+}
+
+// System Settings
+model SystemSettings {
+  id                Int      @id @default(1)
+  emailjsServiceId  String?
+  emailjsTemplateId String?
+  emailjsPublicKey  String?
+  calendarId        String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
