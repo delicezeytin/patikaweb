@@ -13,10 +13,13 @@ export const sendEmail = async (to: string | string[], subject: string, html: st
         // Lazy load nodemailer to avoid import errors if not installed (though we installed it)
         const nodemailer = require('nodemailer');
 
+        const port = parseInt(settings.smtpPort || '587');
+        const isSecure = port === 465;
+
         const transporter = nodemailer.createTransport({
             host: settings.smtpHost,
-            port: parseInt(settings.smtpPort || '587'),
-            secure: false, // true for 465, false for other ports
+            port: port,
+            secure: isSecure, // true for 465, false for other ports
             auth: {
                 user: settings.smtpUser,
                 pass: settings.smtpPass,
