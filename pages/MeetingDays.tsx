@@ -88,7 +88,7 @@ const MeetingDays: React.FC = () => {
         return <span dangerouslySetInnerHTML={{ __html: html }} />;
     };
 
-    const isFormAccessible = meetingForm?.accessibleForm !== false;
+    const isFormAccessible = (meetingForm?.accessibleForm !== undefined ? meetingForm.accessibleForm : meetingForm?.isAccessible) !== false;
 
     return (
         <div className="max-w-[1200px] w-full flex flex-col mx-auto">

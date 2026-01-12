@@ -2062,7 +2062,7 @@ const Admin: React.FC = () => {
                     setEditingForm({
                       ...form,
                       targetPage: form.targetPage || '',
-                      accessibleForm: form.accessibleForm !== undefined ? form.accessibleForm : true
+                      accessibleForm: form.accessibleForm !== undefined ? form.accessibleForm : ((form as any).isAccessible !== undefined ? (form as any).isAccessible : true)
                     });
                     setActiveView('form-builder');
                   }} className="flex items-center gap-1 text-primary hover:text-orange-700">
@@ -2072,7 +2072,7 @@ const Admin: React.FC = () => {
                     setEditingForm({
                       ...form,
                       targetPage: form.targetPage || '',
-                      accessibleForm: form.accessibleForm !== undefined ? form.accessibleForm : true
+                      accessibleForm: form.accessibleForm !== undefined ? form.accessibleForm : ((form as any).isAccessible !== undefined ? (form as any).isAccessible : true)
                     });
                     setActiveView('form-submissions');
                   }} className="flex items-center gap-1 text-text-muted hover:text-text-main">
