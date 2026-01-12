@@ -96,14 +96,24 @@ const Contact: React.FC = () => {
           setFormData(contactForm);
         }
 
-        // Find other active forms for Quick Links (excluding current contact form and current 'personnel' check logic)
-        // Now generic: any active form not being the main contact form could theoretically be a quick link? 
-        // For now, let's keep the explicit check for 'personnel', or maybe check targetPage='personnel'
-        const links = [];
-        const personnelForm = forms.find((f: any) => f.targetPage === 'personnel' || f.id === 'personnel');
-        if (personnelForm && personnelForm.isActive !== false) {
-          links.push({ id: 'personnel', title: personnelForm.title, path: '/apply-personnel' });
-        }
+        // Find other active forms for Quick Links
+        // Filter out the current displayed form
+        const currentFormId = contactForm ? contactForm.id : 'contact';
+        const links = forms
+          .filter((f: any) => f.id !== currentFormId && f.slug !== 'iletisim-formu' && f.isActive !== false) // Exclude current and inactive
+          .map((f: any) => {
+            // Determine path based on targetPage
+            let path = `/form/${f.slug}`; // Default dynamic path
+            if (f.targetPage === 'personnel' || f.id === 'personnel') path = '/apply-personnel';
+            if (f.targetPage === 'student' || f.id === 'school_register') path = '/apply-student';
+
+            return {
+              id: f.id,
+              title: f.title,
+              path: path
+            };
+          });
+
         setActiveOtherForms(links);
 
       } catch (error) {

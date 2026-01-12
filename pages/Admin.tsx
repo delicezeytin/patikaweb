@@ -317,7 +317,7 @@ const initialClasses = [
 
 const initialCustomForms: CustomForm[] = [
   {
-    id: 'contact', title: 'İletişim Formu', slug: 'iletisim-formu', description: 'Web sitesi iletişim sayfası formu', isActive: true, submissions: [], notificationEmails: '',
+    id: 'contact', title: 'İletişim Formu', slug: 'iletisim-formu', description: 'Web sitesi iletişim sayfası formu', isActive: true, targetPage: 'contact', submissions: [], notificationEmails: '',
     fields: [
       { id: 'c1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Ad Soyad' },
       { id: 'c2', type: 'email', label: 'E-posta', required: true, placeholder: 'email@ornek.com' },
@@ -327,7 +327,7 @@ const initialCustomForms: CustomForm[] = [
     ]
   },
   {
-    id: 'personnel', title: 'Personel Başvuru Formu', slug: 'personel-basvuru-formu', description: 'İş başvuruları için kullanılan form', isActive: true, submissions: [], notificationEmails: '',
+    id: 'personnel', title: 'Personel Başvuru Formu', slug: 'personel-basvuru-formu', description: 'İş başvuruları için kullanılan form', isActive: true, targetPage: 'personnel', submissions: [], notificationEmails: '',
     fields: [
       { id: 'p1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Adınız Soyadınız' },
       { id: 'p3', type: 'tel', label: 'Telefon', required: true, placeholder: 'örn: 555 123 4567' },
@@ -337,7 +337,7 @@ const initialCustomForms: CustomForm[] = [
     ]
   },
   {
-    id: 'school_register', title: 'Okul Kayıt Formu', slug: 'okul-kayit-formu', description: 'Yeni öğrenci kaydı için gerekli bilgiler', isActive: true, submissions: [], notificationEmails: '',
+    id: 'school_register', title: 'Okul Kayıt Formu', slug: 'okul-kayit-formu', description: 'Yeni öğrenci kaydı için gerekli bilgiler', isActive: true, targetPage: 'student', submissions: [], notificationEmails: '',
     fields: [
       { id: 'f1', type: 'text', label: 'Öğrenci Adı Soyadı', required: true, placeholder: 'Ad Soyad' },
       { id: 'f2', type: 'date', label: 'Doğum Tarihi', required: true },

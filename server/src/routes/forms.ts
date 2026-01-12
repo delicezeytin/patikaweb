@@ -110,7 +110,51 @@ router.post('/:id/submit', async (req, res) => {
             data: { formId: id, data }
         });
 
-        // TODO: Send notification email if configured
+        // Send notification email if configured
+        if (form.notificationEmails) {
+            try {
+                // Fetch settings for SMTP config
+                const settings = await prisma.systemSettings.findFirst();
+
+                if (settings && settings.smtpHost && settings.smtpUser && settings.smtpPass) {
+                    const nodemailer = require('nodemailer');
+
+                    const transporter = nodemailer.createTransport({
+                        host: settings.smtpHost,
+                        port: parseInt(settings.smtpPort || '587'),
+                        secure: false, // true for 465, false for other ports
+                        auth: {
+                            user: settings.smtpUser,
+                            pass: settings.smtpPass,
+                        },
+                    });
+
+                    const emailList = form.notificationEmails.split(',').map(e => e.trim());
+                    const fieldMap: any = form.fields;
+                    let messageBody = `<h3>Yeni Form Başvurusu: ${form.title}</h3><ul>`;
+
+                    for (const [key, value] of Object.entries(data as any)) {
+                        const fieldDef = Array.isArray(fieldMap) ? fieldMap.find((f: any) => f.id === key || f.label === key) : null;
+                        const label = fieldDef ? fieldDef.label : key;
+                        messageBody += `<li><strong>${label}:</strong> ${value}</li>`;
+                    }
+                    messageBody += `</ul>`;
+
+                    await transporter.sendMail({
+                        from: `"Patika Yuva" <${settings.smtpUser}>`,
+                        to: emailList,
+                        subject: `Yeni Başvuru: ${form.title}`,
+                        html: messageBody,
+                    });
+                    console.log(`Email sent to ${emailList.join(', ')}`);
+                } else {
+                    console.log('SMTP settings missing, skipping email.');
+                }
+            } catch (emailError) {
+                console.error('Failed to send email:', emailError);
+                // Do not fail the request, just log error
+            }
+        }
 
         res.json({ success: true, submission });
     } catch (error) {
