@@ -17,6 +17,7 @@ import scheduleRoutes from './routes/schedule';
 import documentsRoutes from './routes/documents';
 import settingsRoutes from './routes/settings';
 import meetingRoutes from './routes/meetings';
+import uploadRoutes from './routes/upload';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -41,6 +42,10 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
+// Serve Uploads Static Directory
+import path from 'path';
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/content', contentRoutes);
@@ -52,9 +57,9 @@ app.use('/api/schedule', scheduleRoutes);
 app.use('/api/documents', documentsRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/meetings', meetingRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Serve Frontend Static Files (Fallback for "Node.js" Stack)
-import path from 'path';
 const frontendPath = path.join(__dirname, '../../dist');
 
 // 1. Serve static files

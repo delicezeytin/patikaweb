@@ -15,6 +15,7 @@ import {
   formService,
   meetingService,
   settingsService,
+  uploadService,
   API_URL
 } from '../services/api';
 import { formatDate, formatDateTime } from '../utils/dateFormatter';
@@ -2726,9 +2727,27 @@ const Admin: React.FC = () => {
                         <span className="material-symbols-outlined text-lg">edit</span>
                       </button>
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           if (confirm('Bu dokümanı silmek istediğinize emin misiniz?')) {
-                            setDocuments(documents.filter(d => d.id !== doc.id));
+                            try {
+                              // Identify if it is an uploaded file and delete it from server
+                              if (doc.url && doc.url.startsWith('/uploads/')) {
+                                const filename = doc.url.split('/').pop();
+                                if (filename) {
+                                  try {
+                                    await uploadService.delete(filename);
+                                  } catch (e) {
+                                    console.warn('File deletion failed, continuing with doc deletion', e);
+                                  }
+                                }
+                              }
+
+                              await documentService.delete(doc.id);
+                              setDocuments(documents.filter(d => d.id !== doc.id));
+                            } catch (error) {
+                              console.error(error);
+                              alert('Doküman silinirken bir hata oluştu.');
+                            }
                           }
                         }}
                         className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-400 hover:text-red-500 transition-colors"
@@ -2767,10 +2786,18 @@ const Admin: React.FC = () => {
                       <div className="flex flex-col gap-2">
                         <input
                           type="file"
-                          onChange={(e) => {
+                          onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              setEditingDocument({ ...editingDocument, url: `/files/${file.name}` });
+                              try {
+                                const res = await uploadService.upload(file);
+                                if (res.data.success) {
+                                  setEditingDocument({ ...editingDocument, url: res.data.url });
+                                }
+                              } catch (error) {
+                                console.error('Upload error', error);
+                                alert('Dosya yüklenirken hata oluştu.');
+                              }
                             }
                           }}
                           className="block w-full text-sm text-text-muted
@@ -2834,14 +2861,25 @@ const Admin: React.FC = () => {
                     <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/5">
                       <button onClick={() => setEditingDocument(null)} className="px-5 py-2 text-gray-500 font-bold hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-colors">İptal</button>
                       <button
-                        onClick={() => {
-                          const exists = documents.find(d => d.id === editingDocument.id);
-                          if (exists) {
-                            setDocuments(documents.map(d => d.id === editingDocument.id ? editingDocument : d));
-                          } else {
-                            setDocuments([...documents, editingDocument]);
+                        onClick={async () => {
+                          try {
+                            const exists = documents.find(d => d.id === editingDocument.id);
+                            if (exists) {
+                              await documentService.update(editingDocument.id, editingDocument);
+                            } else {
+                              await documentService.create(editingDocument);
+                            }
+
+                            // Refresh list
+                            const res = await documentService.getAll();
+                            if (res.data.documents) {
+                              setDocuments(res.data.documents);
+                            }
+                            setEditingDocument(null);
+                          } catch (error) {
+                            console.error('Document save error', error);
+                            alert('Doküman kaydedilirken hata oluştu.');
                           }
-                          setEditingDocument(null);
                         }}
                         className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95"
                       >
@@ -2969,21 +3007,12 @@ const Admin: React.FC = () => {
               if (!email) return alert('Lütfen bir e-posta adresi girin.');
 
               try {
-                // We need to implement settingsService.testEmail or call API directly
-                // Assuming we add it to settingsService or do a fetch
-                // For now, raw fetch
-                const token = localStorage.getItem('token');
-                const res = await fetch(`${API_URL}/settings/test-email`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                  body: JSON.stringify({ email })
-                });
-                const data = await res.json();
-                if (data.success) alert(data.message);
-                else alert('Hata: ' + data.error);
-              } catch (e) {
+                const res = await settingsService.testEmail(email);
+                if (res.data.success) alert(res.data.message);
+                else alert('Hata: ' + (res.data.error || 'Bilinmeyen hata'));
+              } catch (e: any) {
                 console.error(e);
-                alert('Test sırasında hata oluştu.');
+                alert('Test sırasında hata oluştu: ' + (e.response?.data?.error || e.message));
               }
             }}
             className="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors text-sm"

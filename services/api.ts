@@ -130,5 +130,19 @@ export const meetingService = {
     deleteRequest: (id: number) => api.delete(`/meetings/requests/${id}`)
 };
 
+// Upload services
+export const uploadService = {
+    upload: (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post('/upload', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+    },
+    delete: (filename: string) => api.delete(`/upload/${filename}`),
+};
+
 
 export default api;
