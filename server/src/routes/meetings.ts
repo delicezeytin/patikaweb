@@ -217,16 +217,47 @@ router.post('/requests/verify', async (req, res) => {
         }
 
         // Verify and set to pending (for admin approval)
-        await prisma.meetingRequest.update({
+        const updatedRequest = await prisma.meetingRequest.update({
             where: { id: request.id },
             data: {
                 status: 'pending',
                 verificationCode: null, // Clear code
                 verificationExpires: null
-            }
+            },
+            include: { form: true }
         });
 
-        // TODO: Send notification to Admin?
+        // Send notification to Admin
+        try {
+            const settings = await prisma.systemSettings.findFirst();
+            if (settings?.notificationEmail) {
+                const { sendEmail } = require('../services/email');
+                const origin = req.get('origin') || 'https://patikayuvas.com';
+                const adminLink = `${origin}/admin`;
+
+                const body = `
+                    <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+                        <h3>Yeni Toplantı Talebi</h3>
+                        <p>Aşağıdaki bilgilerle yeni bir randevu talebi oluşturuldu ve onayınızı bekliyor.</p>
+                        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                            <p style="margin: 5px 0;"><strong>Form:</strong> ${updatedRequest.form.title}</p>
+                            <p style="margin: 5px 0;"><strong>Veli:</strong> ${updatedRequest.parentName}</p>
+                            <p style="margin: 5px 0;"><strong>Öğrenci:</strong> ${updatedRequest.studentName}</p>
+                            <p style="margin: 5px 0;"><strong>Tarih:</strong> ${updatedRequest.date}</p>
+                            <p style="margin: 5px 0;"><strong>Saat:</strong> ${updatedRequest.time}</p>
+                            <p style="margin: 5px 0;"><strong>Sınıf:</strong> ${updatedRequest.className || '-'}</p>
+                            <p style="margin: 5px 0;"><strong>İletişim:</strong> ${updatedRequest.email || '-'} / ${updatedRequest.phone || '-'}</p>
+                        </div>
+                        <br>
+                        <a href="${adminLink}" style="display: inline-block; background-color: #d32f2f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Yönetim Paneline Git</a>
+                    </div>
+                `;
+
+                await sendEmail(settings.notificationEmail, 'Yeni Toplantı Talebi', body);
+            }
+        } catch (emailErr) {
+            console.error('Admin notification email failed:', emailErr);
+        }
 
         res.json({ success: true, message: 'Randevu talebiniz başarıyla doğrulandı ve onaya gönderildi.' });
     } catch (error) {
