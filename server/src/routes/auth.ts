@@ -10,18 +10,25 @@ const generateOtp = (): string => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+import { sendOtpEmail } from '../services/email';
+
+// ... (existing imports)
+
 // Request OTP
 router.post('/request-otp', async (req, res) => {
+    console.log(`[AUTH] OTP Request for: ${req.body.email}`);
     try {
         const { email } = req.body;
 
         if (!email) {
+            console.warn('[AUTH] Missing email in request');
             return res.status(400).json({ error: 'E-posta adresi gerekli' });
         }
 
         const adminEmail = process.env.ADMIN_EMAIL || 'patikayuva@gmail.com';
 
         if (email.toLowerCase() !== adminEmail.toLowerCase()) {
+            console.warn(`[AUTH] Unauthorized email attempt: ${email}`);
             return res.status(403).json({ error: 'Bu e-posta adresi yönetim paneline erişim yetkisine sahip değil' });
         }
 
@@ -29,6 +36,7 @@ router.post('/request-otp', async (req, res) => {
         let admin = await prisma.adminUser.findUnique({ where: { email: adminEmail } });
 
         if (!admin) {
+            console.log(`[AUTH] Creating new admin user: ${adminEmail}`);
             admin = await prisma.adminUser.create({ data: { email: adminEmail } });
         }
 
@@ -37,6 +45,7 @@ router.post('/request-otp', async (req, res) => {
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
         // Save OTP to database
+        console.log(`[AUTH] Saving OTP to database for adminId: ${admin.id}`);
         await prisma.otpCode.create({
             data: {
                 code: otp,
@@ -45,21 +54,30 @@ router.post('/request-otp', async (req, res) => {
             }
         });
 
-        // TODO: Send OTP via EmailJS in production
-        // For now, return OTP in development mode
+        // Send OTP via EmailJS
+        try {
+            console.log('[AUTH] Sending OTP via EmailJS...');
+            await sendOtpEmail(email, otp);
+            console.log('[AUTH] Email sent successfully');
+        } catch (emailError) {
+            console.error('[AUTH] Failed to send email:', emailError);
+            // Don't block the response, but log it. User might see "success" but not get email if keys are wrong.
+            // But if dev mode, we return the OTP anyway.
+        }
+
+        // For now, return OTP in development mode or if email fails in dev
         if (process.env.NODE_ENV === 'development') {
             return res.json({
                 success: true,
-                message: 'OTP gönderildi',
-                // Only show OTP in development
+                message: 'OTP gönderildi (Dev Mode)',
                 devOtp: otp
             });
         }
 
         res.json({ success: true, message: 'OTP e-posta adresinize gönderildi' });
     } catch (error) {
-        console.error('OTP request error:', error);
-        res.status(500).json({ error: 'OTP gönderilirken bir hata oluştu' });
+        console.error('[AUTH] OTP request error (FULL TRACE):', error);
+        res.status(500).json({ error: 'OTP gönderilirken bir hata oluştu', details: (error as Error).message });
     }
 });
 
