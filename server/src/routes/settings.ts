@@ -54,10 +54,10 @@ router.post('/test-email', authMiddleware, async (req, res) => {
             '<h3>SMTP Test Başarılı</h3><p>Bu e-posta, sistem ayarlarındaki SMTP yapılandırmasını test etmek için gönderilmiştir.</p>'
         );
 
-        if (sent) {
+        if (sent.success) {
             res.json({ success: true, message: 'Test e-postası başarıyla gönderildi.' });
         } else {
-            res.status(500).json({ error: 'E-posta gönderilemedi. Lütfen sunucu loglarını kontrol ediniz.' });
+            res.status(500).json({ error: 'E-posta gönderilemedi: ' + (sent.error?.message || sent.error) });
         }
     } catch (error) {
         console.error('Test email error:', error);

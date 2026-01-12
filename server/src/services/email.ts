@@ -2,12 +2,12 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export const sendEmail = async (to: string | string[], subject: string, html: string): Promise<boolean> => {
+export const sendEmail = async (to: string | string[], subject: string, html: string): Promise<{ success: boolean; error?: any }> => {
     try {
         const settings = await prisma.systemSettings.findFirst();
         if (!settings || !settings.smtpHost || !settings.smtpUser || !settings.smtpPass) {
             console.error('SMTP settings missing in database');
-            return false;
+            return { success: false, error: 'SMTP ayarları eksik' };
         }
 
         // Lazy load nodemailer to avoid import errors if not installed (though we installed it)
@@ -21,7 +21,12 @@ export const sendEmail = async (to: string | string[], subject: string, html: st
                 user: settings.smtpUser,
                 pass: settings.smtpPass,
             },
+            tls: {
+                rejectUnauthorized: false // Often needed for some SMTP servers
+            }
         });
+
+        await transporter.verify(); // Verify connection first
 
         await transporter.sendMail({
             from: `"Patika Yuva" <${settings.smtpUser}>`,
@@ -31,10 +36,10 @@ export const sendEmail = async (to: string | string[], subject: string, html: st
         });
 
         console.log(`Email sent successfully to: ${to}`);
-        return true;
+        return { success: true };
     } catch (error) {
         console.error('Send email error:', error);
-        return false;
+        return { success: false, error: error };
     }
 };
 
@@ -54,9 +59,10 @@ export const sendOtpEmail = async (email: string, otp: string): Promise<void> =>
         `
     );
 
-    if (!sent) {
-        // Fallback or error logging is handled in sendEmail, but we throw here to notify caller of failure if needed
-        // For OTP specifically, auth route might handle error.
+    // We can log error if sent.success is false, but return void as per signature
+    if (!sent.success) {
+        console.error('OTP Email failed', sent.error);
+        // For OTP specifically, auth route might handle error, but we can throw here to notify caller of failure if needed
         throw new Error('OTP e-postası gönderilemedi. Lütfen SMTP ayarlarını kontrol ediniz.');
     }
 };
