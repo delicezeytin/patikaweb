@@ -32,14 +32,18 @@ export const createCalendarEvent = async (
         }
 
         // 3. Authenticate
-        const auth = new google.auth.JWT(
-            credentials.client_email,
-            undefined,
-            credentials.private_key,
-            ['https://www.googleapis.com/auth/calendar']
-        );
+        // 3. Authenticate
+        const auth = new google.auth.GoogleAuth({
+            credentials: {
+                client_email: credentials.client_email,
+                private_key: credentials.private_key,
+            },
+            scopes: ['https://www.googleapis.com/auth/calendar'],
+        });
 
-        const calendar = google.calendar({ version: 'v3', auth });
+        const authClient = await auth.getClient();
+
+        const calendar = google.calendar({ version: 'v3', auth: authClient });
 
         // 4. Prepare Event Data
         // Parse start datetime
