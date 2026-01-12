@@ -146,6 +146,7 @@ router.post('/requests', async (req, res) => {
         const existingRequest = await prisma.meetingRequest.findFirst({
             where: {
                 email: email,
+                classId: Number(classId), // Scope check to the specific class
                 status: { not: 'rejected' },
                 date: {
                     gte: dateStrBefore,
@@ -156,7 +157,7 @@ router.post('/requests', async (req, res) => {
 
         if (existingRequest) {
             return res.status(400).json({
-                error: 'Seçilen tarihin 10 gün öncesi veya sonrasında zaten aktif bir randevu talebiniz bulunmaktadır.'
+                error: 'Bu sınıf için seçilen tarihin 10 gün öncesi veya sonrasında zaten aktif bir randevu talebiniz bulunmaktadır.'
             });
         }
 
