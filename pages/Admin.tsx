@@ -797,7 +797,22 @@ const Admin: React.FC = () => {
         if (menuRes.data.menu) setFoodMenu(menuRes.data.menu); // Need to check if menu wrapper is 'menu' or object of days
         if (scheduleRes.data.schedule) setSchedule(scheduleRes.data.schedule);
         if (documentsRes.data.documents) setDocuments(documentsRes.data.documents);
-        if (settingsRes.data.settings) setSettings(settingsRes.data.settings);
+        if (settingsRes.data.settings) {
+          // Merge with defaults to ensure all fields are present
+          setSettings(prev => ({
+            ...prev,
+            calendarId: settingsRes.data.settings.calendarId || '',
+            smtpHost: settingsRes.data.settings.smtpHost || '',
+            smtpPort: settingsRes.data.settings.smtpPort || '587',
+            smtpUser: settingsRes.data.settings.smtpUser || '',
+            smtpPass: settingsRes.data.settings.smtpPass || '',
+            notificationEmail: settingsRes.data.settings.notificationEmail || '',
+            timezone: settingsRes.data.settings.timezone || 'Europe/Istanbul',
+            emailjsServiceId: settingsRes.data.settings.emailjsServiceId || '',
+            emailjsTemplateId: settingsRes.data.settings.emailjsTemplateId || '',
+            emailjsPublicKey: settingsRes.data.settings.emailjsPublicKey || ''
+          }));
+        }
 
         // Meeting System
         if (meetingFormsRes.data.forms) setForms(meetingFormsRes.data.forms);
