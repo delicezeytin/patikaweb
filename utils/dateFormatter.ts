@@ -10,7 +10,7 @@ export const formatDate = (dateString: string | number | Date): string => {
         month: '2-digit',
         year: 'numeric',
         timeZone: 'Europe/Istanbul'
-    }).format(date);
+    }).format(date).replace(/\./g, '/');
 };
 
 export const formatDateTime = (dateString: string | number | Date): string => {

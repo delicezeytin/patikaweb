@@ -100,7 +100,7 @@ const Contact: React.FC = () => {
         // Filter out the current displayed form
         const currentFormId = contactForm ? contactForm.id : 'contact';
         const links = forms
-          .filter((f: any) => f.id !== currentFormId && f.slug !== 'iletisim-formu' && f.isActive !== false && f.targetPage !== 'none' && f.targetPage !== 'link') // Exclude current, inactive, and link-only forms
+          .filter((f: any) => f.id !== currentFormId && f.slug !== 'iletisim-formu' && f.isActive !== false && f.targetPage !== 'none' && f.targetPage !== 'link' && f.targetPage !== 'meetingDays') // Exclude current, inactive, link-only, and meetingDays forms
           .map((f: any) => {
             // Determine path based on targetPage
             let path = `/form/${f.slug}`; // Default dynamic path

@@ -149,39 +149,14 @@ interface AboutContent {
   perspectiveText: string;
 }
 
-const initialTales: Tale[] = [
-  {
-    id: 1,
-    title: "Cesur Küçük Tavşan",
-    description: "Ormanın derinliklerinde yaşayan küçük bir tavşanın korkularıyla yüzleşme hikayesi.",
-    content: "Bir varmış, bir yokmuş... Ormanın derinliklerinde, rengarenk çiçeklerin arasında yaşayan Pamuk adında küçük bir tavşan varmış. Pamuk çok sevimliymiş ama birazcık ürkekmiş. Rüzgarın sesinden bile korkar, hemen yuvasına saklanırmış. Bir gün ormanda büyük bir fırtına çıkmış...",
-    imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBTnKdTr5SLnWPQXu_SDhg9qy-_WnA_reqdARzoPxY85rESislnNwb20btMaDt7lQJJ0hW9Ol-Q-64eYiQv2IfqJd53IdVRgFu90KjUYGQoIZWtYv9pzA6tK_Xqz8IZDFEFLBoAx5OnmVyLYfTLvLmvgXXIo5SV-tTb4KbJ5n1k2GznreLjC3SwEs5qt_q40kiJ69OOKXq3KgCuFWl_C-Nptr2MPOqBfznRJngn7-NopPEDlTS79kHY94bkHCk0DkU3k4UDeXijCA",
-    isActive: true
-  },
-  {
-    id: 2,
-    title: "Paylaşmanın Gücü",
-    description: "Patika'nın bahçesinde oyuncaklarını paylaşmayı öğrenen çocukların sıcak hikayesi.",
-    content: "Patika Çocuk Yuvası'nın güneşli bir sabahında, çocuklar bahçede neşeyle oynuyormuş. Ali, elindeki kırmızı kamyonu kimseye vermek istemiyormuş. Ayşe ise kum havuzunda oynamak için bir kamyona ihtiyaç duyuyormuş...",
-    imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuDqxmzNantTWtxM-zvYswviZfgpgo6eBs_6Je72rub7sEpvV6QCy42gSfPruYeCoOW8uh7RFSPshq1EGN4hjjB1aQ5ZBhBDpMVkQaBXRLoAPWbh9hA5TXAN0d-4YM1KP0ZJzrNZ42S1l8R2bS7gyDpHpTV5yQ99nBvaZJVes6mlc7N1xCGR5KRg4OaD371MjceS4PrCxuDkvPPEZZP5ntcDVyhwHsBDhcTGkqTjMfN-cB0N93IIsAR_jHaLZbab88-g8g8Y_3CGOg",
-    isActive: true
-  },
-  {
-    id: 3,
-    title: "Rüyalar Ülkesi",
-    description: "Uyku vaktinde anlatılacak sakinleştirici bir macera.",
-    content: "Gecenin sessizliğinde, yıldızlar gökyüzünde parıldarken, küçük bir bulut gökyüzünde süzülüyormuş. Bu bulutun adı Pofuduk'muş. Pofuduk, çocukların rüyalarına güzel düşler taşımakla görevliymiş...",
-    imageUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAdbp9o9-TtVVmRIC4E2kJYdHKH04cDAONxZW6IHc0YWOsB2u9G83mB9oJ07YWl2DxX9jpfJUVNGrY42ygZvPSo9Md0z03uy_MJFuWYih2jix2jQIq1yVijQV2t6H6ggG52iczIh-6YqJeSZN8tNpGfAyymgggMRmzaCMCqlNGbRztf-DSbtxa5pyB7TbvUMLEN6M5HDG6SaZqVCC06YpfLjntQRGVpFJRKB10ykTJ_nK5kkGHyhw5PEDWShQqr36-YmRgx-4eQAA",
-    isActive: true
-  }
-];
+const initialTales: Tale[] = [];
 
 const initialAboutContent: AboutContent = {
-  heroTitle: "Patika'da Yaşam ve Öğrenme",
-  introTitle: "Patika’ya Dair",
-  introText: "Patika, 1999’dan bu yana Bodrum’da, çocukların doğayla temas ederek, sevgiyle ve kendi ritimlerinde büyüdüğü; çocukluğun ilk yıllarına eşlik eden bir yuvadır.\n\nMasal ile gerçeğin iç içe geçtiği bu yolculukta, her çocuk kendi patikasında yürür; bizler ise onlara güvenli, samimi ve yaşayan bir alan sunarız.",
-  perspectiveTitle: "Bakış Açımız; Masallar ve Gerçekler",
-  perspectiveText: "Masallar, çocukların dünyayı anlamlandırma biçimidir. Gerçekler ise o dünyada nasıl duracaklarını öğrenme hâli.\n\nPatika’da bu ikisi birbirinin karşıtı değil, tamamlayıcısıdır. Çocuklar masallarla düşünür, gerçeklerle dener. Biri hayal kurmayı, diğeriyse ayakta kalmayı öğretir.\n\nBurada çocuklardan hızlı olmaları, yetişmeleri ya da benzemeleri beklenmez. Sormaya, denemeye, durmaya ve yeniden başlamaya alan açılır. Masallar bu alanı yumuşatır; gerçekler ise güvenli kılar.\n\nPatika, çocukların hayattan kopmadan büyüyebileceği bir yol olarak düşünülür. Ne yalnızca düşle, ne yalnızca kuralla ilerler. İkisi arasındaki denge, çocuğun kendi adımlarını bulmasına izin verir."
+  heroTitle: "",
+  introTitle: "",
+  introText: "",
+  perspectiveTitle: "",
+  perspectiveText: ""
 };
 
 // --- Homepage Content ---
@@ -205,21 +180,21 @@ interface HomeContent {
 }
 
 const initialHomeContent: HomeContent = {
-  heroTitle: "Patika'da Mutlu Adımlar",
-  heroImage: "https://lh3.googleusercontent.com/aida-public/AB6AXuBKkBtmpwhIX5KPxEgKI9zWs4svarIXcB1OZmLOigX0jzCFwcO2zjv_pYzq0bkdHKpWowLwr7ahocm6bA42dTHgnb6j_UBwIlw-kpe2fIhKOlbp8SOWv9NgGWm2uys4pnyqiuP3zZ9NfQDiyw72zo4LZJSbSbrrGo86d5SjWWfbVqiydSWq_Bzyx5NzHhYKd1cXcQ_TWVQ64WochSWtVJV4kVa4ADz1_amSMQIWsalNn6fRHRBzZ1rVpn9eIgNw_G6HRkLLyYa_Hg",
-  primaryButtonText: "Patika'ya Dair",
-  primaryButtonLink: "/about",
-  secondaryButtonText: "Masallar ve Gerçekler",
-  secondaryButtonLink: "/masallar-ve-gercekler",
-  valuesTitle: "Neden Masallar ve Gerçekler Dünyası?",
+  heroTitle: "",
+  heroImage: "",
+  primaryButtonText: "",
+  primaryButtonLink: "",
+  secondaryButtonText: "",
+  secondaryButtonLink: "",
+  valuesTitle: "",
 
-  talesTitle: "Masallar",
-  talesText: "Hikâyeler, oyunlar ve semboller aracılığıyla çocukların hayal gücüne alan açılır.",
-  talesHighlight: "Masallar, doğruyu öğretmek için değil; düşünmeye davet etmek için vardır.",
-  realityTitle: "Gerçekler",
-  realityText: "Günlük yaşam, ilişkiler ve sorumluluklar çocuğun anlayabileceği bir dille deneyimlenir.",
-  realityHighlight: "Gerçekler, korkutmak için değil; güven duygusu oluşturmak için vardır.",
-  formsTitle: "Formlar",
+  talesTitle: "",
+  talesText: "",
+  talesHighlight: "",
+  realityTitle: "",
+  realityText: "",
+  realityHighlight: "",
+  formsTitle: "",
   values: []
 };
 
@@ -236,14 +211,14 @@ interface ContactContent {
 }
 
 const initialContactContent: ContactContent = {
-  pageTitle: "Bize Ulaşın",
-  pageSubtitle: "Sorularınız mı var? Tanışmak için sabırsızlanıyoruz. Çocuğunuzun geleceği için en doğru adımı birlikte atalım.",
-  address: "Ortakentyahşi Mahallesi, Hıral Sk. No:6, 48420 Bodrum/Muğla",
-  phone: "+90 (552) 804 41 40",
-  phoneHours: "Hafta içi 08:00 - 18:00",
-  email: "patikayuva@gmail.com",
-  mapLink: "https://maps.app.goo.gl/4XhSdNG5ckydkFU67",
-  quickLinksTitle: "Hızlı Başvuru Bağlantıları"
+  pageTitle: "",
+  pageSubtitle: "",
+  address: "",
+  phone: "",
+  phoneHours: "",
+  email: "",
+  mapLink: "",
+  quickLinksTitle: ""
 };
 
 // --- Meeting Days Content ---
@@ -260,61 +235,18 @@ interface MeetingDaysContent {
 }
 
 const initialMeetingDaysContent: MeetingDaysContent = {
-  heroTitle: "Tanışma Günleri",
-  heroImage: "https://lh3.googleusercontent.com/aida-public/AB6AXuBKkBtmpwhIX5KPxEgKI9zWs4svarIXcB1OZmLOigX0jzCFwcO2zjv_pYzq0bkdHKpWowLwr7ahocm6bA42dTHgnb6j_UBwIlw-kpe2fIhKOlbp8SOWv9NgGWm2uys4pnyqiuP3zZ9NfQDiyw72zo4LZJSbSbrrGo86d5SjWWfbVqiydSWq_Bzyx5NzHhYKd1cXcQ_TWVQ64WochSWtVJV4kVa4ADz1_amSMQIWsalNn6fRHRBzZ1rVpn9eIgNw_G6HRkLLyYa_Hg",
-  sectionTitle: "Patika Tanışma Günleri",
-  introText: "Okulumuzu yakından tanımak, bahçemizi gezmek ve eğitim yaklaşımımız üzerine sohbet etmek isteyen; önümüzdeki eğitim–öğretim döneminde Patika’yı düşünen aileleri **Patika Tanışma Günleri**’ne davet ediyoruz.",
-  scheduleTitle: "Şubat Ayı Boyunca",
-  scheduleTime: "Hafta İçi, 16.45 – 18.00 saatleri arasında",
-  descriptionText: "Tanıtım günlerimiz, her yıl **Şubat** ayında Patika Çocuk Yuvası’nda düzenlenir. Bu süreçte hem okulumuzun fiziki imkanlarını görebilir hem de eğitim kadromuzla tanışarak merak ettiğiniz soruları sorabilirsiniz.",
-  formInfoTitle: "Form Bilgilendirmesi:",
-  formInfoText: "Yandaki başvuru formu şu anda görüntüleme modundadır. Randevu talepleriniz için lütfen iletişim numaramızdan bize ulaşınız."
+  heroTitle: "",
+  heroImage: "",
+  sectionTitle: "",
+  introText: "",
+  scheduleTitle: "",
+  scheduleTime: "",
+  descriptionText: "",
+  formInfoTitle: "",
+  formInfoText: ""
 };
 
-
-
-const initialCustomForms: CustomForm[] = [
-  {
-    id: 'contact', title: 'İletişim Formu', slug: 'iletisim-formu', description: 'Web sitesi iletişim sayfası formu', isActive: true, accessibleForm: true, targetPage: 'contact', submissions: [],
-    fields: [
-      { id: 'c1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Ad Soyad' },
-      { id: 'c2', type: 'email', label: 'E-posta', required: true, placeholder: 'email@ornek.com' },
-      { id: 'c3', type: 'tel', label: 'Telefon', required: true, placeholder: '0555 555 55 55' },
-      { id: 'c4', type: 'select', label: 'Konu', required: true, options: ['Bilgi Alma', 'Randevu', 'Şikayet/Öneri'] },
-      { id: 'c5', type: 'textarea', label: 'Mesajınız', required: true, placeholder: 'Mesajınızı buraya yazınız...' },
-    ]
-  },
-  {
-    id: 'personnel', title: 'Personel Başvuru Formu', slug: 'personel-basvuru-formu', description: 'İş başvuruları için kullanılan form', isActive: true, accessibleForm: true, targetPage: 'personnel', submissions: [],
-    fields: [
-      { id: 'p1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Adınız Soyadınız' },
-      { id: 'p3', type: 'tel', label: 'Telefon', required: true, placeholder: 'örn: 555 123 4567' },
-      { id: 'email', type: 'email', label: 'E-posta', required: true, placeholder: 'örn: ornek@email.com' },
-      { id: 'p4', type: 'select', label: 'Başvurulan Pozisyon', required: true, options: ['Sınıf Öğretmeni', 'Yardımcı Öğretmen', 'Branş Öğretmeni', 'Temizlik Personeli', 'Mutfak Personeli', 'Hemşire', 'Psikolog', 'Diğer'] },
-      { id: 'p5', type: 'textarea', label: 'Ön Yazı', required: true, placeholder: 'Kendinizden kısaca bahsediniz...' }
-    ]
-  },
-  {
-    id: 'school_register', title: 'Okul Kayıt Formu', slug: 'okul-kayit-formu', description: 'Yeni öğrenci kaydı için gerekli bilgiler', isActive: true, accessibleForm: true, targetPage: 'student', submissions: [],
-    fields: [
-      { id: 'f1', type: 'text', label: 'Öğrenci Adı Soyadı', required: true, placeholder: 'Ad Soyad' },
-      { id: 'f2', type: 'date', label: 'Doğum Tarihi', required: true },
-      { id: 'f3', type: 'text', label: 'Veli Adı Soyadı', required: true, placeholder: 'Veli Adı' },
-      { id: 'f4', type: 'tel', label: 'İletişim Numarası', required: true, placeholder: '05XX XXX XX XX' },
-    ]
-  },
-  {
-    id: 'meeting_days', title: 'Tanışma Günleri Başvuru Formu', slug: 'tanisma-gunleri-formu', description: 'Tanışma günlerine katılım başvuru formu', isActive: true, accessibleForm: true, targetPage: 'meetingDays', submissions: [],
-    fields: [
-      { id: 'm1', type: 'text', label: 'Veli Adı Soyadı', required: true, placeholder: 'Adınız Soyadınız' },
-      { id: 'm2', type: 'text', label: 'Çocuk Adı Soyadı', required: true, placeholder: 'Çocuğunuzun Adı' },
-      { id: 'm3', type: 'date', label: 'Çocuk Doğum Tarihi', required: true },
-      { id: 'm4', type: 'tel', label: 'Telefon', required: true, placeholder: '0555 555 55 55' },
-      { id: 'm5', type: 'email', label: 'E-posta', required: true, placeholder: 'email@ornek.com' },
-      { id: 'm6', type: 'textarea', label: 'Eklemek İstediğiniz Not', required: false, placeholder: 'Varsa eklemek istediğiniz bilgiler...' },
-    ]
-  }
-];
+const initialCustomForms: CustomForm[] = [];
 
 const BrandLogo = ({ className = "h-12", onClick }: { className?: string; onClick?: () => void }) => {
   const [imgError, setImgError] = React.useState(false);
