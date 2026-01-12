@@ -126,8 +126,10 @@ export const meetingService = {
 
     getAllRequests: () => api.get('/meetings/requests'),
     createRequest: (data: any) => api.post('/meetings/requests', data),
+    verifyRequest: (requestId: number, code: string) => api.post('/meetings/requests/verify', { requestId, code }),
     updateRequestStatus: (id: number, status: string) => api.put(`/meetings/requests/${id}`, { status }),
-    deleteRequest: (id: number) => api.delete(`/meetings/requests/${id}`)
+    deleteRequest: (id: number) => api.delete(`/meetings/requests/${id}`),
+    getBookedSlots: (formId: number) => api.get(`/meetings/forms/${formId}/slots`),
 };
 
 // Upload services

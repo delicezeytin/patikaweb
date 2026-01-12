@@ -36,6 +36,28 @@ router.get('/forms/:id', async (req, res) => {
     }
 });
 
+// Get booked slots for a form (public)
+router.get('/forms/:id/slots', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const requests = await prisma.meetingRequest.findMany({
+            where: {
+                formId: parseInt(id as string),
+                status: { not: 'rejected' } // Only rejected slots are free again
+            },
+            select: {
+                date: true,
+                time: true,
+                classId: true
+            }
+        });
+        res.json({ slots: requests });
+    } catch (error) {
+        console.error('Get slots error:', error);
+        res.status(500).json({ error: 'Müsaitlik durumu alınırken bir hata oluştu' });
+    }
+});
+
 // Create meeting form (Protected)
 router.post('/forms', authMiddleware, async (req, res) => {
     try {
