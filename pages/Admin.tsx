@@ -1139,15 +1139,44 @@ const Admin: React.FC = () => {
   const handleEditClick = (formId: number) => {
     const formToEdit = forms.find(f => f.id === formId);
     if (formToEdit) {
-      setEditFormData(JSON.parse(JSON.stringify(formToEdit))); // Deep copy
+      // Merge current system classes with form classes
+      // This ensures new classes added to DB show up in existing forms
+      const currentClasses = [...classes];
+      const mergedClasses = currentClasses.map(sysClass => {
+        const existingClassConfig = formToEdit.classes.find(fc => fc.id === sysClass.id);
+        if (existingClassConfig) {
+          return existingClassConfig;
+        } else {
+          // New class found in system, add to form (default not included)
+          return {
+            id: sysClass.id,
+            name: sysClass.name,
+            isIncluded: false,
+            assignedTeachers: []
+          };
+        }
+      });
+
+      // Update formToEdit with merged classes before setting state
+      const updatedForm = { ...formToEdit, classes: mergedClasses };
+
+      setEditFormData(JSON.parse(JSON.stringify(updatedForm))); // Deep copy
       setSelectedFormId(formId);
       setActiveView('meeting-edit');
     }
   };
 
   const handleCreateNewClick = () => {
+    // Use system classes to populate new form
+    const formClasses = classes.map(c => ({
+      id: c.id,
+      name: c.name,
+      isIncluded: true,
+      assignedTeachers: []
+    }));
+
     const newForm: MeetingForm = {
-      id: Date.now(),
+      id: Date.now(), // Temporary ID until saved to DB (if we were using fully DB IDs, but here we use timestamp for new)
       title: 'Yeni Toplantı Formu',
       dates: [],
       dailyStartTime: '09:00',
@@ -1155,11 +1184,9 @@ const Admin: React.FC = () => {
       durationMinutes: 20,
       bufferMinutes: 10,
       isActive: false,
-      classes: [
-        { id: 1, name: 'Güneş Sınıfı (3-4 Yaş)', isIncluded: true, assignedTeachers: [] },
-        { id: 2, name: 'Kelebekler Sınıfı (4-5 Yaş)', isIncluded: true, assignedTeachers: [] },
-        { id: 3, name: 'Gökkuşağı Sınıfı (5-6 Yaş)', isIncluded: true, assignedTeachers: [] },
-        { id: 4, name: 'Branş Dersleri', isIncluded: true, assignedTeachers: [] },
+      classes: formClasses.length > 0 ? formClasses : [
+        // Fallback if no classes loaded yet
+        { id: 1, name: 'Sınıf 1', isIncluded: true, assignedTeachers: [] }
       ]
     };
     setEditFormData(newForm);
@@ -1355,7 +1382,7 @@ const Admin: React.FC = () => {
               {forms.map(form => {
                 const stats = getStats(form.id);
                 const dateRange = form.dates.length > 0
-                  ? `${form.dates[0]}, ${form.dates[form.dates.length - 1]}`
+                  ? `${formatDate(form.dates[0])} - ${formatDate(form.dates[form.dates.length - 1])}`
                   : 'Tarih Girilmedi';
 
                 return (
@@ -1625,7 +1652,7 @@ const Admin: React.FC = () => {
             <div className="flex flex-wrap gap-2 mt-4">
               {editFormData.dates.map(date => (
                 <div key={date} className="flex items-center gap-2 bg-gray-100 dark:bg-white/10 px-3 py-1.5 rounded-lg text-sm">
-                  <span>{date}</span>
+                  <span>{formatDate(date)}</span>
                   <button onClick={() => handleRemoveDate(date)} className="text-gray-400 hover:text-red-500">
                     <span className="material-symbols-outlined text-sm">close</span>
                   </button>
@@ -1962,7 +1989,21 @@ const Admin: React.FC = () => {
     <div className="max-w-6xl mx-auto animate-fadeIn space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-text-main dark:text-white">Formlar</h2>
-        <button onClick={() => { const title = 'Yeni Form'; setEditingForm({ id: Date.now().toString(), title, slug: slugify(title), description: '', fields: [], isActive: true, submissions: [] }); setActiveView('form-builder'); }} className="flex items-center gap-2 rounded-xl h-11 px-5 bg-primary hover:bg-orange-600 text-white text-sm font-bold shadow-md">
+        <button onClick={() => {
+          const title = 'Yeni Form';
+          setEditingForm({
+            id: Date.now().toString(),
+            title,
+            slug: slugify(title),
+            description: '',
+            fields: [],
+            isActive: true,
+            isAccessible: true,
+            targetPage: '',
+            submissions: []
+          });
+          setActiveView('form-builder');
+        }} className="flex items-center gap-2 rounded-xl h-11 px-5 bg-primary hover:bg-orange-600 text-white text-sm font-bold shadow-md">
           <span className="material-symbols-outlined">add</span>
           Yeni Form Oluştur
         </button>
@@ -2001,10 +2042,24 @@ const Admin: React.FC = () => {
               </div>
               <div className="pt-4 border-t border-gray-50 dark:border-white/5 flex items-center justify-between text-sm font-bold">
                 <div className="flex gap-2">
-                  <button onClick={() => { setEditingForm(form); setActiveView('form-builder'); }} className="flex items-center gap-1 text-primary hover:text-orange-700">
+                  <button onClick={() => {
+                    setEditingForm({
+                      ...form,
+                      targetPage: form.targetPage || '',
+                      isAccessible: form.isAccessible !== undefined ? form.isAccessible : true
+                    });
+                    setActiveView('form-builder');
+                  }} className="flex items-center gap-1 text-primary hover:text-orange-700">
                     <span className="material-symbols-outlined text-lg">edit_square</span> Düzenle
                   </button>
-                  <button onClick={() => { setEditingForm(form); setActiveView('form-submissions'); }} className="flex items-center gap-1 text-text-muted hover:text-text-main">
+                  <button onClick={() => {
+                    setEditingForm({
+                      ...form,
+                      targetPage: form.targetPage || '',
+                      isAccessible: form.isAccessible !== undefined ? form.isAccessible : true
+                    });
+                    setActiveView('form-submissions');
+                  }} className="flex items-center gap-1 text-text-muted hover:text-text-main">
                     <span className="material-symbols-outlined text-lg">list_alt</span> Başvurular ({form.submissions?.length || 0})
                   </button>
                 </div>
