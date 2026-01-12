@@ -2814,10 +2814,34 @@ const Admin: React.FC = () => {
                         <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
                           <span className="material-symbols-outlined text-text-muted">link</span>
                           <code className="text-sm font-mono text-text-main dark:text-white truncate flex-1">{editingDocument.url || 'Dosya seçilmedi'}</code>
+                          {editingDocument.url && editingDocument.url !== '#' && (
+                            <button
+                              onClick={async () => {
+                                if (confirm('Dosyayı silmek istediğinize emin misiniz?')) {
+                                  try {
+                                    // If it's an uploaded file, delete from server
+                                    if (editingDocument.url.startsWith('/uploads/')) {
+                                      const filename = editingDocument.url.split('/').pop();
+                                      if (filename) {
+                                        await uploadService.delete(filename);
+                                      }
+                                    }
+                                    // Reset URL to '#'
+                                    setEditingDocument({ ...editingDocument, url: '#' });
+                                  } catch (error) {
+                                    console.error('File delete error', error);
+                                    alert('Dosya silinirken hata oluştu.');
+                                  }
+                                }
+                              }}
+                              className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                              title="Dosyayı Sil"
+                            >
+                              <span className="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                          )}
                         </div>
-                        <p className="text-xs text-orange-500 bg-orange-50 dark:bg-orange-900/10 p-2 rounded-lg border border-orange-100 dark:border-orange-900/20">
-                          <strong>Bilgi:</strong> Web sitemiz statik yapıdadır. Dosyasını seçtiğiniz dokümanı, proje klasöründeki <code>/public/files/</code> dizinine manuel olarak eklemeniz gerekmektedir.
-                        </p>
+
                       </div>
                     </div>
 
