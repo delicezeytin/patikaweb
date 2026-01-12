@@ -133,6 +133,7 @@ router.post('/requests', async (req, res) => {
         if (!email) return res.status(400).json({ error: 'E-posta adresi zorunludur' });
 
         // Spam Check: Prevent new request if one exists within ±10 days
+        console.log(`[SpamCheck] Version 2.0 - Checking for email: ${email} in Class (ID): ${classId}`);
         const requestedDate = new Date(date); // date string "YYYY-MM-DD" works
         const tenDaysBefore = new Date(requestedDate);
         tenDaysBefore.setDate(requestedDate.getDate() - 10);
