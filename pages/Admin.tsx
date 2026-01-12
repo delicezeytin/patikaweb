@@ -2934,13 +2934,45 @@ const Admin: React.FC = () => {
         </h3>
 
         <label className="block">
-          <span className="text-xs font-bold text-text-muted">Google Calendar ID</span>
+          <div className="flex items-center gap-1 mb-1">
+            <span className="text-xs font-bold text-text-muted">Google Calendar ID</span>
+            <div className="group relative cursor-help">
+              <span className="material-symbols-outlined text-sm text-gray-400">help</span>
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl hidden group-hover:block z-50 leading-relaxed pointer-events-none">
+                Google Takvim Ayarları {'>'} Takvimlerim {'>'} İlgili Takvim Ayarları {'>'} Takvimi Entegre Et bölümünde <span className="text-primary font-bold">"Takvim Kimliği"</span>nizi bulabilirsiniz.
+              </div>
+            </div>
+          </div>
           <input
             type="text"
-            value={settings.calendarId}
+            value={settings.calendarId || ''}
             onChange={(e) => setSettings({ ...settings, calendarId: e.target.value })}
-            className="w-full mt-1 h-10 px-3 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5"
+            className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 font-mono text-sm"
             placeholder="example@group.calendar.google.com"
+          />
+        </label>
+
+        <label className="block">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="text-xs font-bold text-text-muted">Google Service Account JSON Key</span>
+            <div className="group relative cursor-help">
+              <span className="material-symbols-outlined text-sm text-gray-400">help</span>
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-80 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-xl hidden group-hover:block z-50 leading-relaxed pointer-events-none">
+                <ol className="list-decimal pl-3 space-y-1">
+                  <li>Google Cloud Console'da proje oluşturun.</li>
+                  <li><strong>Google Calendar API</strong>'yi etkinleştirin.</li>
+                  <li>"Service Account" oluşturun ve <strong>JSON</strong> anahtarı indirin.</li>
+                  <li>İnen dosyanın içindeki <strong>TÜM</strong> metni buraya yapıştırın.</li>
+                  <li className="text-secondary font-bold">ÖNEMLİ: Service Account e-posta adresini (client_email), yukarıdaki Google Takvim'inize "Ayarlar {'>'} Kişilerle Paylaş" kısmından yetkili kişi olarak ekleyin.</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+          <textarea
+            value={settings.googleServiceAccountJson || ''}
+            onChange={(e) => setSettings({ ...settings, googleServiceAccountJson: e.target.value })}
+            className="w-full p-3 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 h-32 font-mono text-xs"
+            placeholder='{"type": "service_account", ...}'
           />
         </label>
       </div>
