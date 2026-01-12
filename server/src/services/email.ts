@@ -49,7 +49,7 @@ export const sendEmail = async (to: string | string[], subject: string, html: st
 export const sendOtpEmail = async (email: string, otp: string): Promise<void> => {
     const sent = await sendEmail(
         email,
-        'Patika Yuva - Doğrulama Kodu (OTP)',
+        'Patika Yuva - Veli Toplantısı Doğrulama Kodu (OTP)',
         `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
             <h2 style="color: #e65100;">Doğrulama Kodu</h2>
