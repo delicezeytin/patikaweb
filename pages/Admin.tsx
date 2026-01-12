@@ -4,7 +4,20 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { GoogleGenAI } from "@google/genai";
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import emailjs from '@emailjs/browser';
-import api, { authService, contentService, teacherService, classService, formService, menuService, scheduleService, documentService, settingsService, meetingService } from '../services/api';
+import {
+  authService,
+  contentService,
+  teacherService,
+  classService,
+  menuService,
+  scheduleService,
+  documentService,
+  formService,
+  meetingService,
+  settingsService,
+  API_URL
+} from '../services/api';
+import { formatDate, formatDateTime } from '../utils/dateFormatter';
 
 // --- Types & Mock Data ---
 
@@ -2167,7 +2180,7 @@ const Admin: React.FC = () => {
                 // Generate CSV content
                 const headers = ['Tarih', ...editingForm.fields.map(f => f.label)];
                 const rows = editingForm.submissions.map(sub => {
-                  const date = sub.date ? new Date(sub.date).toLocaleDateString('tr-TR') : '-';
+                  const date = sub.createdAt ? formatDateTime(sub.createdAt) : formatDateTime(sub.date || new Date());
                   const fieldValues = editingForm.fields.map(field => {
                     const val = sub.data?.[field.label] || sub.data?.[field.id] || '-';
                     return typeof val === 'object' ? JSON.stringify(val) : String(val).replace(/"/g, '""');
@@ -2883,6 +2896,45 @@ const Admin: React.FC = () => {
               className="w-full mt-1 h-10 px-3 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5"
             />
           </label>
+        </div>
+        <div className="flex items-end gap-2 mt-4">
+          <div className="flex-1">
+            <label className="text-xs font-bold text-text-muted">Test E-postası Alıcısı</label>
+            <input
+              type="email"
+              placeholder="test@ornek.com"
+              id="test-email-input"
+              className="w-full h-10 px-3 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm"
+            />
+          </div>
+          <button
+            onClick={async () => {
+              const emailInput = document.getElementById('test-email-input') as HTMLInputElement;
+              const email = emailInput.value;
+              if (!email) return alert('Lütfen bir e-posta adresi girin.');
+
+              try {
+                // We need to implement settingsService.testEmail or call API directly
+                // Assuming we add it to settingsService or do a fetch
+                // For now, raw fetch
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/settings/test-email`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                  body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                if (data.success) alert(data.message);
+                else alert('Hata: ' + data.error);
+              } catch (e) {
+                console.error(e);
+                alert('Test sırasında hata oluştu.');
+              }
+            }}
+            className="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors text-sm"
+          >
+            Test E-postası Gönder
+          </button>
         </div>
 
         <div className="pt-4 border-t border-gray-100 dark:border-white/5">

@@ -97,45 +97,132 @@ router.get('/requests', authMiddleware, async (req, res) => {
     }
 });
 
-// Create request (Public)
+// Helper to generate OTP
+const generateOtp = (): string => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Create request (public)
 router.post('/requests', async (req, res) => {
     try {
-        const { formId, parentName, studentName, date, time, classId, className, teacherId, email, phone } = req.body;
+        const { formId, parentName, studentName, date, time, email, phone, classId, className, teacherId } = req.body;
 
-        // TODO: Validate slot availability
+        // Validation
+        if (!email) return res.status(400).json({ error: 'E-posta adresi zorunludur' });
+
+        const otp = generateOtp();
+        const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
         const request = await prisma.meetingRequest.create({
             data: {
-                formId, parentName, studentName, date, time, classId, className, teacherId, email, phone,
-                status: 'pending'
+                formId: Number(formId),
+                parentName,
+                studentName,
+                date,
+                time,
+                email,
+                phone,
+                classId,
+                className,
+                teacherId,
+                status: 'pending_verification', // Initial status
+                verificationCode: otp,
+                verificationExpires: otpExpires
             }
         });
 
-        // TODO: Send notification email
+        // Send OTP email
+        try {
+            const { sendOtpEmail } = require('../services/email');
+            await sendOtpEmail(email, otp);
+        } catch (emailError) {
+            console.error('Failed to send OTP email:', emailError);
+            // We still return success but maybe warn? Or fail? 
+            // Better to fail if OTP is critical, but preventing whole flow might be bad if SMTP is down.
+            // For now, allow proceed but log. User will realize they didn't get email.
+        }
 
-        res.json({ success: true, request });
+        res.json({ success: true, message: 'Doğrulama kodu e-posta adresinize gönderildi.', requestId: request.id });
     } catch (error) {
         console.error('Create request error:', error);
-        res.status(500).json({ error: 'Randevu oluşturulurken bir hata oluştu' });
+        res.status(500).json({ error: 'Talep oluşturulurken bir hata oluştu' });
     }
 });
 
-// Update request status (Protected)
+// Verify Request OTP (public)
+router.post('/requests/verify', async (req, res) => {
+    try {
+        const { requestId, code } = req.body;
+        const request = await prisma.meetingRequest.findUnique({ where: { id: Number(requestId) } });
+
+        if (!request) return res.status(404).json({ error: 'Talep bulunamadı' });
+        if (request.status !== 'pending_verification') return res.status(400).json({ error: 'Bu talep zaten doğrulanmış veya işleme alınmış' });
+
+        if (request.verificationCode !== code) {
+            return res.status(400).json({ error: 'Hatalı doğrulama kodu' });
+        }
+
+        if (request.verificationExpires && new Date() > request.verificationExpires) {
+            return res.status(400).json({ error: 'Doğrulama kodunun süresi dolmuş' });
+        }
+
+        // Verify and set to pending (for admin approval)
+        await prisma.meetingRequest.update({
+            where: { id: request.id },
+            data: {
+                status: 'pending',
+                verificationCode: null, // Clear code
+                verificationExpires: null
+            }
+        });
+
+        // TODO: Send notification to Admin?
+
+        res.json({ success: true, message: 'Randevu talebiniz başarıyla doğrulandı ve onaya gönderildi.' });
+    } catch (error) {
+        console.error('Verify request error:', error);
+        res.status(500).json({ error: 'Doğrulama sırasında hata oluştu' });
+    }
+});
+
+// Update status (protected) - REMAINING
 router.put('/requests/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
+
         const request = await prisma.meetingRequest.update({
-            where: { id: parseInt(id as string) },
+            where: { id: Number(id) },
             data: { status }
         });
 
-        // TODO: Send status update email
+        // Send notification email to user if approved/rejected
+        if (status === 'approved' || status === 'rejected') {
+            try {
+                const { sendEmail } = require('../services/email');
+                const subject = status === 'approved' ? 'Randevu Talebiniz Onaylandı' : 'Randevu Talebiniz Reddedildi';
+                const body = `
+                    <div style="font-family: Arial, sans-serif; padding: 20px;">
+                        <h3>Sayın ${request.parentName},</h3>
+                        <p>Randevu talebiniz <strong>${status === 'approved' ? 'ONAYLANDI' : 'MAALESEF REDDEDİLDİ'}</strong>.</p>
+                        <p><strong>Tarih:</strong> ${request.date}</p>
+                        <p><strong>Saat:</strong> ${request.time}</p>
+                        <p><strong>Öğrenci:</strong> ${request.studentName}</p>
+                        <br>
+                        <p>İyi günler dileriz.</p>
+                        <small>Patika Çocuk Yuvası</small>
+                    </div>
+                 `;
+                if (request.email) await sendEmail(request.email, subject, body);
+            } catch (e) {
+                console.error('Status update email failed', e);
+            }
+        }
 
         res.json({ success: true, request });
     } catch (error) {
         console.error('Update request error:', error);
-        res.status(500).json({ error: 'Randevu güncellenirken bir hata oluştu' });
+        res.status(500).json({ error: 'Talep güncellenirken bir hata oluştu' });
     }
 });
 

@@ -39,52 +39,17 @@ const PersonnelForm: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = async (data: any) => {
     if (!formData) return;
 
-    const timestamp = Date.now();
-    const dateStr = new Date().toISOString().split('T')[0];
-
-    // Save submission to patika_custom_forms
-    const savedForms = localStorage.getItem('patika_custom_forms');
-    if (savedForms) {
-      const forms: CustomForm[] = JSON.parse(savedForms);
-      const updatedForms = forms.map(f => {
-        if (f.id === 'personnel') {
-          return {
-            ...f,
-            submissions: [
-              ...(f.submissions || []),
-              {
-                id: timestamp,
-                date: dateStr,
-                data: data // Data already contains both field.id and field.label keys from DynamicFormRenderer
-              }
-            ]
-          };
-        }
-        return f;
-      });
-      localStorage.setItem('patika_custom_forms', JSON.stringify(updatedForms));
+    try {
+      await formService.submit(formData.id, data);
+      setSubmitted(true);
+      window.scrollTo(0, 0);
+    } catch (e) {
+      console.error('Submit error:', e);
+      alert('Başvuru gönderilirken bir hata oluştu. Lütfen tekrar deneyiniz.');
     }
-
-    // Also save to global applications for Panel Özeti view
-    const existingAppsStr = localStorage.getItem('patika_applications');
-    const existingApps = existingAppsStr ? JSON.parse(existingAppsStr) : [];
-    const newApp = {
-      id: timestamp,
-      type: 'staff',
-      name: data['Ad Soyad'] || data['p1'] || 'Bilinmiyor',
-      email: data['E-posta'] || data['email'] || '',
-      phone: data['Telefon'] || data['p3'] || '',
-      message: `${data['Başvurulan Pozisyon'] || data['p4'] || 'Pozisyon belirtilmedi'} pozisyonu için başvuru`,
-      date: dateStr,
-      status: 'new'
-    };
-    localStorage.setItem('patika_applications', JSON.stringify([newApp, ...existingApps]));
-
-    setSubmitted(true);
-    window.scrollTo(0, 0);
   };
 
   if (loading) {

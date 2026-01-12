@@ -1,74 +1,62 @@
-import https from 'https';
+import { PrismaClient } from '@prisma/client';
 
-interface EmailParams {
-    to_email: string;
-    otp: string;
-}
+const prisma = new PrismaClient();
+
+export const sendEmail = async (to: string | string[], subject: string, html: string): Promise<boolean> => {
+    try {
+        const settings = await prisma.systemSettings.findFirst();
+        if (!settings || !settings.smtpHost || !settings.smtpUser || !settings.smtpPass) {
+            console.error('SMTP settings missing in database');
+            return false;
+        }
+
+        // Lazy load nodemailer to avoid import errors if not installed (though we installed it)
+        const nodemailer = require('nodemailer');
+
+        const transporter = nodemailer.createTransport({
+            host: settings.smtpHost,
+            port: parseInt(settings.smtpPort || '587'),
+            secure: false, // true for 465, false for other ports
+            auth: {
+                user: settings.smtpUser,
+                pass: settings.smtpPass,
+            },
+        });
+
+        await transporter.sendMail({
+            from: `"Patika Yuva" <${settings.smtpUser}>`,
+            to: to,
+            subject: subject,
+            html: html,
+        });
+
+        console.log(`Email sent successfully to: ${to}`);
+        return true;
+    } catch (error) {
+        console.error('Send email error:', error);
+        return false;
+    }
+};
 
 export const sendOtpEmail = async (email: string, otp: string): Promise<void> => {
-    const serviceId = process.env.EMAILJS_SERVICE_ID;
-    const templateId = process.env.EMAILJS_TEMPLATE_ID;
-    const publicKey = process.env.EMAILJS_PUBLIC_KEY;
-    const privateKey = process.env.EMAILJS_PRIVATE_KEY;
+    const sent = await sendEmail(
+        email,
+        'Patika Yuva - Doğrulama Kodu (OTP)',
+        `
+        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+            <h2 style="color: #e65100;">Giriş Doğrulama</h2>
+            <p>Yönetim paneline giriş yapmak için aşağıdaki kodu kullanınız:</p>
+            <h1 style="font-size: 32px; letter-spacing: 5px; background: #eee; padding: 10px; display: inline-block; border-radius: 8px;">${otp}</h1>
+            <p>Bu kod 5 dakika süreyle geçerlidir.</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+            <small style="color: #888;">Patika Çocuk Yuvası</small>
+        </div>
+        `
+    );
 
-    if (!serviceId || !templateId || !publicKey) {
-        console.warn('EmailJS credentials not found in environment variables. OTP email not sent. Check EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY');
-        return;
+    if (!sent) {
+        // Fallback or error logging is handled in sendEmail, but we throw here to notify caller of failure if needed
+        // For OTP specifically, auth route might handle error.
+        throw new Error('OTP e-postası gönderilemedi. Lütfen SMTP ayarlarını kontrol ediniz.');
     }
-
-    const payload: any = {
-        service_id: serviceId,
-        template_id: templateId,
-        user_id: publicKey,
-        template_params: {
-            to_email: email,
-            otp_code: otp,
-            reply_to: 'patikayuva@gmail.com'
-        }
-    };
-
-    // If private key is present (required for non-browser/strict mode), add it as accessToken
-    if (privateKey) {
-        payload.accessToken = privateKey;
-    }
-
-    const data = JSON.stringify(payload);
-
-    const options = {
-        hostname: 'api.emailjs.com',
-        port: 443,
-        path: '/api/v1.0/email/send',
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': data.length
-        }
-    };
-
-    return new Promise((resolve, reject) => {
-        const req = https.request(options, (res) => {
-            // EmailJS returns 200 for success
-            if (res.statusCode === 200) {
-                resolve();
-            } else {
-                let responseBody = '';
-                res.on('data', (chunk) => {
-                    responseBody += chunk;
-                });
-                res.on('end', () => {
-                    console.error('EmailJS Error Status:', res.statusCode);
-                    console.error('EmailJS Error Body:', responseBody);
-                    reject(new Error(`EmailJS failed with status ${res.statusCode}: ${responseBody}`));
-                });
-            }
-        });
-
-        req.on('error', (error) => {
-            console.error('EmailJS Request Error:', error);
-            reject(error);
-        });
-
-        req.write(data);
-        req.end();
-    });
 };

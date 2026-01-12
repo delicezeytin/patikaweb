@@ -111,45 +111,33 @@ router.post('/:id/submit', async (req, res) => {
         });
 
         // Send notification email if configured
+        // Send notification email if configured
         if (form.notificationEmails) {
             try {
-                // Fetch settings for SMTP config
-                const settings = await prisma.systemSettings.findFirst();
+                // Import the unified email service
+                const { sendEmail } = require('../services/email');
 
-                if (settings && settings.smtpHost && settings.smtpUser && settings.smtpPass) {
-                    const nodemailer = require('nodemailer');
+                const emailList = form.notificationEmails.split(',').map(e => e.trim());
+                const fieldMap: any = form.fields;
+                let messageBody = `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                    <h2 style="color: #e65100;">Yeni Form Başvurusu: ${form.title}</h2>
+                    <ul style="list-style: none; padding: 0;">`;
 
-                    const transporter = nodemailer.createTransport({
-                        host: settings.smtpHost,
-                        port: parseInt(settings.smtpPort || '587'),
-                        secure: false, // true for 465, false for other ports
-                        auth: {
-                            user: settings.smtpUser,
-                            pass: settings.smtpPass,
-                        },
-                    });
-
-                    const emailList = form.notificationEmails.split(',').map(e => e.trim());
-                    const fieldMap: any = form.fields;
-                    let messageBody = `<h3>Yeni Form Başvurusu: ${form.title}</h3><ul>`;
-
-                    for (const [key, value] of Object.entries(data as any)) {
-                        const fieldDef = Array.isArray(fieldMap) ? fieldMap.find((f: any) => f.id === key || f.label === key) : null;
-                        const label = fieldDef ? fieldDef.label : key;
-                        messageBody += `<li><strong>${label}:</strong> ${value}</li>`;
-                    }
-                    messageBody += `</ul>`;
-
-                    await transporter.sendMail({
-                        from: `"Patika Yuva" <${settings.smtpUser}>`,
-                        to: emailList,
-                        subject: `Yeni Başvuru: ${form.title}`,
-                        html: messageBody,
-                    });
-                    console.log(`Email sent to ${emailList.join(', ')}`);
-                } else {
-                    console.log('SMTP settings missing, skipping email.');
+                for (const [key, value] of Object.entries(data as any)) {
+                    const fieldDef = Array.isArray(fieldMap) ? fieldMap.find((f: any) => f.id === key || f.label === key) : null;
+                    const label = fieldDef ? fieldDef.label : key;
+                    messageBody += `<li style="margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                        <strong style="display:inline-block; width: 150px; color: #555;">${label}:</strong> 
+                        <span>${value}</span>
+                    </li>`;
                 }
+                messageBody += `</ul>
+                <p style="margin-top:20px; font-size: 12px; color: #999;">Bu mesaj Patika Çocuk Yuvası web sitesi üzerinden gönderilmiştir.</p>
+                </div>`;
+
+                await sendEmail(emailList, `Yeni Başvuru: ${form.title}`, messageBody);
+
             } catch (emailError) {
                 console.error('Failed to send email:', emailError);
                 // Do not fail the request, just log error

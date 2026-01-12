@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+// Export API_URL for direct usage if needed (though api instance is preferred)
+export const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api');
+
 // Create axios instance
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3001/api' : '/api'),
+    baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -110,6 +113,7 @@ export const documentService = {
 export const settingsService = {
     get: () => api.get('/settings'),
     update: (data: any) => api.put('/settings', data),
+    testEmail: (email: string) => api.post('/settings/test-email', { email }),
 };
 
 // Meeting services (Appointments)

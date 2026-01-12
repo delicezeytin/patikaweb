@@ -38,52 +38,17 @@ const StudentForm: React.FC = () => {
     fetchData();
   }, []);
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = async (data: any) => {
     if (!formData) return;
 
-    // Data is already a plain object from DynamicFormRenderer (with both field.id and field.label keys)
-    const submissionData = data;
-
-    // Save submission to patika_custom_forms
-    const savedForms = localStorage.getItem('patika_custom_forms');
-    if (savedForms) {
-      const forms: CustomForm[] = JSON.parse(savedForms);
-      const updatedForms = forms.map(f => {
-        if (f.id === 'school_register') {
-          return {
-            ...f,
-            submissions: [
-              ...(f.submissions || []),
-              {
-                id: Date.now(),
-                date: new Date().toISOString(),
-                data: submissionData
-              }
-            ]
-          };
-        }
-        return f;
-      });
-      localStorage.setItem('patika_custom_forms', JSON.stringify(updatedForms));
+    try {
+      await formService.submit(formData.id, data);
+      setSubmitted(true);
+      window.scrollTo(0, 0);
+    } catch (e) {
+      console.error('Submit error:', e);
+      alert('Başvuru gönderilirken bir hata oluştu. Lütfen tekrar deneyiniz.');
     }
-
-    // Also save to global applications for Panel Özeti view
-    const existingAppsStr = localStorage.getItem('patika_applications');
-    const existingApps = existingAppsStr ? JSON.parse(existingAppsStr) : [];
-    const newApp = {
-      id: Date.now(),
-      type: 'school',
-      name: data['Öğrenci Adı Soyadı'] || data['f1'] || 'Bilinmiyor',
-      email: '',
-      phone: data['İletişim Numarası'] || data['f4'] || '',
-      message: `Veli: ${data['Veli Adı Soyadı'] || data['f3'] || 'Belirtilmedi'}`,
-      date: new Date().toISOString().split('T')[0],
-      status: 'new'
-    };
-    localStorage.setItem('patika_applications', JSON.stringify([newApp, ...existingApps]));
-
-    setSubmitted(true);
-    window.scrollTo(0, 0);
   };
 
   if (loading) {
