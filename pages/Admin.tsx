@@ -2965,9 +2965,14 @@ const Admin: React.FC = () => {
 
               // 4. Forms
               try {
+                const currentForms = (await formService.getAll()).data.forms || [];
                 for (const f of initialCustomForms) {
-                  try { await formService.create(f); }
-                  catch (e) { await formService.update(f.id, f).catch(() => { }); }
+                  const exists = currentForms.find((cf: any) => cf.id === f.id);
+                  if (exists) {
+                    await formService.update(f.id, f);
+                  } else {
+                    await formService.create(f);
+                  }
                 }
                 success++;
               } catch (e) { console.error('Form seed failed', e); fail++; }
@@ -2979,9 +2984,15 @@ const Admin: React.FC = () => {
                   { id: 'health', name: "Sağlık Bilgi Formu", url: "#", icon: "medical_services", color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-900/20" },
                   { id: 'trip', name: "Gezi İzin Belgesi", url: "#", icon: "directions_bus", color: "text-green-600", bg: "bg-green-50 dark:bg-green-900/20" }
                 ];
+                const currentDocs = (await documentService.getAll()).data.documents || [];
+
                 for (const d of docs) {
-                  try { await documentService.create(d); }
-                  catch (e) { try { await documentService.update(d.id, d); } catch (u) { } }
+                  const exists = currentDocs.find((cd: any) => cd.id === d.id);
+                  if (exists) {
+                    await documentService.update(d.id, d);
+                  } else {
+                    await documentService.create(d);
+                  }
                 }
                 success++;
               } catch (e) { console.error('Doc seed failed', e); fail++; }
