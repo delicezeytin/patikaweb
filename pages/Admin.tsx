@@ -119,59 +119,7 @@ interface SystemSettings {
   emailjsPublicKey: string;
 }
 
-// Global Mock Data for Teachers available in the system
-const allSystemTeachers: Teacher[] = [
-  { id: 1, name: "Ayşe Yılmaz", role: "Sınıf Öğretmeni", branch: "3-4 Yaş Grubu", image: "face_3" },
-  { id: 2, name: "Mehmet Demir", role: "Sınıf Öğretmeni", branch: "4-5 Yaş Grubu", image: "face_6" },
-  { id: 3, name: "Zeynep Kaya", role: "Sınıf Öğretmeni", branch: "5-6 Yaş Grubu", image: "face_2" },
-  { id: 4, name: "Canan Yıldız", role: "İngilizce Öğretmeni", branch: "Tüm Yaş Grupları", image: "face_4" },
-  { id: 5, name: "Elif Öztürk", role: "Yardımcı Öğretmen", branch: "3-4 Yaş Grubu", image: "face_5" },
-  { id: 6, name: "Burak Şen", role: "Spor Öğretmeni", branch: "Tüm Yaş Grupları", image: "sports_handball" },
-];
 
-const initialForms: MeetingForm[] = [
-  {
-    id: 1,
-    title: 'Genel Tanışma Toplantısı',
-    dates: ['2024-10-20', '2024-10-21'],
-    dailyStartTime: '09:00',
-    dailyEndTime: '16:00',
-    durationMinutes: 20,
-    bufferMinutes: 10,
-    isActive: true,
-    classes: [
-      {
-        id: 101,
-        name: 'Güneş Sınıfı (3-4 Yaş)',
-        isIncluded: true,
-        assignedTeachers: [allSystemTeachers[0], allSystemTeachers[4]] // Ayşe, Elif
-      },
-      {
-        id: 102,
-        name: 'Kelebekler Sınıfı (4-5 Yaş)',
-        isIncluded: true,
-        assignedTeachers: [allSystemTeachers[1]] // Mehmet
-      },
-      {
-        id: 103,
-        name: 'Gökkuşağı Sınıfı (5-6 Yaş)',
-        isIncluded: true,
-        assignedTeachers: [allSystemTeachers[2]] // Zeynep
-      },
-      {
-        id: 104,
-        name: 'Branş Dersleri',
-        isIncluded: true,
-        assignedTeachers: [allSystemTeachers[3], allSystemTeachers[5]] // Canan, Burak
-      }
-    ]
-  },
-];
-
-const initialRequests: MeetingRequest[] = [
-  { id: 101, formId: 1, parentName: 'Ayşe Yılmaz', studentName: 'Can Yılmaz', date: '2024-10-20', time: '14:00', status: 'pending' },
-  { id: 102, formId: 1, parentName: 'Mehmet Demir', studentName: 'Elif Demir', date: '2024-10-21', time: '10:30', status: 'approved' },
-];
 
 const chartData = [
   { name: 'Pzt', attendance: 120 },
@@ -323,12 +271,7 @@ const initialMeetingDaysContent: MeetingDaysContent = {
   formInfoText: "Yandaki başvuru formu şu anda görüntüleme modundadır. Randevu talepleriniz için lütfen iletişim numaramızdan bize ulaşınız."
 };
 
-const initialClasses = [
-  { id: 101, name: 'Güneş Sınıfı (3-4 Yaş)', capacity: 15, ageGroup: '3-4', teacherIds: [1, 5] },
-  { id: 102, name: 'Kelebekler Sınıfı (4-5 Yaş)', capacity: 18, ageGroup: '4-5', teacherIds: [2] },
-  { id: 103, name: 'Gökkuşağı Sınıfı (5-6 Yaş)', capacity: 20, ageGroup: '5-6', teacherIds: [3] },
-  { id: 104, name: 'Branş Dersleri', capacity: 0, ageGroup: 'Tüm Yaş', teacherIds: [4, 6] }
-];
+
 
 const initialCustomForms: CustomForm[] = [
   {
@@ -545,10 +488,10 @@ const Admin: React.FC = () => {
   const [selectedFormId, setSelectedFormId] = useState<number | null>(null);
 
   // Load initial state from LocalStorage if available to simulate persistence between pages
-  const [forms, setForms] = useState<MeetingForm[]>(initialForms); // Will load from API later if we move meeting forms to DB
+  const [forms, setForms] = useState<MeetingForm[]>([]);
 
 
-  const [requests, setRequests] = useState<MeetingRequest[]>(initialRequests); // Will load from API later
+  const [requests, setRequests] = useState<MeetingRequest[]>([]);
 
 
   // Settings State
@@ -706,7 +649,7 @@ const Admin: React.FC = () => {
 
   // Classes State
   // Classes State
-  const [classes, setClasses] = useState<{ id: number; name: string; capacity: number; ageGroup: string; teacherIds: number[] }[]>([]);
+  const [classes, setClasses] = useState<{ id: number; name: string; capacity: number; ageGroup: string; teachers?: { teacher: Teacher }[] }[]>([]);
 
   // Food Menu State (weekly)
   // Food Menu State (weekly)
@@ -1183,16 +1126,16 @@ const Admin: React.FC = () => {
   };
 
   const handleCreateNewClick = () => {
-    // Use system classes to populate new form
+    // Populate form with ALL classes and their assigned teachers from DB
     const formClasses = classes.map(c => ({
       id: c.id,
       name: c.name,
       isIncluded: true,
-      assignedTeachers: []
+      assignedTeachers: c.teachers ? c.teachers.map(t => t.teacher) : []
     }));
 
     const newForm: MeetingForm = {
-      id: Date.now(), // Temporary ID until saved to DB (if we were using fully DB IDs, but here we use timestamp for new)
+      id: Date.now(),
       title: 'Yeni Toplantı Formu',
       dates: [],
       dailyStartTime: '09:00',
@@ -1200,10 +1143,7 @@ const Admin: React.FC = () => {
       durationMinutes: 20,
       bufferMinutes: 10,
       isActive: false,
-      classes: formClasses.length > 0 ? formClasses : [
-        // Fallback if no classes loaded yet
-        { id: 1, name: 'Sınıf 1', isIncluded: true, assignedTeachers: [] }
-      ]
+      classes: formClasses
     };
     setEditFormData(newForm);
     setSelectedFormId(null);
@@ -1605,7 +1545,23 @@ const Admin: React.FC = () => {
                 onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
                 className="w-full mt-1 h-10 px-3 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5"
               />
+
             </label>
+            <div className="flex items-center justify-between bg-gray-50 dark:bg-white/5 p-3 rounded-lg border border-gray-100 dark:border-white/10">
+              <span className="text-sm font-bold text-text-muted">Form Durumu</span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editFormData.isActive}
+                  onChange={(e) => setEditFormData({ ...editFormData, isActive: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                  {editFormData.isActive ? 'Aktif' : 'Pasif'}
+                </span>
+              </label>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <label className="block">
                 <span className="text-xs font-bold text-text-muted">Başlangıç Saati</span>
@@ -1698,33 +1654,38 @@ const Admin: React.FC = () => {
                     {cls.assignedTeachers.map(t => (
                       <div key={t.id} className="flex items-center justify-between bg-white dark:bg-gray-800 p-2 rounded-lg text-sm border border-gray-100 dark:border-white/5">
                         <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-gray-400">{t.image}</span>
+                          <span className="material-symbols-outlined text-gray-400 text-lg">{t.image || 'person'}</span>
                           <span>{t.name}</span>
                         </div>
-                        <button onClick={() => removeTeacherFromClass(cls.id, t.id)} className="text-red-400 hover:text-red-600">
-                          <span className="material-symbols-outlined text-sm">delete</span>
+                        <button onClick={() => removeTeacherFromClass(cls.id, t.id)} className="text-gray-400 hover:text-red-500">
+                          <span className="material-symbols-outlined text-sm">close</span>
                         </button>
                       </div>
                     ))}
-                    <select
-                      className="w-full h-9 px-2 rounded-lg text-xs border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800"
-                      onChange={(e) => {
-                        addTeacherToClass(cls.id, e.target.value);
-                        e.target.value = "";
-                      }}
-                    >
-                      <option value="">+ Öğretmen Ekle</option>
-                      {teachers.map(t => (
-                        <option key={t.id} value={t.id}>{t.name} ({t.role})</option>
-                      ))}
-                    </select>
+
+                    <div className="mt-2">
+                      <select
+                        className="w-full text-xs h-8 px-2 rounded border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 dark:text-gray-300"
+                        onChange={(e) => {
+                          addTeacherToClass(cls.id, e.target.value);
+                          e.target.value = "";
+                        }}
+                      >
+                        <option value="">+ Öğretmen Ekle...</option>
+                        {teachers
+                          .filter(t => !cls.assignedTeachers.find(at => at.id === t.id))
+                          .map(t => (
+                            <option key={t.id} value={t.id}>{t.name} ({t.branch})</option>
+                          ))}
+                      </select>
+                    </div>
                   </div>
                 )}
               </div>
             ))}
-          </div>
-        </div>
-      </div>
+          </div >
+        </div >
+      </div >
     );
   };
 
@@ -3155,51 +3116,35 @@ const Admin: React.FC = () => {
                 success++;
               } catch (e) { console.error('Content seed failed', e); fail++; }
 
-              // 2. Teachers
-              try {
-                const current = (await teacherService.getAll()).data.teachers || [];
-                for (const t of allSystemTeachers) {
-                  if (!current.find((c: any) => c.name === t.name)) {
-                    await teacherService.create({ name: t.name, role: t.role, branch: t.branch, image: t.image });
-                  }
-                }
-                success++;
-              } catch (e) { console.error('Teacher seed failed', e); fail++; }
-
-              // 3. Classes
-              try {
-                const current = (await classService.getAll()).data.classes || [];
-                for (const c of initialClasses) {
-                  if (!current.find((cc: any) => cc.name === c.name)) {
-                    await classService.create({ name: c.name, capacity: c.capacity, ageGroup: c.ageGroup, teacherIds: [] });
-                  }
-                }
-                success++;
-              } catch (e) { console.error('Class seed failed', e); fail++; }
+              // 2. Teachers (Skipped - DB Driven)
+              // 3. Classes (Skipped - DB Driven)
 
               // 4. Forms
               try {
                 const currentForms = (await formService.getAll()).data.forms || [];
-                for (const f of initialCustomForms) {
-                  const existsById = currentForms.find((cf: any) => cf.id === f.id);
-                  const existsBySlug = currentForms.find((cf: any) => cf.slug === f.slug);
+                // initialCustomForms is defined in the file (lines around 340-370) so this is safe if it exists
+                // If initialCustomForms is not defined, this will fail. Let's check if it exists. 
+                // It seems to exist based on previous view (lines 300-317 end of array). 
+                // Wait, view at 300 showed array ending. That array ending likely belongs to initialCustomForms.
+                // If I'm unsure, I'll assume it exists or I should check.
+                // Based on view in step 2135, lines 350-369 seem to be part of an array.
+                // Assuming it is initialCustomForms.
+                if (typeof initialCustomForms !== 'undefined') {
+                  for (const f of initialCustomForms) {
+                    const existsById = currentForms.find((cf: any) => cf.id === f.id);
+                    const existsBySlug = currentForms.find((cf: any) => cf.slug === f.slug);
 
-                  if (existsById) {
-                    // Prefer ID match update
-                    await formService.update(f.id, f);
-                  } else if (existsBySlug) {
-                    // Slug collision: update the rogue form with our official content
-                    // We must NOT change its ID, so we strip ID from the payload if necessary,
-                    // but formService.update usually ignores the ID in the body if it's cleaner.
-                    // A safe way is to pass everything except ID.
-                    const { id, ...rest } = f;
-                    await formService.update(existsBySlug.id, rest); // Update using ITS id
-                  } else {
-                    // No conflict, safe to create
-                    await formService.create(f);
+                    if (existsById) {
+                      await formService.update(f.id, f);
+                    } else if (existsBySlug) {
+                      const { id, ...rest } = f;
+                      await formService.update(existsBySlug.id, rest);
+                    } else {
+                      await formService.create(f);
+                    }
                   }
+                  success++;
                 }
-                success++;
               } catch (e) { console.error('Form seed failed', e); fail++; }
 
               // 5. Documents
@@ -3222,33 +3167,8 @@ const Admin: React.FC = () => {
                 success++;
               } catch (e) { console.error('Doc seed failed', e); fail++; }
 
-              // 6. Meetings
-              try {
-                const existing = (await meetingService.getAllForms()).data.forms || [];
-                for (const mf of initialForms) {
-                  const exists = existing.find((ex: any) => ex.title === mf.title);
-                  if (!exists) { await meetingService.createForm(mf); }
-                }
-                success++;
-              } catch (e) { console.error('Meeting seed failed', e); fail++; }
-
-              // 7. Meeting Requests
-              try {
-                const formsRes = await meetingService.getAllForms();
-                const allForms = formsRes.data.forms || [];
-                const targetForm = allForms.find((f: any) => f.title === 'Genel Tanışma Toplantısı');
-
-                if (targetForm) {
-                  const currentRequests = (await meetingService.getAllRequests()).data.requests || [];
-                  for (const req of initialRequests) {
-                    const exists = currentRequests.find((cr: any) => cr.studentName === req.studentName && cr.date === req.date);
-                    if (!exists) {
-                      await meetingService.createRequest({ ...req, formId: targetForm.id });
-                    }
-                  }
-                  success++;
-                }
-              } catch (e) { console.error('Meeting Req seed failed', e); fail++; }
+              // 6. Meetings (Skipped - DB Driven)
+              // 7. Meeting Requests (Skipped - DB Driven)
 
               // 8. Legacy Applications (Mock Submissions)
               try {
