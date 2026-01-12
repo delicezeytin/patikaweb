@@ -33,14 +33,16 @@ sudo npm install -g pm2
 
 ## 3. Clone Repository
 
- Navigate to webapps directory (create if needed):
+1. **Connect via SSH** to your server.
+2. Go to your webapp directory (RunCloud created this):
 ```bash
-mkdir -p /var/www/patika-api
-sudo chown -R $USER:$USER /var/www/patika-api
-cd /var/www/patika-api
+cd /home/runcloud/webapps/patika-api
 ```
-
-Clone the project (or pull if using git):
+3. Remove default files (if any):
+```bash
+rm -rf *
+```
+4. Clone the project:
 ```bash
 git clone https://github.com/delicezeytin/patikaweb .
 ```
@@ -49,7 +51,7 @@ git clone https://github.com/delicezeytin/patikaweb .
 
 Install and build the React application:
 ```bash
-# In the root project directory
+# In the root project directory (/home/runcloud/webapps/patika-api)
 npm install
 npm run build
 ```
@@ -103,7 +105,7 @@ server {
     listen 80;
     server_name patika.noxdo.com; # Replace with your domain
 
-    root /var/www/patika-api/dist;
+    root /home/runcloud/webapps/patika-api/dist;
     index index.html;
 
     # Frontend (React)
