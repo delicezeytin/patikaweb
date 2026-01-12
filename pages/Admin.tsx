@@ -2967,10 +2967,21 @@ const Admin: React.FC = () => {
               try {
                 const currentForms = (await formService.getAll()).data.forms || [];
                 for (const f of initialCustomForms) {
-                  const exists = currentForms.find((cf: any) => cf.id === f.id);
-                  if (exists) {
+                  const existsById = currentForms.find((cf: any) => cf.id === f.id);
+                  const existsBySlug = currentForms.find((cf: any) => cf.slug === f.slug);
+
+                  if (existsById) {
+                    // Prefer ID match update
                     await formService.update(f.id, f);
+                  } else if (existsBySlug) {
+                    // Slug collision: update the rogue form with our official content
+                    // We must NOT change its ID, so we strip ID from the payload if necessary,
+                    // but formService.update usually ignores the ID in the body if it's cleaner.
+                    // A safe way is to pass everything except ID.
+                    const { id, ...rest } = f;
+                    await formService.update(existsBySlug.id, rest); // Update using ITS id
                   } else {
+                    // No conflict, safe to create
                     await formService.create(f);
                   }
                 }
