@@ -26,12 +26,12 @@ router.get('/', authMiddleware, async (req, res) => {
 // Update settings (protected)
 router.put('/', authMiddleware, async (req, res) => {
     try {
-        const { emailjsServiceId, emailjsTemplateId, emailjsPublicKey, calendarId, smtpHost, smtpPort, smtpUser, smtpPass } = req.body;
+        const { emailjsServiceId, emailjsTemplateId, emailjsPublicKey, calendarId, smtpHost, smtpPort, smtpUser, smtpPass, notificationEmail, timezone } = req.body;
 
         const settings = await prisma.systemSettings.upsert({
             where: { id: 1 },
-            update: { emailjsServiceId, emailjsTemplateId, emailjsPublicKey, calendarId, smtpHost, smtpPort, smtpUser, smtpPass },
-            create: { id: 1, emailjsServiceId, emailjsTemplateId, emailjsPublicKey, calendarId, smtpHost, smtpPort, smtpUser, smtpPass }
+            update: { emailjsServiceId, emailjsTemplateId, emailjsPublicKey, calendarId, smtpHost, smtpPort, smtpUser, smtpPass, notificationEmail, timezone },
+            create: { id: 1, emailjsServiceId, emailjsTemplateId, emailjsPublicKey, calendarId, smtpHost, smtpPort, smtpUser, smtpPass, notificationEmail, timezone: timezone || 'Europe/Istanbul' }
         });
 
         res.json({ success: true, settings });

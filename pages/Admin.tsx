@@ -39,9 +39,9 @@ interface CustomForm {
   description: string;
   fields: FormField[];
   isActive: boolean;
+  isAccessible?: boolean; // If false, form is visible but cannot be filled
   targetPage?: string; // which page this form belongs to
   submissions: any[];
-  notificationEmails?: string; // Comma-separated email addresses for form submission notifications
 }
 
 // Turkish character conversion and slugify helper
@@ -112,6 +112,8 @@ interface SystemSettings {
   smtpPort: string;
   smtpUser: string;
   smtpPass: string;
+  notificationEmail: string;
+  timezone: string;
   emailjsServiceId: string;
   emailjsTemplateId: string;
   emailjsPublicKey: string;
@@ -330,7 +332,7 @@ const initialClasses = [
 
 const initialCustomForms: CustomForm[] = [
   {
-    id: 'contact', title: 'İletişim Formu', slug: 'iletisim-formu', description: 'Web sitesi iletişim sayfası formu', isActive: true, targetPage: 'contact', submissions: [], notificationEmails: '',
+    id: 'contact', title: 'İletişim Formu', slug: 'iletisim-formu', description: 'Web sitesi iletişim sayfası formu', isActive: true, isAccessible: true, targetPage: 'contact', submissions: [],
     fields: [
       { id: 'c1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Ad Soyad' },
       { id: 'c2', type: 'email', label: 'E-posta', required: true, placeholder: 'email@ornek.com' },
@@ -340,7 +342,7 @@ const initialCustomForms: CustomForm[] = [
     ]
   },
   {
-    id: 'personnel', title: 'Personel Başvuru Formu', slug: 'personel-basvuru-formu', description: 'İş başvuruları için kullanılan form', isActive: true, targetPage: 'personnel', submissions: [], notificationEmails: '',
+    id: 'personnel', title: 'Personel Başvuru Formu', slug: 'personel-basvuru-formu', description: 'İş başvuruları için kullanılan form', isActive: true, isAccessible: true, targetPage: 'personnel', submissions: [],
     fields: [
       { id: 'p1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Adınız Soyadınız' },
       { id: 'p3', type: 'tel', label: 'Telefon', required: true, placeholder: 'örn: 555 123 4567' },
@@ -350,12 +352,23 @@ const initialCustomForms: CustomForm[] = [
     ]
   },
   {
-    id: 'school_register', title: 'Okul Kayıt Formu', slug: 'okul-kayit-formu', description: 'Yeni öğrenci kaydı için gerekli bilgiler', isActive: true, targetPage: 'student', submissions: [], notificationEmails: '',
+    id: 'school_register', title: 'Okul Kayıt Formu', slug: 'okul-kayit-formu', description: 'Yeni öğrenci kaydı için gerekli bilgiler', isActive: true, isAccessible: true, targetPage: 'student', submissions: [],
     fields: [
       { id: 'f1', type: 'text', label: 'Öğrenci Adı Soyadı', required: true, placeholder: 'Ad Soyad' },
       { id: 'f2', type: 'date', label: 'Doğum Tarihi', required: true },
       { id: 'f3', type: 'text', label: 'Veli Adı Soyadı', required: true, placeholder: 'Veli Adı' },
       { id: 'f4', type: 'tel', label: 'İletişim Numarası', required: true, placeholder: '05XX XXX XX XX' },
+    ]
+  },
+  {
+    id: 'meeting_days', title: 'Tanışma Günleri Başvuru Formu', slug: 'tanisma-gunleri-formu', description: 'Tanışma günlerine katılım başvuru formu', isActive: true, isAccessible: true, targetPage: 'meetingDays', submissions: [],
+    fields: [
+      { id: 'm1', type: 'text', label: 'Veli Adı Soyadı', required: true, placeholder: 'Adınız Soyadınız' },
+      { id: 'm2', type: 'text', label: 'Çocuk Adı Soyadı', required: true, placeholder: 'Çocuğunuzun Adı' },
+      { id: 'm3', type: 'date', label: 'Çocuk Doğum Tarihi', required: true },
+      { id: 'm4', type: 'tel', label: 'Telefon', required: true, placeholder: '0555 555 55 55' },
+      { id: 'm5', type: 'email', label: 'E-posta', required: true, placeholder: 'email@ornek.com' },
+      { id: 'm6', type: 'textarea', label: 'Eklemek İstediğiniz Not', required: false, placeholder: 'Varsa eklemek istediğiniz bilgiler...' },
     ]
   }
 ];
@@ -529,13 +542,14 @@ const Admin: React.FC = () => {
 
 
   // Settings State
-  // Settings State
   const [settings, setSettings] = useState<SystemSettings>({
     calendarId: "",
     smtpHost: "smtp.gmail.com",
     smtpPort: "587",
     smtpUser: "",
     smtpPass: "",
+    notificationEmail: "",
+    timezone: "Europe/Istanbul",
     emailjsServiceId: "",
     emailjsTemplateId: "",
     emailjsPublicKey: ""
@@ -645,9 +659,7 @@ const Admin: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    localStorage.setItem('patika_documents', JSON.stringify(documents));
-  }, [documents]);
+  // Documents now loaded from API in fetchData
 
   // Edit Form Temporary State
   const [editFormData, setEditFormData] = useState<MeetingForm | null>(null);
@@ -803,15 +815,8 @@ const Admin: React.FC = () => {
   }, [isAuthenticated]);
   const [viewingSubmission, setViewingSubmission] = useState<{ data: any; date: string } | null>(null);
 
-  // Applications State
-  const [applications, setApplications] = useState<{ id: number; type: 'school' | 'staff' | 'contact'; name: string; email: string; phone: string; message: string; date: string; status: 'new' | 'reviewed' | 'contacted' }[]>(() => {
-    const saved = localStorage.getItem('patika_applications');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, type: 'school', name: 'Ahmet Yıldırım', email: 'ahmet@email.com', phone: '0532 111 2233', message: 'Çocuğumuz için kayıt olmak istiyoruz', date: '2024-10-15', status: 'new' },
-      { id: 2, type: 'staff', name: 'Selin Kara', email: 'selin@email.com', phone: '0533 222 3344', message: 'Okul öncesi öğretmeni pozisyonu için başvuru', date: '2024-10-16', status: 'reviewed' },
-      { id: 3, type: 'contact', name: 'Fatma Demir', email: 'fatma@email.com', phone: '0534 333 4455', message: 'Fiyat bilgisi almak istiyorum', date: '2024-10-17', status: 'contacted' },
-    ];
-  });
+  // Applications State - derived from form submissions
+  const [applications, setApplications] = useState<{ id: number; type: 'school' | 'staff' | 'contact'; name: string; email: string; phone: string; message: string; date: string; status: 'new' | 'reviewed' | 'contacted' }[]>([]);
 
   // Editing states
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
@@ -1183,7 +1188,7 @@ const Admin: React.FC = () => {
     const teacherId = parseInt(teacherIdString);
     if (!teacherId) return; // Handle "select..." option
 
-    const teacherToAdd = allSystemTeachers.find(t => t.id === teacherId);
+    const teacherToAdd = teachers.find(t => t.id === teacherId);
     if (editFormData && teacherToAdd) {
       setEditFormData({
         ...editFormData,
@@ -1651,7 +1656,7 @@ const Admin: React.FC = () => {
                       }}
                     >
                       <option value="">+ Öğretmen Ekle</option>
-                      {allSystemTeachers.map(t => (
+                      {teachers.map(t => (
                         <option key={t.id} value={t.id}>{t.name} ({t.role})</option>
                       ))}
                     </select>
@@ -1742,6 +1747,32 @@ const Admin: React.FC = () => {
             <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20" placeholder="Ad Soyad" value={editingTeacher.name} onChange={(e) => setEditingTeacher({ ...editingTeacher, name: e.target.value })} />
             <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20" placeholder="Görev" value={editingTeacher.role} onChange={(e) => setEditingTeacher({ ...editingTeacher, role: e.target.value })} />
             <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20" placeholder="Branş" value={editingTeacher.branch} onChange={(e) => setEditingTeacher({ ...editingTeacher, branch: e.target.value })} />
+            <div>
+              <label className="text-xs font-bold text-text-muted mb-1 block">İkon (Material Symbol)</label>
+              <div className="flex items-center gap-2">
+                <div className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                  <span className="material-symbols-outlined">{editingTeacher.image || 'face'}</span>
+                </div>
+                <select
+                  value={editingTeacher.image || 'face'}
+                  onChange={(e) => setEditingTeacher({ ...editingTeacher, image: e.target.value })}
+                  className="flex-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20"
+                >
+                  <option value="face">Yüz 1</option>
+                  <option value="face_2">Yüz 2</option>
+                  <option value="face_3">Yüz 3</option>
+                  <option value="face_4">Yüz 4</option>
+                  <option value="face_5">Yüz 5</option>
+                  <option value="face_6">Yüz 6</option>
+                  <option value="person">Kişi</option>
+                  <option value="school">Okul</option>
+                  <option value="sports_handball">Spor</option>
+                  <option value="music_note">Müzik</option>
+                  <option value="palette">Sanat</option>
+                  <option value="psychology">Psikoloji</option>
+                </select>
+              </div>
+            </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setEditingTeacher(null)} className="px-4 py-2 text-gray-500">İptal</button>
               <button onClick={handleSaveTeacher} className="px-6 py-2 bg-primary text-white rounded-xl font-bold">Kaydet</button>
@@ -2057,26 +2088,23 @@ const Admin: React.FC = () => {
                   <option value="contact">İletişim Sayfası</option>
                   <option value="personnel">Personel Başvuru Sayfası</option>
                   <option value="student">Öğrenci Kayıt Sayfası</option>
+                  <option value="meetingDays">Tanışma Günleri Sayfası</option>
                 </select>
                 <p className="text-xs text-text-muted mt-1">Eğer bir sayfa seçerseniz, o sayfadaki mevcut formun yerine bu form gösterilir.</p>
               </label>
 
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={editingForm.isActive} onChange={e => setEditingForm({ ...editingForm, isActive: e.target.checked })} className="size-4 rounded text-primary focus:ring-primary" />
-                <span className="text-sm font-bold">Form Aktif</span>
-              </label>
-              <div className="pt-4 border-t border-gray-100 dark:border-white/5">
-                <label className="text-xs font-bold text-text-muted uppercase mb-2 flex items-center gap-1">
-                  <span className="material-symbols-outlined text-sm">mail</span>
-                  Bildirim E-postaları
+              <div className="flex flex-col gap-3 pt-4 border-t border-gray-100 dark:border-white/5">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={editingForm.isActive} onChange={e => setEditingForm({ ...editingForm, isActive: e.target.checked })} className="size-4 rounded text-primary focus:ring-primary" />
+                  <span className="text-sm font-bold">Form Görünür (Aktif)</span>
                 </label>
-                <input
-                  value={editingForm.notificationEmails || ''}
-                  onChange={e => setEditingForm({ ...editingForm, notificationEmails: e.target.value })}
-                  className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20 text-sm"
-                  placeholder="ornek@email.com, diger@email.com"
-                />
-                <p className="text-xs text-text-muted mt-1">Form doldurulduğunda bu adreslere bildirim gönderilir. Virgülle ayırın.</p>
+                <p className="text-xs text-text-muted -mt-2 ml-6">Pasifse form hiç görünmez.</p>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={editingForm.isAccessible !== false} onChange={e => setEditingForm({ ...editingForm, isAccessible: e.target.checked })} className="size-4 rounded text-green-600 focus:ring-green-600" />
+                  <span className="text-sm font-bold">Form Erişilebilir (Doldurulabilir)</span>
+                </label>
+                <p className="text-xs text-text-muted -mt-2 ml-6">Kapalıysa form görünür ancak kullanıcı dolduramaz.</p>
               </div>
             </div>
 
@@ -2897,6 +2925,32 @@ const Admin: React.FC = () => {
             />
           </label>
         </div>
+
+        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100 dark:border-white/5">
+          <label className="block">
+            <span className="text-xs font-bold text-text-muted">Bildirim E-postası (Yönetici)</span>
+            <input
+              type="email"
+              value={settings.notificationEmail}
+              onChange={(e) => setSettings({ ...settings, notificationEmail: e.target.value })}
+              className="w-full mt-1 h-10 px-3 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5"
+              placeholder="yonetici@patikayuva.com"
+            />
+            <p className="text-xs text-text-muted mt-1">Form başvuruları bu adrese gönderilir.</p>
+          </label>
+          <label className="block">
+            <span className="text-xs font-bold text-text-muted">Zaman Dilimi</span>
+            <select
+              value={settings.timezone}
+              onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
+              className="w-full mt-1 h-10 px-3 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5"
+            >
+              <option value="Europe/Istanbul">Türkiye (Europe/Istanbul)</option>
+              <option value="UTC">UTC</option>
+            </select>
+          </label>
+        </div>
+
         <div className="flex items-end gap-2 mt-4">
           <div className="flex-1">
             <label className="text-xs font-bold text-text-muted">Test E-postası Alıcısı</label>

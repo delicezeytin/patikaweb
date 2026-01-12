@@ -56,9 +56,9 @@ router.get('/:id', authMiddleware, async (req, res) => {
 // Create form (protected)
 router.post('/', authMiddleware, async (req, res) => {
     try {
-        const { id, title, slug, description, fields, isActive, notificationEmails, targetPage } = req.body;
+        const { id, title, slug, description, fields, isActive, isAccessible, targetPage } = req.body;
         const form = await prisma.customForm.create({
-            data: { id, title, slug, description, fields, isActive, notificationEmails, targetPage: targetPage || 'none' }
+            data: { id, title, slug, description, fields, isActive, isAccessible: isAccessible !== false, targetPage: targetPage || 'none' }
         });
         res.json({ success: true, form });
     } catch (error) {
@@ -71,10 +71,10 @@ router.post('/', authMiddleware, async (req, res) => {
 router.put('/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, slug, description, fields, isActive, notificationEmails, targetPage } = req.body;
+        const { title, slug, description, fields, isActive, isAccessible, targetPage } = req.body;
         const form = await prisma.customForm.update({
             where: { id: id as string },
-            data: { title, slug, description, fields, isActive, notificationEmails, targetPage }
+            data: { title, slug, description, fields, isActive, isAccessible, targetPage }
         });
         res.json({ success: true, form });
     } catch (error) {
@@ -106,22 +106,38 @@ router.post('/:id/submit', async (req, res) => {
             return res.status(404).json({ error: 'Form bulunamadı veya aktif değil' });
         }
 
+        // Check if form is accessible for submissions
+        if (!form.isAccessible) {
+            return res.status(403).json({ error: 'Bu form şu anda başvuru kabul etmemektedir' });
+        }
+
         const submission = await prisma.formSubmission.create({
             data: { formId: id, data }
         });
 
-        // Send notification email if configured
-        // Send notification email if configured
-        if (form.notificationEmails) {
-            try {
-                // Import the unified email service
+        // Send notification email to admin if configured in system settings
+        try {
+            const settings = await prisma.systemSettings.findFirst();
+            if (settings && settings.notificationEmail && settings.smtpHost) {
                 const { sendEmail } = require('../services/email');
 
-                const emailList = form.notificationEmails.split(',').map(e => e.trim());
+                // Format date in Turkish
+                const now = new Date();
+                const dateFormatter = new Intl.DateTimeFormat('tr-TR', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    timeZone: settings.timezone || 'Europe/Istanbul'
+                });
+                const formattedDate = dateFormatter.format(now);
+
                 const fieldMap: any = form.fields;
                 let messageBody = `
                 <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
                     <h2 style="color: #e65100;">Yeni Form Başvurusu: ${form.title}</h2>
+                    <p style="color: #666; font-size: 14px;">Tarih: ${formattedDate}</p>
                     <ul style="list-style: none; padding: 0;">`;
 
                 for (const [key, value] of Object.entries(data as any)) {
@@ -136,12 +152,12 @@ router.post('/:id/submit', async (req, res) => {
                 <p style="margin-top:20px; font-size: 12px; color: #999;">Bu mesaj Patika Çocuk Yuvası web sitesi üzerinden gönderilmiştir.</p>
                 </div>`;
 
-                await sendEmail(emailList, `Yeni Başvuru: ${form.title}`, messageBody);
-
-            } catch (emailError) {
-                console.error('Failed to send email:', emailError);
-                // Do not fail the request, just log error
+                await sendEmail(settings.notificationEmail, `Yeni Başvuru: ${form.title}`, messageBody);
+                console.log(`Notification email sent to ${settings.notificationEmail} for form: ${form.title}`);
             }
+        } catch (emailError) {
+            console.error('Failed to send notification email:', emailError);
+            // Do not fail the request, just log error
         }
 
         res.json({ success: true, submission });

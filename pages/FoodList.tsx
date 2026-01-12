@@ -1,19 +1,29 @@
 import React, { useState, useEffect } from 'react';
+import { menuService } from '../services/api';
+
+const defaultMenu = [
+  { day: "Pazartesi", breakfast: "Omlet, Peynir, Zeytin, Süt", lunch: "Mercimek Çorbası, Sebzeli Tavuk, Bulgur Pilavı", snack: "Meyve Salatası, Kurabiye" },
+  { day: "Salı", breakfast: "Kaşarlı Tost, Domates, Salatalık, Ihlamur", lunch: "Tarhana Çorbası, İzmir Köfte, Makarna", snack: "Sütlaç" },
+  { day: "Çarşamba", breakfast: "Haşlanmış Yumurta, Bal, Tereyağı, Süt", lunch: "Yayla Çorbası, Taze Fasulye, Pirinç Pilavı", snack: "Kek, Meyve Suyu" },
+  { day: "Perşembe", breakfast: "Menemen, Peynir, Zeytin, Bitki Çayı", lunch: "Domates Çorbası, Fırın Somon, Patates Püresi", snack: "Yoğurtlu Meyve" },
+  { day: "Cuma", breakfast: "Simit, Peynir, Domates, Süt", lunch: "Ezogelin Çorbası, Etli Nohut, Bulgur Pilavı", snack: "Aşure" },
+];
 
 const FoodList: React.FC = () => {
-  const [menu, setMenu] = useState([
-    { day: "Pazartesi", breakfast: "Omlet, Peynir, Zeytin, Süt", lunch: "Mercimek Çorbası, Sebzeli Tavuk, Bulgur Pilavı", snack: "Meyve Salatası, Kurabiye" },
-    { day: "Salı", breakfast: "Kaşarlı Tost, Domates, Salatalık, Ihlamur", lunch: "Tarhana Çorbası, İzmir Köfte, Makarna", snack: "Sütlaç" },
-    { day: "Çarşamba", breakfast: "Haşlanmış Yumurta, Bal, Tereyağı, Süt", lunch: "Yayla Çorbası, Taze Fasulye, Pirinç Pilavı", snack: "Kek, Meyve Suyu" },
-    { day: "Perşembe", breakfast: "Menemen, Peynir, Zeytin, Bitki Çayı", lunch: "Domates Çorbası, Fırın Somon, Patates Püresi", snack: "Yoğurtlu Meyve" },
-    { day: "Cuma", breakfast: "Simit, Peynir, Domates, Süt", lunch: "Ezogelin Çorbası, Etli Nohut, Bulgur Pilavı", snack: "Aşure" },
-  ]);
+  const [menu, setMenu] = useState(defaultMenu);
 
   useEffect(() => {
-    const saved = localStorage.getItem('patika_food_menu');
-    if (saved) {
-        setMenu(JSON.parse(saved));
-    }
+    const fetchMenu = async () => {
+      try {
+        const res = await menuService.getAll();
+        if (res.data && res.data.menu && res.data.menu.length > 0) {
+          setMenu(res.data.menu);
+        }
+      } catch (e) {
+        console.error('Error fetching menu, using defaults', e);
+      }
+    };
+    fetchMenu();
   }, []);
 
   return (
@@ -47,20 +57,20 @@ const FoodList: React.FC = () => {
                   </td>
                   <td className="p-5 text-text-muted dark:text-gray-300">
                     <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-orange-400 text-lg">bakery_dining</span>
-                        {item.breakfast}
+                      <span className="material-symbols-outlined text-orange-400 text-lg">bakery_dining</span>
+                      {item.breakfast}
                     </div>
                   </td>
                   <td className="p-5 text-text-muted dark:text-gray-300">
                     <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-green-500 text-lg">soup_kitchen</span>
-                        {item.lunch}
+                      <span className="material-symbols-outlined text-green-500 text-lg">soup_kitchen</span>
+                      {item.lunch}
                     </div>
                   </td>
                   <td className="p-5 text-text-muted dark:text-gray-300">
                     <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-blue-400 text-lg">cookie</span>
-                        {item.snack}
+                      <span className="material-symbols-outlined text-blue-400 text-lg">cookie</span>
+                      {item.snack}
                     </div>
                   </td>
                 </tr>
@@ -72,22 +82,22 @@ const FoodList: React.FC = () => {
 
       <div className="mt-8 flex flex-col md:flex-row gap-6 w-full">
         <div className="flex-1 bg-green-50 dark:bg-green-900/20 p-6 rounded-2xl border border-green-100 dark:border-green-900/30">
-            <h3 className="font-bold text-green-800 dark:text-green-200 text-lg mb-2 flex items-center gap-2">
-                <span className="material-symbols-outlined">eco</span>
-                Organik ve Taze
-            </h3>
-            <p className="text-sm text-green-700 dark:text-green-300">
-                Yemeklerimizde kullanılan sebze ve meyveler mevsimine uygun olarak seçilmekte, katkı maddesi içermeyen doğal ürünler tercih edilmektedir.
-            </p>
+          <h3 className="font-bold text-green-800 dark:text-green-200 text-lg mb-2 flex items-center gap-2">
+            <span className="material-symbols-outlined">eco</span>
+            Organik ve Taze
+          </h3>
+          <p className="text-sm text-green-700 dark:text-green-300">
+            Yemeklerimizde kullanılan sebze ve meyveler mevsimine uygun olarak seçilmekte, katkı maddesi içermeyen doğal ürünler tercih edilmektedir.
+          </p>
         </div>
         <div className="flex-1 bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl border border-blue-100 dark:border-blue-900/30">
-            <h3 className="font-bold text-blue-800 dark:text-blue-200 text-lg mb-2 flex items-center gap-2">
-                <span className="material-symbols-outlined">medical_services</span>
-                Alerjen Bilgisi
-            </h3>
-            <p className="text-sm text-blue-700 dark:text-blue-300">
-                Gıda alerjisi olan öğrencilerimiz için özel menüler hazırlanmaktadır. Lütfen kayıt esnasında alerjen durumunu belirtiniz.
-            </p>
+          <h3 className="font-bold text-blue-800 dark:text-blue-200 text-lg mb-2 flex items-center gap-2">
+            <span className="material-symbols-outlined">medical_services</span>
+            Alerjen Bilgisi
+          </h3>
+          <p className="text-sm text-blue-700 dark:text-blue-300">
+            Gıda alerjisi olan öğrencilerimiz için özel menüler hazırlanmaktadır. Lütfen kayıt esnasında alerjen durumunu belirtiniz.
+          </p>
         </div>
       </div>
     </div>

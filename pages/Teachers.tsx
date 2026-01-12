@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { teacherService, formService } from '../services/api';
 
 interface Teacher {
   id: number;
   name: string;
   role: string;
   branch: string;
-  image: string; 
+  image: string;
   color?: string;
 }
 
@@ -15,34 +16,36 @@ const Teachers: React.FC = () => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
 
   useEffect(() => {
-      const saved = localStorage.getItem('patika_teachers');
-      if (saved) {
-          setTeachers(JSON.parse(saved));
-      } else {
-          // Fallback static data if nothing is saved yet
-          setTeachers([
-            { id: 1, name: "Ayşe Yılmaz", role: "Sınıf Öğretmeni", branch: "3-4 Yaş Grubu", image: "face_3", color: "bg-orange-100 text-orange-600" },
-            { id: 2, name: "Mehmet Demir", role: "Sınıf Öğretmeni", branch: "4-5 Yaş Grubu", image: "face_6", color: "bg-blue-100 text-blue-600" },
-            { id: 3, name: "Zeynep Kaya", role: "Sınıf Öğretmeni", branch: "5-6 Yaş Grubu", image: "face_2", color: "bg-green-100 text-green-600" },
-            { id: 4, name: "Canan Yıldız", role: "İngilizce Öğretmeni", branch: "Tüm Yaş Grupları", image: "face_4", color: "bg-purple-100 text-purple-600" },
-            { id: 5, name: "Elif Öztürk", role: "Yardımcı Öğretmen", branch: "3-4 Yaş Grubu", image: "face_5", color: "bg-pink-100 text-pink-600" },
-            { id: 6, name: "Burak Şen", role: "Spor Öğretmeni", branch: "Tüm Yaş Grupları", image: "sports_handball", color: "bg-red-100 text-red-600" },
-          ]);
+    const fetchTeachers = async () => {
+      try {
+        const res = await teacherService.getAll();
+        const data = res.data.teachers || [];
+        // Add colors for display
+        const colors = [
+          'bg-orange-100 text-orange-600',
+          'bg-blue-100 text-blue-600',
+          'bg-green-100 text-green-600',
+          'bg-purple-100 text-purple-600',
+          'bg-pink-100 text-pink-600',
+          'bg-red-100 text-red-600',
+        ];
+        setTeachers(data.map((t: Teacher, i: number) => ({
+          ...t,
+          color: colors[i % colors.length]
+        })));
+      } catch (e) {
+        console.error('Error fetching teachers', e);
       }
+    };
+    fetchTeachers();
   }, []);
 
-  const handleApplyClick = () => {
+  const handleApplyClick = async () => {
     try {
-      const settings = localStorage.getItem('patika_form_settings');
-      let isActive = false;
-      if (settings) {
-        const parsed = JSON.parse(settings);
-        const form = parsed.find((f: any) => f.id === 'personnel');
-        if (form && form.isActive) {
-          isActive = true;
-        }
-      }
-      if (isActive) {
+      const res = await formService.getAll();
+      const forms = res.data.forms || [];
+      const personnelForm = forms.find((f: any) => f.targetPage === 'personnel' && f.isActive);
+      if (personnelForm) {
         navigate('/apply-personnel');
       } else {
         alert("Şu anda personel alımımız bulunmamaktadır.");
@@ -62,7 +65,7 @@ const Teachers: React.FC = () => {
           Çocuklarınız Emin Ellerde
         </h1>
         <p className="text-text-muted dark:text-gray-400 text-lg">
-          Alanında uzman, tecrübeli ve en önemlisi çocukları çok seven eğitim kadromuzla tanışın. 
+          Alanında uzman, tecrübeli ve en önemlisi çocukları çok seven eğitim kadromuzla tanışın.
           Her bir öğretmenimiz, çocuğunuzun yeteneklerini keşfetmesi için onlara rehberlik eder.
         </p>
       </div>
@@ -86,9 +89,9 @@ const Teachers: React.FC = () => {
               </p>
             </div>
             <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/5 flex justify-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0">
-               <button className="text-gray-400 hover:text-primary transition-colors" title="E-posta Gönder">
-                 <span className="material-symbols-outlined">mail</span>
-               </button>
+              <button className="text-gray-400 hover:text-primary transition-colors" title="E-posta Gönder">
+                <span className="material-symbols-outlined">mail</span>
+              </button>
             </div>
           </div>
         ))}
@@ -99,8 +102,8 @@ const Teachers: React.FC = () => {
           <h2 className="text-2xl md:text-3xl font-bold text-text-main dark:text-white">Ekibimize Katılmak İster misiniz?</h2>
           <p className="text-text-muted dark:text-gray-300">Siz de bu büyük ailenin bir parçası olmak istiyorsanız başvurunuzu bekliyoruz.</p>
         </div>
-        <button 
-          onClick={handleApplyClick} 
+        <button
+          onClick={handleApplyClick}
           className="shrink-0 px-8 py-4 bg-white dark:bg-gray-800 text-text-main dark:text-white font-bold rounded-xl shadow-sm hover:shadow-md hover:text-primary transition-all flex items-center gap-2"
         >
           Başvuru Yap

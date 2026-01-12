@@ -83,7 +83,8 @@ model CustomForm {
   description        String?          @db.Text
   fields             Json             // Form field definitions
   isActive           Boolean          @default(true)
-  targetPage         String?          @default("none") // 'contact', 'home', 'personnel', 'student', 'none'
+  isAccessible       Boolean          @default(true) // If false, form is visible but cannot be submitted
+  targetPage         String?          @default("none") // 'contact', 'personnel', 'student', 'meetingDays', 'none'
   notificationEmails String?          @db.Text
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
@@ -186,6 +187,8 @@ model SystemSettings {
   smtpPort          String?
   smtpUser          String?
   smtpPass          String?
+  notificationEmail String?  // Admin email for form submission notifications
+  timezone          String?  @default("Europe/Istanbul")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }

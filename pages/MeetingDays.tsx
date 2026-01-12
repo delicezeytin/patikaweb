@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import DynamicFormRenderer from '../components/DynamicFormRenderer';
 import ResponsiveHero from '../components/ResponsiveHero';
+import { contentService, formService } from '../services/api';
 
 interface MeetingDaysContent {
     heroTitle: string;
@@ -18,69 +19,72 @@ const defaultMeetingDaysContent: MeetingDaysContent = {
     heroTitle: "Tanışma Günleri",
     heroImage: "https://lh3.googleusercontent.com/aida-public/AB6AXuBKkBtmpwhIX5KPxEgKI9zWs4svarIXcB1OZmLOigX0jzCFwcO2zjv_pYzq0bkdHKpWowLwr7ahocm6bA42dTHgnb6j_UBwIlw-kpe2fIhKOlbp8SOWv9NgGWm2uys4pnyqiuP3zZ9NfQDiyw72zo4LZJSbSbrrGo86d5SjWWfbVqiydSWq_Bzyx5NzHhYKd1cXcQ_TWVQ64WochSWtVJV4kVa4ADz1_amSMQIWsalNn6fRHRBzZ1rVpn9eIgNw_G6HRkLLyYa_Hg",
     sectionTitle: "Patika Tanışma Günleri",
-    introText: "Okulumuzu yakından tanımak, bahçemizi gezmek ve eğitim yaklaşımımız üzerine sohbet etmek isteyen; önümüzdeki eğitim–öğretim döneminde Patika’yı düşünen aileleri **Patika Tanışma Günleri**’ne davet ediyoruz.",
+    introText: "Okulumuzu yakından tanımak, bahçemizi gezmek ve eğitim yaklaşımımız üzerine sohbet etmek isteyen; önümüzdeki eğitim–öğretim döneminde Patika'yı düşünen aileleri **Patika Tanışma Günleri**'ne davet ediyoruz.",
     scheduleTitle: "Şubat Ayı Boyunca",
     scheduleTime: "Hafta İçi, 16.45 – 18.00 saatleri arasında",
-    descriptionText: "Tanıtım günlerimiz, her yıl **Şubat** ayında Patika Çocuk Yuvası’nda düzenlenir. Bu süreçte hem okulumuzun fiziki imkanlarını görebilir hem de eğitim kadromuzla tanışarak merak ettiğiniz soruları sorabilirsiniz.",
+    descriptionText: "Tanıtım günlerimiz, her yıl **Şubat** ayında Patika Çocuk Yuvası'nda düzenlenir. Bu süreçte hem okulumuzun fiziki imkanlarını görebilir hem de eğitim kadromuzla tanışarak merak ettiğiniz soruları sorabilirsiniz.",
     formInfoTitle: "Form Bilgilendirmesi:",
     formInfoText: "Yandaki başvuru formu şu anda görüntüleme modundadır. Randevu talepleriniz için lütfen iletişim numaramızdan bize ulaşınız."
 };
 
 const MeetingDays: React.FC = () => {
-    // Default form structure fallback
-    const defaultMeetingForm = {
-        id: 'meeting_request',
-        title: 'Tanışma Günü Başvuru Formu',
-        isActive: true,
-        fields: [
-            { id: 'parentName', type: 'text', label: 'Veli Adı Soyadı', required: true, placeholder: 'Adınız ve Soyadınız' },
-            { id: 'phone', type: 'tel', label: 'Telefon Numarası', required: true, placeholder: '05XX XXX XX XX' },
-            { id: 'childName', type: 'text', label: 'Çocuk Adı Soyadı', required: true, placeholder: 'Çocuğunuzun Adı' },
-            { id: 'childBirthDate', type: 'date', label: 'Doğum Tarihi', required: true, placeholder: '' },
-            { id: 'meetingDate', type: 'date', label: 'Talep Edilen Tarih', required: true, placeholder: '' },
-            { id: 'notes', type: 'textarea', label: 'Notlarınız', required: false, placeholder: 'Eklemek istedikleriniz...' }
-        ]
-    };
-
     const [meetingForm, setMeetingForm] = useState<any>(null);
     const [content, setContent] = useState<MeetingDaysContent>(defaultMeetingDaysContent);
+    const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
 
-        // Load Content
-        const savedContent = localStorage.getItem('patika_meeting_days_content');
-        if (savedContent) {
-            setContent(JSON.parse(savedContent));
-        }
-
-        // Load Form
-        const savedForms = localStorage.getItem('patika_custom_forms');
-        let formToUse = null;
-
-        if (savedForms) {
+        const fetchData = async () => {
             try {
-                const forms = JSON.parse(savedForms);
-                const found = forms.find((f: any) => f.id === 'meeting_request');
-                if (found && found.isActive !== false) {
-                    formToUse = found;
+                // Load content from API
+                const contentRes = await contentService.get('meetingDays');
+                if (contentRes.data && contentRes.data.content) {
+                    setContent(contentRes.data.content);
                 }
             } catch (e) {
-                console.error("Error parsing form settings", e);
+                console.error('Error loading meeting days content', e);
             }
-        }
 
-        if (!formToUse) {
-            formToUse = defaultMeetingForm;
-        }
+            try {
+                // Load form with targetPage = meetingDays from API
+                const formsRes = await formService.getAll();
+                const forms = formsRes.data.forms || [];
+                const form = forms.find((f: any) => f.targetPage === 'meetingDays' && f.isActive !== false);
+                if (form) {
+                    setMeetingForm(form);
+                }
+            } catch (e) {
+                console.error('Error loading meeting days form', e);
+            }
+        };
 
-        setMeetingForm(formToUse);
+        fetchData();
     }, []);
+
+    const handleSubmit = async (data: any) => {
+        if (!meetingForm) return;
+        try {
+            await formService.submit(meetingForm.id, data);
+            setSubmitted(true);
+            window.scrollTo(0, 0);
+        } catch (e: any) {
+            // Check if form is not accessible
+            if (e.response?.status === 403) {
+                alert(e.response.data.error || 'Bu form şu anda başvuru kabul etmemektedir.');
+            } else {
+                alert('Başvuru gönderilirken bir hata oluştu.');
+            }
+            console.error('Submit error', e);
+        }
+    };
 
     const renderMarkdown = (text: string) => {
         const html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         return <span dangerouslySetInnerHTML={{ __html: html }} />;
     };
+
+    const isFormAccessible = meetingForm?.isAccessible !== false;
 
     return (
         <div className="max-w-[1200px] w-full flex flex-col mx-auto">
@@ -119,33 +123,56 @@ const MeetingDays: React.FC = () => {
                                 {renderMarkdown(content.descriptionText)}
                             </p>
 
-                            <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20 p-6 rounded-2xl mt-4">
-                                <p className="font-bold text-text-main dark:text-white">
-                                    {content.formInfoTitle}
-                                </p>
-                                <p className="text-sm text-text-muted dark:text-gray-400 mt-2">
-                                    {content.formInfoText}
-                                </p>
-                            </div>
+                            {!isFormAccessible && (
+                                <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20 p-6 rounded-2xl mt-4">
+                                    <p className="font-bold text-text-main dark:text-white">
+                                        {content.formInfoTitle}
+                                    </p>
+                                    <p className="text-sm text-text-muted dark:text-gray-400 mt-2">
+                                        {content.formInfoText}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* Right Column: Read-Only Form */}
+                    {/* Right Column: Form */}
                     <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 md:p-10 shadow-lg border border-border-color relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-bl-full flex items-start justify-end p-4 text-gray-400">
-                            <span className="material-symbols-outlined text-2xl">lock</span>
-                        </div>
+                        {!isFormAccessible && (
+                            <div className="absolute top-0 right-0 w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-bl-full flex items-start justify-end p-4 text-gray-400">
+                                <span className="material-symbols-outlined text-2xl">lock</span>
+                            </div>
+                        )}
 
                         <div className="mb-8">
-                            <h3 className="text-2xl font-bold text-text-main dark:text-white">Başvuru Formu</h3>
-                            <p className="text-text-muted dark:text-gray-400 text-sm mt-1">Tanışma Günleri Zamanında Aktif Olur</p>
+                            <h3 className="text-2xl font-bold text-text-main dark:text-white">{meetingForm?.title || 'Başvuru Formu'}</h3>
+                            <p className="text-text-muted dark:text-gray-400 text-sm mt-1">
+                                {!isFormAccessible ? 'Tanışma Günleri Zamanında Aktif Olur' : 'Aşağıdaki formu doldurarak başvurunuzu oluşturabilirsiniz.'}
+                            </p>
                         </div>
 
-                        {meetingForm ? (
+                        {submitted ? (
+                            <div className="flex flex-col items-center justify-center py-12 text-center">
+                                <div className="size-20 rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 flex items-center justify-center mx-auto mb-6">
+                                    <span className="material-symbols-outlined text-4xl">check_circle</span>
+                                </div>
+                                <h2 className="text-2xl font-black text-text-main dark:text-white mb-4">Başvurunuz Alındı!</h2>
+                                <p className="text-text-muted dark:text-gray-400 max-w-md">
+                                    En kısa sürede sizinle iletişime geçeceğiz. İlginiz için teşekkür ederiz.
+                                </p>
+                                <button
+                                    onClick={() => setSubmitted(false)}
+                                    className="mt-8 px-6 py-3 bg-primary text-white font-bold rounded-xl shadow-lg hover:bg-orange-600 transition-colors"
+                                >
+                                    Yeni Başvuru
+                                </button>
+                            </div>
+                        ) : meetingForm ? (
                             <DynamicFormRenderer
                                 fields={meetingForm.fields || []}
                                 submitButtonText="Talep Oluştur"
-                                readOnly={true}
+                                readOnly={!isFormAccessible}
+                                onSubmit={isFormAccessible ? handleSubmit : undefined}
                             />
                         ) : (
                             <div className="text-center py-10 text-gray-400">
