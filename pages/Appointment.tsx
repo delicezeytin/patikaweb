@@ -555,7 +555,11 @@ const Appointment: React.FC = () => {
                   >
                     <span className="material-symbols-outlined text-4xl mb-2 group-hover:scale-110 transition-transform">{c.assignedTeachers?.[0]?.image || 'school'}</span>
                     <span className="font-bold text-lg">{c.name}</span>
-                    <span className="text-sm opacity-80 mt-1">{c.assignedTeachers?.[0]?.name || 'Öğretmen Atanmadı'}</span>
+                    <span className="text-sm opacity-80 mt-1 px-2">
+                      {c.assignedTeachers && c.assignedTeachers.length > 0
+                        ? c.assignedTeachers.map(t => t.name).join(', ')
+                        : 'Öğretmen Atanmadı'}
+                    </span>
                   </button>
                 ))}
               </div>
