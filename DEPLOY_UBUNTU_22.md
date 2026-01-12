@@ -2,33 +2,21 @@
 
 This guide describes how to deploy the application on a fresh Ubuntu 22.04 server.
 
-## 1. Initial Server Setup
+## 1. Verify Environment
 
-Update system packages:
+RunCloud user does not have `sudo` access, which is expected.
+Check if Node.js is already installed (Expected v18+):
 ```bash
-sudo apt update && sudo apt upgrade -y
-```
-
-Install Git and Nginx:
-```bash
-sudo apt install -y git nginx curl
-```
-
-## 2. Install Node.js v20 (LTS)
-
-Ubuntu 22.04 supports modern Node versions. We will use NodeSource:
-
-```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# Verify version (should be v20.x.x)
 node -v
 ```
+*(If you see v18.x or v20.x, you are good to go!)*
 
-Install PM2 globally:
+## 2. Install PM2 (Locally)
+
+Since validation failed for global install, we will install PM2 locally in the project:
+
 ```bash
-sudo npm install -g pm2
+# We will do this later inside the server directory
 ```
 
 ## 3. Clone Repository
@@ -85,11 +73,15 @@ npx prisma db push
 
 ## 6. Start Application with PM2
 
-Start the backend server:
+First, install PM2 locally (since global install is restricted):
 ```bash
-pm2 start ecosystem.config.js --env production
-pm2 save
-pm2 startup
+npm install pm2
+```
+
+Start the backend server using `npx`:
+```bash
+npx pm2 start ecosystem.config.js --env production
+npx pm2 save
 ```
 
 ## 7. RunCloud Nginx Configuration
