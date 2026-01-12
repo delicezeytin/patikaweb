@@ -88,15 +88,19 @@ const Contact: React.FC = () => {
 
         const forms: GenericForm[] = formsRes.data.forms || defaultFormsData;
 
-        // Load Contact Form
-        const contactForm = forms.find((f: any) => f.id === 'contact');
+        // Load Contact Form (Priority: targetPage > slug > id)
+        // Check for 'any' type cast to access 'targetPage' which might be missing in older interface used here
+        const contactForm = forms.find((f: any) => f.targetPage === 'contact' || f.isActive && (f.slug === 'iletisim-formu' || f.id === 'contact'));
+
         if (contactForm) {
           setFormData(contactForm);
         }
 
-        // Find other active forms for Quick Links
+        // Find other active forms for Quick Links (excluding current contact form and current 'personnel' check logic)
+        // Now generic: any active form not being the main contact form could theoretically be a quick link? 
+        // For now, let's keep the explicit check for 'personnel', or maybe check targetPage='personnel'
         const links = [];
-        const personnelForm = forms.find((f: any) => f.id === 'personnel');
+        const personnelForm = forms.find((f: any) => f.targetPage === 'personnel' || f.id === 'personnel');
         if (personnelForm && personnelForm.isActive !== false) {
           links.push({ id: 'personnel', title: personnelForm.title, path: '/apply-personnel' });
         }

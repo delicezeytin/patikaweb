@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DynamicFormRenderer, { FormField } from '../components/DynamicFormRenderer';
+import { formService } from '../services/api';
 
 interface CustomForm {
   id: string;
@@ -18,19 +19,23 @@ const StudentForm: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    const savedForms = localStorage.getItem('patika_custom_forms');
-    if (savedForms) {
+    const fetchData = async () => {
       try {
-        const forms: CustomForm[] = JSON.parse(savedForms);
-        const form = forms.find(f => f.id === 'school_register');
+        const res = await formService.getAll();
+        const forms = res.data.forms || [];
+        // Priority: targetPage="student" > id="school_register"
+        const form = forms.find((f: any) => f.targetPage === 'student' || f.id === 'school_register');
+
         if (form) {
           setFormData(form);
         }
       } catch (e) {
-        console.error("Error parsing form settings", e);
+        console.error("Error fetching form", e);
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+    fetchData();
   }, []);
 
   const handleSubmit = (data: any) => {

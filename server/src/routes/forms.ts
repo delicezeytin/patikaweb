@@ -56,9 +56,9 @@ router.get('/:id', authMiddleware, async (req, res) => {
 // Create form (protected)
 router.post('/', authMiddleware, async (req, res) => {
     try {
-        const { id, title, slug, description, fields, isActive, notificationEmails } = req.body;
+        const { id, title, slug, description, fields, isActive, notificationEmails, targetPage } = req.body;
         const form = await prisma.customForm.create({
-            data: { id, title, slug, description, fields, isActive, notificationEmails }
+            data: { id, title, slug, description, fields, isActive, notificationEmails, targetPage: targetPage || 'none' }
         });
         res.json({ success: true, form });
     } catch (error) {
@@ -71,10 +71,10 @@ router.post('/', authMiddleware, async (req, res) => {
 router.put('/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, slug, description, fields, isActive, notificationEmails } = req.body;
+        const { title, slug, description, fields, isActive, notificationEmails, targetPage } = req.body;
         const form = await prisma.customForm.update({
             where: { id: id as string },
-            data: { title, slug, description, fields, isActive, notificationEmails }
+            data: { title, slug, description, fields, isActive, notificationEmails, targetPage }
         });
         res.json({ success: true, form });
     } catch (error) {
