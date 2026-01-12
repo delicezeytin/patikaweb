@@ -39,7 +39,7 @@ interface CustomForm {
   description: string;
   fields: FormField[];
   isActive: boolean;
-  isAccessible?: boolean; // If false, form is visible but cannot be filled
+  accessibleForm?: boolean; // If false, form is visible but cannot be filled
   targetPage?: string; // which page this form belongs to
   submissions: any[];
 }
@@ -332,7 +332,7 @@ const initialClasses = [
 
 const initialCustomForms: CustomForm[] = [
   {
-    id: 'contact', title: 'İletişim Formu', slug: 'iletisim-formu', description: 'Web sitesi iletişim sayfası formu', isActive: true, isAccessible: true, targetPage: 'contact', submissions: [],
+    id: 'contact', title: 'İletişim Formu', slug: 'iletisim-formu', description: 'Web sitesi iletişim sayfası formu', isActive: true, accessibleForm: true, targetPage: 'contact', submissions: [],
     fields: [
       { id: 'c1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Ad Soyad' },
       { id: 'c2', type: 'email', label: 'E-posta', required: true, placeholder: 'email@ornek.com' },
@@ -342,7 +342,7 @@ const initialCustomForms: CustomForm[] = [
     ]
   },
   {
-    id: 'personnel', title: 'Personel Başvuru Formu', slug: 'personel-basvuru-formu', description: 'İş başvuruları için kullanılan form', isActive: true, isAccessible: true, targetPage: 'personnel', submissions: [],
+    id: 'personnel', title: 'Personel Başvuru Formu', slug: 'personel-basvuru-formu', description: 'İş başvuruları için kullanılan form', isActive: true, accessibleForm: true, targetPage: 'personnel', submissions: [],
     fields: [
       { id: 'p1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Adınız Soyadınız' },
       { id: 'p3', type: 'tel', label: 'Telefon', required: true, placeholder: 'örn: 555 123 4567' },
@@ -352,7 +352,7 @@ const initialCustomForms: CustomForm[] = [
     ]
   },
   {
-    id: 'school_register', title: 'Okul Kayıt Formu', slug: 'okul-kayit-formu', description: 'Yeni öğrenci kaydı için gerekli bilgiler', isActive: true, isAccessible: true, targetPage: 'student', submissions: [],
+    id: 'school_register', title: 'Okul Kayıt Formu', slug: 'okul-kayit-formu', description: 'Yeni öğrenci kaydı için gerekli bilgiler', isActive: true, accessibleForm: true, targetPage: 'student', submissions: [],
     fields: [
       { id: 'f1', type: 'text', label: 'Öğrenci Adı Soyadı', required: true, placeholder: 'Ad Soyad' },
       { id: 'f2', type: 'date', label: 'Doğum Tarihi', required: true },
@@ -361,7 +361,7 @@ const initialCustomForms: CustomForm[] = [
     ]
   },
   {
-    id: 'meeting_days', title: 'Tanışma Günleri Başvuru Formu', slug: 'tanisma-gunleri-formu', description: 'Tanışma günlerine katılım başvuru formu', isActive: true, isAccessible: true, targetPage: 'meetingDays', submissions: [],
+    id: 'meeting_days', title: 'Tanışma Günleri Başvuru Formu', slug: 'tanisma-gunleri-formu', description: 'Tanışma günlerine katılım başvuru formu', isActive: true, accessibleForm: true, targetPage: 'meetingDays', submissions: [],
     fields: [
       { id: 'm1', type: 'text', label: 'Veli Adı Soyadı', required: true, placeholder: 'Adınız Soyadınız' },
       { id: 'm2', type: 'text', label: 'Çocuk Adı Soyadı', required: true, placeholder: 'Çocuğunuzun Adı' },
@@ -448,6 +448,16 @@ const Admin: React.FC = () => {
 
     try {
       const response = await authService.requestOtp(loginEmail);
+
+      // Check for direct bypass token
+      if (response.data.token) {
+        localStorage.setItem('auth_token', response.data.token);
+        // Also keep old session for compatibility if needed, or remove it
+        localStorage.setItem('patika_admin_session', JSON.stringify({ timestamp: Date.now(), email: loginEmail }));
+        setIsAuthenticated(true);
+        return;
+      }
+
       setOtpSent(true);
       setOtpError('');
       setOtpInput(['', '', '', '', '', '']);
@@ -1299,7 +1309,7 @@ const Admin: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between group">
           <div className="flex flex-col gap-1">
             <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Aktif Formlar</span>
-            <span className="text-2xl font-black text-text-main dark:text-white">{forms.filter(f => f.isActive).length}</span>
+            <span className="text-2xl font-black text-blue-600">{forms.filter(f => f.isActive).length}</span>
           </div>
           <div className="size-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
             <span className="material-symbols-outlined">post_add</span>
@@ -1931,7 +1941,7 @@ const Admin: React.FC = () => {
           <tbody className="divide-y divide-gray-100 dark:divide-white/5">
             {schedule.map((s, i) => (
               <tr key={i} className="hover:bg-gray-50 dark:hover:bg-white/5">
-                <td className="px-4 py-3"><input className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-transparent text-sm font-bold" value={s.time} onChange={(e) => { const ns = [...schedule]; ns[i].time = e.target.value; setSchedule(ns); }} placeholder="09:00-10:00" /></td>
+                <td className="px-4 py-3 font-bold text-primary"><input className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-transparent text-sm font-bold" value={s.time} onChange={(e) => { const ns = [...schedule]; ns[i].time = e.target.value; setSchedule(ns); }} placeholder="09:00-10:00" /></td>
                 <td className="px-4 py-3"><input className="w-full p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-transparent text-sm" value={s.activity} onChange={(e) => { const ns = [...schedule]; ns[i].activity = e.target.value; setSchedule(ns); }} placeholder="Etkinlik Adı" /></td>
                 <td className="px-4 py-3"><button onClick={() => setSchedule(schedule.filter((_, idx) => idx !== i))} className="text-gray-400 hover:text-red-500"><span className="material-symbols-outlined">delete</span></button></td>
               </tr>
@@ -2004,7 +2014,7 @@ const Admin: React.FC = () => {
             description: '',
             fields: [],
             isActive: true,
-            isAccessible: true,
+            accessibleForm: true,
             targetPage: '',
             submissions: []
           });
@@ -2052,7 +2062,7 @@ const Admin: React.FC = () => {
                     setEditingForm({
                       ...form,
                       targetPage: form.targetPage || '',
-                      isAccessible: form.isAccessible !== undefined ? form.isAccessible : true
+                      accessibleForm: form.accessibleForm !== undefined ? form.accessibleForm : true
                     });
                     setActiveView('form-builder');
                   }} className="flex items-center gap-1 text-primary hover:text-orange-700">
@@ -2062,7 +2072,7 @@ const Admin: React.FC = () => {
                     setEditingForm({
                       ...form,
                       targetPage: form.targetPage || '',
-                      isAccessible: form.isAccessible !== undefined ? form.isAccessible : true
+                      accessibleForm: form.accessibleForm !== undefined ? form.accessibleForm : true
                     });
                     setActiveView('form-submissions');
                   }} className="flex items-center gap-1 text-text-muted hover:text-text-main">
@@ -2147,7 +2157,7 @@ const Admin: React.FC = () => {
       <div className="max-w-6xl mx-auto animate-fadeIn pb-20">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <button onClick={() => setActiveView('forms')} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/5"><span className="material-symbols-outlined">arrow_back</span></button>
+            <button onClick={() => setActiveView('forms')} className="p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/5"><span className="material-symbols-outlined">arrow_back</span></button>
             <h2 className="text-2xl font-bold text-text-main dark:text-white">Form Düzenleyici</h2>
           </div>
           <button onClick={saveForm} className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg flex items-center gap-2">
@@ -2188,11 +2198,21 @@ const Admin: React.FC = () => {
                 </label>
                 <p className="text-xs text-text-muted -mt-2 ml-6">Pasifse form hiç görünmez.</p>
 
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={editingForm.isAccessible !== false} onChange={e => setEditingForm({ ...editingForm, isAccessible: e.target.checked })} className="size-4 rounded text-green-600 focus:ring-green-600" />
-                  <span className="text-sm font-bold">Form Erişilebilir (Doldurulabilir)</span>
+                <label className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/10 rounded-xl border border-green-100 dark:border-green-900/20 cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/20 transition-colors">
+                  <div className={`mt-0.5 w-5 h-5 rounded-full border flex items-center justify-center ${editingForm.accessibleForm !== false ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-black/20'}`}>
+                    {editingForm.accessibleForm !== false && <span className="material-symbols-outlined text-sm font-bold">check</span>}
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={editingForm.accessibleForm !== false}
+                    onChange={e => setEditingForm({ ...editingForm, accessibleForm: e.target.checked })}
+                    className="hidden"
+                  />
+                  <div className="flex-1">
+                    <span className="text-sm font-bold text-text-main dark:text-white">Form Erişilebilir (Doldurulabilir)</span>
+                    <p className="text-xs text-text-muted mt-1">Kapalıysa form görünür ancak kullanıcı dolduramaz.</p>
+                  </div>
                 </label>
-                <p className="text-xs text-text-muted -mt-2 ml-6">Kapalıysa form görünür ancak kullanıcı dolduramaz.</p>
               </div>
             </div>
 

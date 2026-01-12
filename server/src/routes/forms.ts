@@ -54,11 +54,12 @@ router.get('/:id', authMiddleware, async (req, res) => {
 });
 
 // Create form (protected)
+// Create form (protected)
 router.post('/', authMiddleware, async (req, res) => {
     try {
-        const { id, title, slug, description, fields, isActive, isAccessible, targetPage } = req.body;
+        const { id, title, slug, description, fields, isActive, accessibleForm, targetPage } = req.body;
         const form = await prisma.customForm.create({
-            data: { id, title, slug, description, fields, isActive, isAccessible: isAccessible !== false, targetPage: targetPage || 'none' }
+            data: { id, title, slug, description, fields, isActive, accessibleForm: accessibleForm !== false, targetPage: targetPage || 'none' }
         });
         res.json({ success: true, form });
     } catch (error) {
@@ -71,10 +72,10 @@ router.post('/', authMiddleware, async (req, res) => {
 router.put('/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, slug, description, fields, isActive, isAccessible, targetPage } = req.body;
+        const { title, slug, description, fields, isActive, accessibleForm, targetPage } = req.body;
         const form = await prisma.customForm.update({
             where: { id: id as string },
-            data: { title, slug, description, fields, isActive, isAccessible, targetPage }
+            data: { title, slug, description, fields, isActive, accessibleForm, targetPage }
         });
         res.json({ success: true, form });
     } catch (error) {
@@ -83,17 +84,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
     }
 });
 
-// Delete form (protected)
-router.delete('/:id', authMiddleware, async (req, res) => {
-    try {
-        const { id } = req.params;
-        await prisma.customForm.delete({ where: { id: id as string } });
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Delete form error:', error);
-        res.status(500).json({ error: 'Form silinirken bir hata oluştu' });
-    }
-});
+// ...
 
 // Submit form (public)
 router.post('/:id/submit', async (req, res) => {
@@ -107,7 +98,7 @@ router.post('/:id/submit', async (req, res) => {
         }
 
         // Check if form is accessible for submissions
-        if (!form.isAccessible) {
+        if (!form.accessibleForm) {
             return res.status(403).json({ error: 'Bu form şu anda başvuru kabul etmemektedir' });
         }
 

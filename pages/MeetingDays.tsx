@@ -31,6 +31,7 @@ const MeetingDays: React.FC = () => {
     const [meetingForm, setMeetingForm] = useState<any>(null);
     const [content, setContent] = useState<MeetingDaysContent>(defaultMeetingDaysContent);
     const [submitted, setSubmitted] = useState(false);
+    const [formLoadingError, setFormLoadingError] = useState(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -53,9 +54,12 @@ const MeetingDays: React.FC = () => {
                 const form = forms.find((f: any) => f.targetPage === 'meetingDays' && f.isActive !== false);
                 if (form) {
                     setMeetingForm(form);
+                } else {
+                    setFormLoadingError(true);
                 }
             } catch (e) {
                 console.error('Error loading meeting days form', e);
+                setFormLoadingError(true);
             }
         };
 
@@ -84,7 +88,7 @@ const MeetingDays: React.FC = () => {
         return <span dangerouslySetInnerHTML={{ __html: html }} />;
     };
 
-    const isFormAccessible = meetingForm?.isAccessible !== false;
+    const isFormAccessible = meetingForm?.accessibleForm !== false;
 
     return (
         <div className="max-w-[1200px] w-full flex flex-col mx-auto">
@@ -174,6 +178,11 @@ const MeetingDays: React.FC = () => {
                                 readOnly={!isFormAccessible}
                                 onSubmit={isFormAccessible ? handleSubmit : undefined}
                             />
+                        ) : formLoadingError ? (
+                            <div className="text-center py-10 text-gray-400">
+                                <span className="material-symbols-outlined text-4xl mb-2">event_busy</span>
+                                <p>Başvuru formu şu anda aktif değil.</p>
+                            </div>
                         ) : (
                             <div className="text-center py-10 text-gray-400">
                                 <div className="spinner-border animate-spin inline-block w-8 h-8 border-4 rounded-full border-gray-200 border-t-primary mb-4"></div>

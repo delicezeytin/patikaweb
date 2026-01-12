@@ -83,9 +83,8 @@ model CustomForm {
   description        String?          @db.Text
   fields             Json             // Form field definitions
   isActive           Boolean          @default(true)
-  isAccessible       Boolean          @default(true) // If false, form is visible but cannot be submitted
+  accessibleForm     Boolean          @default(true) // If false, form is visible but cannot be submitted
   targetPage         String?          @default("none") // 'contact', 'personnel', 'student', 'meetingDays', 'none'
-  notificationEmails String?          @db.Text
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
   submissions        FormSubmission[]

