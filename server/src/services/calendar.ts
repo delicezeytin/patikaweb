@@ -41,9 +41,7 @@ export const createCalendarEvent = async (
             scopes: ['https://www.googleapis.com/auth/calendar'],
         });
 
-        const authClient = await auth.getClient();
-
-        const calendar = google.calendar({ version: 'v3', auth: authClient });
+        const calendar = google.calendar({ version: 'v3', auth });
 
         // 4. Prepare Event Data
         // Parse start datetime
