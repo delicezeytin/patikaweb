@@ -127,7 +127,7 @@ const Contact: React.FC = () => {
     if (!formData) return;
 
     try {
-      await formService.submit('contact', data);
+      await formService.submit(formData.id, data);
       setSubmitted(true);
       window.scrollTo(0, 0);
     } catch (error) {

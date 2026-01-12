@@ -732,12 +732,18 @@ const Admin: React.FC = () => {
 
   const handleSaveSettings = async () => {
     try {
-      await settingsService.update(settings);
+      const res = await settingsService.update(settings);
+      if (res.data && res.data.settings) {
+        setSettings(prev => ({
+          ...prev,
+          ...res.data.settings
+        }));
+      }
       setSettingsSaved(true);
       setTimeout(() => setSettingsSaved(false), 3000);
     } catch (error) {
       console.error('Settings save error', error);
-      alert('Ayarlar kaydedilirken hata oluştu.');
+      alert('Ayarlar kaydedilirken hata oluştu. Lütfen veritabanı sunucusunun çalıştığından emin olun.');
     }
   };
 
@@ -2109,19 +2115,31 @@ const Admin: React.FC = () => {
       try {
         const exists = customForms.find(f => f.id === editingForm.id);
         if (exists) {
-          await formService.update(editingForm.id, editingForm);
+          const res = await formService.update(editingForm.id, editingForm);
+          if (res.data && res.data.form) {
+            // Update local list directly if DB worked
+          }
         } else {
           await formService.create(editingForm);
         }
-        // Refetch to be sure
-        const res = await formService.getAll();
-        if (res.data.forms) setCustomForms(res.data.forms);
 
-        setActiveView('forms');
-        setEditingForm(null);
+        // Refetch to be sure
+        try {
+          const res = await formService.getAll();
+          if (res.data.forms) setCustomForms(res.data.forms);
+          setActiveView('forms');
+          setEditingForm(null);
+          alert('Form başarıyla kaydedildi.');
+        } catch (fetchError) {
+          console.error('Fetch error:', fetchError);
+          // If fetch fails but update succeeded (rare), just close
+          setActiveView('forms');
+          setEditingForm(null);
+        }
+
       } catch (error) {
         console.error('Form save error', error);
-        alert('Form kaydedilirken hata oluştu.');
+        alert('Form kaydedilirken hata oluştu. Veritabanı sunucusunun (MySQL) açık olduğundan ve "npx prisma db push" komutunun çalıştırıldığından emin olun.');
       }
     };
 
