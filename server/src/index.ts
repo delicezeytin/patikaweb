@@ -53,6 +53,18 @@ app.use('/api/documents', documentsRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/meetings', meetingRoutes);
 
+// Serve Frontend Static Files (Fallback for "Node.js" Stack)
+import path from 'path';
+const frontendPath = path.join(__dirname, '../../dist');
+
+// 1. Serve static files
+app.use(express.static(frontendPath));
+
+// 2. Handle React Routing (SPA) - Return index.html for all non-API requests
+app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     console.error('Error:', err);
