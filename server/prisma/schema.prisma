@@ -182,6 +182,7 @@ model SystemSettings {
   emailjsTemplateId String?
   emailjsPublicKey  String?
   calendarId        String?
+  googleServiceAccountJson String? @db.Text // JSON credentials
   smtpHost          String?
   smtpPort          String?
   smtpUser          String?

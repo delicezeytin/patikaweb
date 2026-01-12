@@ -249,18 +249,60 @@ router.put('/requests/:id', authMiddleware, async (req, res) => {
         // Send notification email to user if approved/rejected
         if (status === 'approved' || status === 'rejected') {
             try {
+                let eventLink = null;
+
+                // Google Calendar Integration
+                if (status === 'approved' && request.email) {
+                    try {
+                        const { createCalendarEvent } = require('../services/calendar');
+                        const calRes = await createCalendarEvent({
+                            date: request.date,
+                            time: request.time,
+                            parentName: request.parentName,
+                            studentName: request.studentName,
+                            email: request.email,
+                            className: request.className || undefined
+                        });
+
+                        if (calRes.success && calRes.eventLink) {
+                            eventLink = calRes.eventLink;
+                        } else if (!calRes.success) {
+                            console.warn("Calendar event creation warning:", calRes.error);
+                        }
+                    } catch (calErr) {
+                        console.error("Calendar service import or execution failed:", calErr);
+                    }
+                }
+
                 const { sendEmail } = require('../services/email');
                 const subject = status === 'approved' ? 'Randevu Talebiniz Onaylandı' : 'Randevu Talebiniz Reddedildi';
+
+                let calendarHtml = '';
+                if (eventLink) {
+                    calendarHtml = `
+                        <div style="margin-top: 20px; text-align: center;">
+                            <a href="${eventLink}" target="_blank" style="background-color: #4285F4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">
+                                Takvim Etkinliğine Git
+                            </a>
+                            <p style="font-size: 12px; color: #666; margin-top: 10px;">Google Takvim etkinliği otomatik oluşturulmuştur.</p>
+                        </div>
+                    `;
+                }
+
                 const body = `
-                    <div style="font-family: Arial, sans-serif; padding: 20px;">
+                    <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
                         <h3>Sayın ${request.parentName},</h3>
                         <p>Randevu talebiniz <strong>${status === 'approved' ? 'ONAYLANDI' : 'MAALESEF REDDEDİLDİ'}</strong>.</p>
-                        <p><strong>Tarih:</strong> ${request.date}</p>
-                        <p><strong>Saat:</strong> ${request.time}</p>
-                        <p><strong>Öğrenci:</strong> ${request.studentName}</p>
+                        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                            <p style="margin: 5px 0;"><strong>Tarih:</strong> ${request.date}</p>
+                            <p style="margin: 5px 0;"><strong>Saat:</strong> ${request.time}</p>
+                            <p style="margin: 5px 0;"><strong>Öğrenci:</strong> ${request.studentName}</p>
+                            <p style="margin: 5px 0;"><strong>Sınıf:</strong> ${request.className || '-'}</p>
+                        </div>
+                        ${calendarHtml}
                         <br>
                         <p>İyi günler dileriz.</p>
-                        <small>Patika Çocuk Yuvası</small>
+                        <small style="color: #888;">Patika Çocuk Yuvası</small>
                     </div>
                  `;
                 if (request.email) await sendEmail(request.email, subject, body);
