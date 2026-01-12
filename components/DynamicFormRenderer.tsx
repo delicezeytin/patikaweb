@@ -111,6 +111,7 @@ const DynamicFormRenderer: React.FC<DynamicFormRendererProps> = ({ fields, submi
             placeholder={field.placeholder}
             required={field.required}
             disabled={readOnly}
+            lang="tr" // Force Turkish locale for date inputs
           />
         );
     }
