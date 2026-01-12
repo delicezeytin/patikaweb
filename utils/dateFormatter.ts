@@ -10,7 +10,7 @@ export const formatDate = (dateString: string | number | Date): string => {
         month: '2-digit',
         year: 'numeric',
         timeZone: 'Europe/Istanbul'
-    }).format(date).replace(/\./g, '/');
+    }).format(date); // Defaults to DD.MM.YYYY in tr-TR locale
 };
 
 export const formatDateTime = (dateString: string | number | Date): string => {
@@ -56,8 +56,8 @@ export const formatDateTimeLong = (dateString: string | number | Date): string =
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return '';
     return new Intl.DateTimeFormat('tr-TR', {
-        day: 'numeric',
-        month: 'long',
+        day: '2-digit',
+        month: '2-digit',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',

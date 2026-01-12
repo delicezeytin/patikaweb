@@ -115,9 +115,9 @@ router.post('/:id/submit', async (req, res) => {
                 // Format date in Turkish
                 const now = new Date();
                 const dateFormatter = new Intl.DateTimeFormat('tr-TR', {
+                    day: '2-digit',
+                    month: '2-digit',
                     year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit',
                     timeZone: settings.timezone || 'Europe/Istanbul'
