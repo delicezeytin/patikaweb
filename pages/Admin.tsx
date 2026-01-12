@@ -2267,7 +2267,7 @@ const Admin: React.FC = () => {
                       className="border-b border-gray-50 dark:border-white/5 hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors cursor-pointer"
                     >
                       <td className="p-4 text-sm font-medium text-text-muted whitespace-nowrap">
-                        {sub.date ? new Date(sub.date).toLocaleDateString('tr-TR') : '-'}
+                        {sub.createdAt ? formatDateTime(sub.createdAt) : (sub.date ? formatDateTime(sub.date) : '-')}
                       </td>
                       {editingForm.fields.slice(0, 4).map(field => {
                         const val = sub.data?.[field.label] || sub.data?.[field.id] || '-';
@@ -2311,7 +2311,9 @@ const Admin: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-black text-text-main dark:text-white">Başvuru Detayları</h3>
                   <p className="text-sm text-text-muted mt-1">
-                    {viewingSubmission.date ? new Date(viewingSubmission.date).toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Tarih belirtilmedi'}
+                    {(viewingSubmission as any).createdAt
+                      ? formatDateTime((viewingSubmission as any).createdAt)
+                      : (viewingSubmission.date ? new Date(viewingSubmission.date).toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Tarih belirtilmedi')}
                   </p>
                 </div>
                 <button

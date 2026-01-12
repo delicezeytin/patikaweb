@@ -131,13 +131,25 @@ router.post('/:id/submit', async (req, res) => {
                     <p style="color: #666; font-size: 14px;">Tarih: ${formattedDate}</p>
                     <ul style="list-style: none; padding: 0;">`;
 
-                for (const [key, value] of Object.entries(data as any)) {
-                    const fieldDef = Array.isArray(fieldMap) ? fieldMap.find((f: any) => f.id === key || f.label === key) : null;
-                    const label = fieldDef ? fieldDef.label : key;
-                    messageBody += `<li style="margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-                        <strong style="display:inline-block; width: 150px; color: #555;">${label}:</strong> 
-                        <span>${value}</span>
-                    </li>`;
+                if (Array.isArray(fieldMap)) {
+                    for (const field of fieldMap) {
+                        // Try to find value by ID or Label
+                        const value = data[field.id] || data[field.label];
+                        if (value) {
+                            messageBody += `<li style="margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                                <strong style="display:inline-block; width: 150px; color: #555;">${field.label}:</strong> 
+                                <span>${value}</span>
+                            </li>`;
+                        }
+                    }
+                } else {
+                    // Fallback for old structure if any
+                    for (const [key, value] of Object.entries(data as any)) {
+                        messageBody += `<li style="margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                            <strong style="display:inline-block; width: 150px; color: #555;">${key}:</strong> 
+                            <span>${value}</span>
+                        </li>`;
+                    }
                 }
                 messageBody += `</ul>
                 <p style="margin-top:20px; font-size: 12px; color: #999;">Bu mesaj Patika Çocuk Yuvası web sitesi üzerinden gönderilmiştir.</p>
