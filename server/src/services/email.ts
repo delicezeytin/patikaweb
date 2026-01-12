@@ -9,13 +9,14 @@ export const sendOtpEmail = async (email: string, otp: string): Promise<void> =>
     const serviceId = process.env.EMAILJS_SERVICE_ID;
     const templateId = process.env.EMAILJS_TEMPLATE_ID;
     const publicKey = process.env.EMAILJS_PUBLIC_KEY;
+    const privateKey = process.env.EMAILJS_PRIVATE_KEY;
 
     if (!serviceId || !templateId || !publicKey) {
         console.warn('EmailJS credentials not found in environment variables. OTP email not sent. Check EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY');
         return;
     }
 
-    const data = JSON.stringify({
+    const payload: any = {
         service_id: serviceId,
         template_id: templateId,
         user_id: publicKey,
@@ -24,7 +25,14 @@ export const sendOtpEmail = async (email: string, otp: string): Promise<void> =>
             otp_code: otp,
             reply_to: 'patikayuva@gmail.com'
         }
-    });
+    };
+
+    // If private key is present (required for non-browser/strict mode), add it as accessToken
+    if (privateKey) {
+        payload.accessToken = privateKey;
+    }
+
+    const data = JSON.stringify(payload);
 
     const options = {
         hostname: 'api.emailjs.com',
