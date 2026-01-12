@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ResponsiveHero from '../components/ResponsiveHero';
+import { contentService, documentService } from '../services/api';
 
 interface SchoolDocument {
   id: string;
@@ -57,19 +58,26 @@ const Home: React.FC = () => {
   const [content, setContent] = useState<HomeContent>(defaultHomeContent);
 
   useEffect(() => {
-    const savedDocs = localStorage.getItem('patika_documents');
-    if (savedDocs) {
-      setDocuments(JSON.parse(savedDocs));
-    }
+    const fetchData = async () => {
+      try {
+        const [contentRes, docRes] = await Promise.all([
+          contentService.get('home'),
+          documentService.getAll()
+        ]);
 
-    // Using v3 key to force update content for user
-    const savedContent = localStorage.getItem('patika_home_content_v3');
-    if (savedContent) {
-      setContent(JSON.parse(savedContent));
-    } else {
-      // Clear old content to avoid confusion
-      localStorage.removeItem('patika_home_content_v2');
-    }
+        if (contentRes.data && contentRes.data.content) {
+          setContent(contentRes.data.content);
+        }
+
+        if (docRes.data && docRes.data.documents) {
+          setDocuments(docRes.data.documents);
+        }
+      } catch (error) {
+        console.error('Error fetching home data:', error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   return (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ResponsiveHero from '../components/ResponsiveHero';
+import { contentService } from '../services/api';
 
 // Default content fallback (same as initial setup in Admin)
 const defaultContent = {
@@ -24,10 +25,17 @@ const About: React.FC = () => {
   const [content, setContent] = useState(defaultContent);
 
   useEffect(() => {
-    const saved = localStorage.getItem('patika_about_content');
-    if (saved) {
-      setContent({ ...defaultContent, ...JSON.parse(saved) });
-    }
+    const fetchData = async () => {
+      try {
+        const res = await contentService.get('about');
+        if (res.data && res.data.content) {
+          setContent({ ...defaultContent, ...res.data.content });
+        }
+      } catch (error) {
+        console.error('Error fetching about content:', error);
+      }
+    };
+    fetchData();
   }, []);
 
   // Hero image

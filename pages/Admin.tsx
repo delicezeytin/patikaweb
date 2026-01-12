@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { GoogleGenAI } from "@google/genai";
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import emailjs from '@emailjs/browser';
+import api, { authService, contentService, teacherService, classService, formService, menuService, scheduleService, documentService, settingsService, meetingService } from '../services/api';
 
 // --- Types & Mock Data ---
 
@@ -331,23 +332,14 @@ const BrandLogo = ({ className = "h-12", onClick }: { className?: string; onClic
 const Admin: React.FC = () => {
   // --- OTP Authentication State ---
   const ADMIN_EMAIL = 'patikayuva@gmail.com';
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    const session = localStorage.getItem('patika_admin_session');
-    if (session) {
-      const parsed = JSON.parse(session);
-      // Session expires after 24 hours
-      if (Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
-        return true;
-      }
-    }
-    return false;
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false); // Start false, verify token in useEffect
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Add loading state
   const [loginEmail, setLoginEmail] = useState('');
-  const [generatedOtp, setGeneratedOtp] = useState('');
+  const [generatedOtp, setGeneratedOtp] = useState(''); // Still used? only for dev/testing display maybe
   const [otpInput, setOtpInput] = useState(['', '', '', '', '', '']);
   const [otpSent, setOtpSent] = useState(false);
   const [otpError, setOtpError] = useState('');
-  const [showOtpOnScreen, setShowOtpOnScreen] = useState(true); // For testing mode
+  const [showOtpOnScreen, setShowOtpOnScreen] = useState(false); // Default to false in prod
   const otpInputRefs = [
     React.useRef<HTMLInputElement>(null),
     React.useRef<HTMLInputElement>(null),
@@ -357,29 +349,59 @@ const Admin: React.FC = () => {
     React.useRef<HTMLInputElement>(null)
   ];
 
-  const generateOtp = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  };
+  // Verify token on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          await authService.verifyToken();
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error('Auth verification failed', error);
+        localStorage.removeItem('auth_token');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
 
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
+    if (!loginEmail) {
+      setOtpError('Lütfen e-posta adresinizi girin.');
+      return;
+    }
+
+    // Client-side simple check before API call
     if (loginEmail.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
       setOtpError('Bu e-posta adresi yönetim paneline erişim yetkisine sahip değil.');
       return;
     }
-    const otp = generateOtp();
-    setGeneratedOtp(otp);
-    setOtpSent(true);
-    setOtpError('');
-    setOtpInput(['', '', '', '', '', '']);
 
-    // Focus first OTP input
-    setTimeout(() => otpInputRefs[0].current?.focus(), 100);
+    try {
+      const response = await authService.requestOtp(loginEmail);
+      setOtpSent(true);
+      setOtpError('');
+      setOtpInput(['', '', '', '', '', '']);
 
-    // TODO: Send OTP via EmailJS when ready
-    // For now, OTP is shown on screen for testing
+      // If dev mode, backend might return OTP
+      if (response.data.devOtp) {
+        setGeneratedOtp(response.data.devOtp);
+        setShowOtpOnScreen(true);
+      } else {
+        setShowOtpOnScreen(false);
+      }
+
+      // Focus first OTP input
+      setTimeout(() => otpInputRefs[0].current?.focus(), 100);
+    } catch (error: any) {
+      setOtpError(error.response?.data?.error || 'OTP gönderilirken bir hata oluştu.');
+    }
   };
 
-  const handleOtpChange = (index: number, value: string) => {
+  const handleOtpChange = async (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
 
     const newOtp = [...otpInput];
@@ -395,11 +417,18 @@ const Admin: React.FC = () => {
     // Auto-verify when all digits are entered
     if (newOtp.every(digit => digit !== '')) {
       const enteredOtp = newOtp.join('');
-      if (enteredOtp === generatedOtp) {
-        setIsAuthenticated(true);
+
+      try {
+        const response = await authService.verifyOtp(loginEmail, enteredOtp);
+        const { token } = response.data;
+
+        localStorage.setItem('auth_token', token);
+        // Also keep old session for compatibility if needed, or remove it
         localStorage.setItem('patika_admin_session', JSON.stringify({ timestamp: Date.now(), email: loginEmail }));
-      } else {
-        setOtpError('Geçersiz doğrulama kodu. Lütfen tekrar deneyin.');
+
+        setIsAuthenticated(true);
+      } catch (error: any) {
+        setOtpError(error.response?.data?.error || 'Geçersiz doğrulama kodu. Lütfen tekrar deneyin.');
         setOtpInput(['', '', '', '', '', '']);
         setTimeout(() => otpInputRefs[0].current?.focus(), 100);
       }
@@ -414,6 +443,7 @@ const Admin: React.FC = () => {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    localStorage.removeItem('auth_token');
     localStorage.removeItem('patika_admin_session');
     setOtpSent(false);
     setLoginEmail('');
@@ -426,72 +456,51 @@ const Admin: React.FC = () => {
     // Auto-fill OTP inputs
     const digits = generatedOtp.split('');
     setOtpInput(digits);
+    // Trigger verification if full
+    if (digits.length === 6) {
+      // We can't easily trigger the async check here without duplicating logic inside handleOtpChange
+      // But user can just type one char or we can add a manual button or useEffect on otpInput
+    }
   };
+
 
   // --- State Management ---
   const [activeView, setActiveView] = useState<'dashboard' | 'teachers' | 'classes' | 'food-menu' | 'schedule' | 'meetings' | 'meeting-manage' | 'meeting-edit' | 'applications' | 'settings' | 'forms' | 'form-builder' | 'meeting-calendar' | 'content-management'>('dashboard');
   const [selectedFormId, setSelectedFormId] = useState<number | null>(null);
 
   // Load initial state from LocalStorage if available to simulate persistence between pages
-  const [forms, setForms] = useState<MeetingForm[]>(() => {
-    const saved = localStorage.getItem('patika_meeting_forms');
-    return saved ? JSON.parse(saved) : initialForms;
-  });
+  const [forms, setForms] = useState<MeetingForm[]>(initialForms); // Will load from API later if we move meeting forms to DB
 
-  const [requests, setRequests] = useState<MeetingRequest[]>(() => {
-    const saved = localStorage.getItem('patika_meeting_requests');
-    return saved ? JSON.parse(saved) : initialRequests;
-  });
+
+  const [requests, setRequests] = useState<MeetingRequest[]>(initialRequests); // Will load from API later
+
 
   // Settings State
-  const [settings, setSettings] = useState<SystemSettings>(() => {
-    const saved = localStorage.getItem('patika_system_settings');
-    return saved ? JSON.parse(saved) : {
-      calendarId: "",
-      smtpHost: "smtp.gmail.com",
-      smtpPort: "587",
-      smtpUser: "",
-      smtpPass: "",
-      emailjsServiceId: "",
-      emailjsTemplateId: "",
-      emailjsPublicKey: ""
-    };
+  // Settings State
+  const [settings, setSettings] = useState<SystemSettings>({
+    calendarId: "",
+    smtpHost: "smtp.gmail.com",
+    smtpPort: "587",
+    smtpUser: "",
+    smtpPass: "",
+    emailjsServiceId: "",
+    emailjsTemplateId: "",
+    emailjsPublicKey: ""
   });
 
   // Content Management State
   const [contentTab, setContentTab] = useState<'home' | 'about' | 'contact' | 'meetingDays' | 'documents'>('home');
 
-  const [homeContent, setHomeContent] = useState<HomeContent>(() => {
-    const saved = localStorage.getItem('patika_home_content_v3');
-    return saved ? JSON.parse(saved) : initialHomeContent;
-  });
+  const [homeContent, setHomeContent] = useState<HomeContent>(initialHomeContent);
 
-  const [aboutContent, setAboutContent] = useState<AboutContent>(() => {
-    const saved = localStorage.getItem('patika_about_content');
-    return saved ? { ...initialAboutContent, ...JSON.parse(saved) } : initialAboutContent;
-  });
+  const [aboutContent, setAboutContent] = useState<AboutContent>(initialAboutContent);
 
   // Contact Content
 
 
-  const [contactContent, setContactContent] = useState<ContactContent>(() => {
-    const saved = localStorage.getItem('patika_contact_content_v2');
-    return saved ? JSON.parse(saved) : {
-      pageTitle: "Bize Ulaşın",
-      pageSubtitle: "",
-      address: "Müskebi Mahallesi, Hıral Sokak No: 6/A Ortakent – Bodrum / Muğla",
-      phone: "+90 (552) 804 41 40",
-      phoneHours: "Hafta içi 09:00 - 17:00",
-      email: "patikayuva@gmail.com",
-      mapLink: "https://maps.app.goo.gl/4XhSdNG5ckydkFU67",
-      quickLinksTitle: "Hızlı Başvuru Bağlantıları"
-    };
-  });
+  const [contactContent, setContactContent] = useState<ContactContent>(initialContactContent);
 
-  const [meetingDaysContent, setMeetingDaysContent] = useState<MeetingDaysContent>(() => {
-    const saved = localStorage.getItem('patika_meeting_days_content');
-    return saved ? JSON.parse(saved) : initialMeetingDaysContent;
-  });
+  const [meetingDaysContent, setMeetingDaysContent] = useState<MeetingDaysContent>(initialMeetingDaysContent);
 
   // Documents State
   interface SchoolDocument {
@@ -503,22 +512,84 @@ const Admin: React.FC = () => {
     bg: string;
   }
 
-  const [documents, setDocuments] = useState<SchoolDocument[]>(() => {
-    const saved = localStorage.getItem('patika_documents');
-    return saved ? JSON.parse(saved) : [
-      { id: 'reg', name: "Öğrenci Kayıt Formu", url: "/files/kayit_formu.pdf", icon: "description", color: "text-secondary", bg: "bg-red-50 dark:bg-red-900/20" },
-      { id: 'health', name: "Sağlık Bilgi Formu", url: "/files/saglik_formu.pdf", icon: "medical_services", color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-900/20" },
-      { id: 'trip', name: "Gezi İzin Belgesi", url: "/files/gezi_izin.docx", icon: "directions_bus", color: "text-green-600", bg: "bg-green-50 dark:bg-green-900/20" }
-    ];
-  });
+  const [documents, setDocuments] = useState<SchoolDocument[]>([]);
   const [editingDocument, setEditingDocument] = useState<SchoolDocument | null>(null);
 
-  const saveContent = (type: 'home' | 'about' | 'contact' | 'meetingDays') => {
-    if (type === 'home') localStorage.setItem('patika_home_content_v3', JSON.stringify(homeContent));
-    if (type === 'about') localStorage.setItem('patika_about_content', JSON.stringify(aboutContent));
-    if (type === 'contact') localStorage.setItem('patika_contact_content_v2', JSON.stringify(contactContent));
-    if (type === 'meetingDays') localStorage.setItem('patika_meeting_days_content', JSON.stringify(meetingDaysContent));
-    alert('İçerik güncellendi!');
+  const saveContent = async (type: 'home' | 'about' | 'contact' | 'meetingDays') => {
+    setIsLoading(true);
+    try {
+      if (type === 'home') await contentService.update('home', homeContent);
+      if (type === 'about') await contentService.update('about', aboutContent);
+      if (type === 'contact') await contentService.update('contact', contactContent);
+      if (type === 'meetingDays') await contentService.update('meetingDays', meetingDaysContent);
+      alert('İçerik başarıyla kaydedildi!');
+    } catch (error) {
+      console.error('Content save error', error);
+      alert('İçerik kaydedilirken hata oluştu.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveTeacher = async () => {
+    if (!editingTeacher) return;
+    try {
+      if (teachers.find(t => t.id === editingTeacher.id)) {
+        await teacherService.update(editingTeacher.id, editingTeacher);
+        // Optimistic update or refetch
+        const res = await teacherService.getAll();
+        if (res.data.teachers) setTeachers(res.data.teachers);
+      } else {
+        await teacherService.create(editingTeacher);
+        const res = await teacherService.getAll();
+        if (res.data.teachers) setTeachers(res.data.teachers);
+      }
+      setEditingTeacher(null);
+    } catch (error) {
+      console.error('Teacher save error', error);
+      alert('Öğretmen kaydedilirken hata oluştu.');
+    }
+  };
+
+  const handleDeleteTeacher = async (id: number) => {
+    if (!window.confirm('Bu öğretmeni silmek istediğinizden emin misiniz?')) return;
+    try {
+      await teacherService.delete(id);
+      setTeachers(teachers.filter(t => t.id !== id));
+    } catch (error) {
+      console.error('Delete teacher error', error);
+      alert('Öğretmen silinirken hata oluştu.');
+    }
+  };
+
+  const handleSaveClass = async () => {
+    if (!editingClass) return;
+    try {
+      if (classes.find(c => c.id === editingClass.id)) {
+        await classService.update(editingClass.id, editingClass);
+        const res = await classService.getAll();
+        if (res.data.classes) setClasses(res.data.classes);
+      } else {
+        await classService.create(editingClass);
+        const res = await classService.getAll();
+        if (res.data.classes) setClasses(res.data.classes);
+      }
+      setEditingClass(null);
+    } catch (error) {
+      console.error('Class save error', error);
+      alert('Sınıf kaydedilirken hata oluştu.');
+    }
+  };
+
+  const handleDeleteClass = async (id: number) => {
+    if (!window.confirm('Bu sınıfı silmek istediğinizden emin misiniz?')) return;
+    try {
+      await classService.delete(id);
+      setClasses(classes.filter(c => c.id !== id));
+    } catch (error) {
+      console.error('Delete class error', error);
+      alert('Sınıf silinirken hata oluştu.');
+    }
   };
 
   useEffect(() => {
@@ -556,141 +627,127 @@ const Admin: React.FC = () => {
   const [googleCalendarLink, setGoogleCalendarLink] = useState('');
 
   // Teachers State
-  const [teachers, setTeachers] = useState<Teacher[]>(() => {
-    const saved = localStorage.getItem('patika_teachers');
-    return saved ? JSON.parse(saved) : allSystemTeachers;
-  });
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
 
   // Classes State
-  const [classes, setClasses] = useState<{ id: number; name: string; capacity: number; ageGroup: string; teacherIds: number[] }[]>(() => {
-    const saved = localStorage.getItem('patika_classes');
-    const parsed = saved ? JSON.parse(saved) : null;
-    return (parsed && parsed.length > 0) ? parsed : [
-      { id: 1, name: 'Güneş Sınıfı', capacity: 15, ageGroup: '3-4 Yaş', teacherIds: [1, 5] },
-      { id: 2, name: 'Kelebekler Sınıfı', capacity: 18, ageGroup: '4-5 Yaş', teacherIds: [2] },
-      { id: 3, name: 'Gökkuşağı Sınıfı', capacity: 20, ageGroup: '5-6 Yaş', teacherIds: [3] },
-    ];
-  });
+  // Classes State
+  const [classes, setClasses] = useState<{ id: number; name: string; capacity: number; ageGroup: string; teacherIds: number[] }[]>([]);
 
   // Food Menu State (weekly)
-  const [foodMenu, setFoodMenu] = useState<{ [day: string]: { breakfast: string; lunch: string; snack: string } }>(() => {
-    const saved = localStorage.getItem('patika_food_menu');
-    return saved ? JSON.parse(saved) : {
-      'Pazartesi': { breakfast: 'Peynir, Zeytin, Domates', lunch: 'Mercimek Çorbası, Pilav, Tavuk', snack: 'Meyve' },
-      'Salı': { breakfast: 'Yumurta, Salatalık', lunch: 'Karnıyarık, Bulgur', snack: 'Süt, Bisküvi' },
-      'Çarşamba': { breakfast: 'Bal, Kaymak, Ekmek', lunch: 'Makarna, Salata', snack: 'Taze Sıkım Portakal Suyu' },
-      'Perşembe': { breakfast: 'Kaşar, Domates', lunch: 'Köfte, Patates Püresi', snack: 'Meyve' },
-      'Cuma': { breakfast: 'Reçel, Tereyağ', lunch: 'Balık, Pilav, Cacık', snack: 'Pasta' },
-    };
-  });
+  // Food Menu State (weekly)
+  const [foodMenu, setFoodMenu] = useState<{ [day: string]: { breakfast: string; lunch: string; snack: string } }>({});
 
   // Schedule State
-  const [schedule, setSchedule] = useState<{ time: string; activity: string; classId: number }[]>(() => {
-    const saved = localStorage.getItem('patika_schedule');
-    const parsed = saved ? JSON.parse(saved) : null;
-    return (parsed && parsed.length > 0) ? parsed : [
-      { time: '08:30-09:00', activity: 'Karşılama', classId: 0 },
-      { time: '09:00-09:30', activity: 'Kahvaltı', classId: 0 },
-      { time: '09:30-10:30', activity: 'Serbest Oyun', classId: 0 },
-      { time: '10:30-11:30', activity: 'Etkinlik Saati', classId: 0 },
-      { time: '11:30-12:30', activity: 'Öğle Yemeği', classId: 0 },
-      { time: '12:30-14:00', activity: 'Uyku Saati', classId: 0 },
-      { time: '14:00-15:00', activity: 'İkindi Atıştırması', classId: 0 },
-      { time: '15:00-16:00', activity: 'Açık Hava Etkinliği', classId: 0 },
-    ];
-  });
+  // Schedule State
+  const [schedule, setSchedule] = useState<{ time: string; activity: string; classId: number }[]>([]);
 
   // Custom Forms State - with comprehensive deduplication
-  const [customForms, setCustomForms] = useState<CustomForm[]>(() => {
-    const saved = localStorage.getItem('patika_custom_forms');
-    let forms: CustomForm[] = saved ? JSON.parse(saved) : [];
+  // Custom Forms State
+  const [customForms, setCustomForms] = useState<CustomForm[]>([]);
 
-    // Map of old IDs to new IDs for normalization
-    const idNormalization: { [key: string]: string } = {
-      'student': 'school_register',
-      'okul_kayit': 'school_register',
-      'personel': 'personnel',
-      'iletisim': 'contact',
-    };
-
-    // Normalize old IDs to new ones
-    forms = forms.map(form => {
-      const normalizedId = idNormalization[form.id] || form.id;
-      if (normalizedId !== form.id) {
-        console.log(`[Init] Normalized form ID: ${form.id} -> ${normalizedId}`);
-        return { ...form, id: normalizedId };
-      }
-      return form;
-    });
-
-    // Deduplicate by ID - keep only first occurrence
-    const seenIds = new Set<string>();
-    forms = forms.filter(form => {
-      if (seenIds.has(form.id)) {
-        console.log(`[Init] Removed duplicate form by ID: ${form.title} (${form.id})`);
-        return false;
-      }
-      seenIds.add(form.id);
-      return true;
-    });
-
-    // Also deduplicate by title (some old forms might have different IDs but same title)
-    const seenTitles = new Set<string>();
-    forms = forms.filter(form => {
-      const normalizedTitle = form.title.toLowerCase().trim();
-      if (seenTitles.has(normalizedTitle)) {
-        console.log(`[Init] Removed duplicate form by title: ${form.title} (${form.id})`);
-        return false;
-      }
-      seenTitles.add(normalizedTitle);
-      return true;
-    });
-
-    // Store cleaned version immediately
-    if (saved) {
-      const originalCount = JSON.parse(saved).length;
-      if (forms.length !== originalCount) {
-        console.log(`[Init] Cleaned ${originalCount - forms.length} duplicate forms`);
-        localStorage.setItem('patika_custom_forms', JSON.stringify(forms));
-      }
+  const handleSaveMenu = async () => {
+    try {
+      await menuService.updateBulk(foodMenu);
+      alert('Yemek listesi kaydedildi.');
+    } catch (error) {
+      console.error('Menu save error', error);
+      alert('Yemek listesi kaydedilirken hata oluştu.');
     }
+  };
 
-    // Return forms or defaults if empty
-    return forms.length > 0 ? forms : [
-      {
-        id: 'contact', title: 'İletişim Formu', slug: 'iletisim-formu', description: 'Web sitesi iletişim sayfası formu', isActive: true, submissions: [],
-        fields: [
-          { id: 'c1', type: 'text', label: 'Ad Soyad', required: true, placeholder: 'Ad Soyad' },
-          { id: 'c2', type: 'email', label: 'E-posta', required: true, placeholder: 'email@ornek.com' },
-          { id: 'c3', type: 'tel', label: 'Telefon', required: true, placeholder: '0555 555 55 55' },
-          { id: 'c4', type: 'select', label: 'Konu', required: true, options: ['Bilgi Alma', 'Randevu', 'Şikayet/Öneri'] },
-          { id: 'c5', type: 'textarea', label: 'Mesajınız', required: true, placeholder: 'Mesajınızı buraya yazınız...' },
-        ]
-      },
-      {
-        id: 'personnel', title: 'Personel Başvuru Formu', slug: 'personel-basvuru-formu', description: 'İş başvuruları için kullanılan form', isActive: true, submissions: [],
-        fields: [
-          { id: 'p1', type: 'text', label: 'Ad Soyad', required: true },
-          { id: 'p2', type: 'tel', label: 'Telefon', required: true },
-          { id: 'p3', type: 'email', label: 'E-posta', required: true },
-          { id: 'p4', type: 'select', label: 'Başvurulan Pozisyon', required: true, options: ['Öğretmen', 'Yardımcı Personel', 'Stajyer'] },
-          { id: 'p5', type: 'textarea', label: 'Ön Yazı', required: true },
-        ]
-      },
-      {
-        id: 'school_register', title: 'Okul Kayıt Formu', slug: 'okul-kayit-formu', description: 'Yeni öğrenci kaydı için gerekli bilgiler', isActive: true, submissions: [],
-        fields: [
-          { id: 'f1', type: 'text', label: 'Öğrenci Adı Soyadı', required: true, placeholder: 'Ad Soyad' },
-          { id: 'f2', type: 'date', label: 'Doğum Tarihi', required: true },
-          { id: 'f3', type: 'text', label: 'Veli Adı Soyadı', required: true, placeholder: 'Veli Adı' },
-          { id: 'f4', type: 'tel', label: 'İletişim Numarası', required: true, placeholder: '05XX XXX XX XX' },
-        ]
-      }
-    ];
-  });
+  const handleSaveSchedule = async () => {
+    try {
+      await scheduleService.updateBulk(schedule);
+      alert('Ders programı kaydedildi.');
+    } catch (error) {
+      console.error('Schedule save error', error);
+      alert('Ders programı kaydedilirken hata oluştu.');
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      await settingsService.update(settings);
+      setSettingsSaved(true);
+      setTimeout(() => setSettingsSaved(false), 3000);
+    } catch (error) {
+      console.error('Settings save error', error);
+      alert('Ayarlar kaydedilirken hata oluştu.');
+    }
+  };
+
+  const handleDeleteCustomForm = async (id: string) => {
+    if (!window.confirm('Bu formu silmek istediğinizden emin misiniz?')) return;
+    try {
+      await formService.delete(id);
+      setCustomForms(customForms.filter(f => f.id !== id));
+    } catch (error) {
+      console.error('Delete form error', error);
+      alert('Form silinirken hata oluştu.');
+    }
+  };
 
   // Editing states
   const [editingForm, setEditingForm] = useState<CustomForm | null>(null);
+
+  // --- Data Fetching ---
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        console.log('Fetching all dashboard data...');
+        const [
+          homeRes, aboutRes, contactRes, meetingDaysRes,
+          teachersRes, classesRes, formsRes, menuRes,
+          scheduleRes, documentsRes, settingsRes,
+          meetingFormsRes, meetingRequestsRes
+        ] = await Promise.all([
+          contentService.get('home'),
+          contentService.get('about'),
+          contentService.get('contact'),
+          contentService.get('meetingDays'),
+          teacherService.getAll(),
+          classService.getAll(),
+          formService.getAll(),
+          menuService.getAll(),
+          scheduleService.getAll(),
+          documentService.getAll(),
+          settingsService.get(),
+          meetingService.getAllForms(),
+          meetingService.getAllRequests()
+        ]);
+
+        // Content
+        if (homeRes.data) setHomeContent(homeRes.data);
+        if (aboutRes.data) setAboutContent(aboutRes.data);
+        if (contactRes.data) setContactContent(contactRes.data);
+        if (meetingDaysRes.data) setMeetingDaysContent(meetingDaysRes.data);
+
+        // Lists (handling { key: [] } wrapper)
+        if (teachersRes.data.teachers) setTeachers(teachersRes.data.teachers);
+        if (classesRes.data.classes) setClasses(classesRes.data.classes);
+        if (formsRes.data.forms) setCustomForms(formsRes.data.forms);
+        if (menuRes.data.menu) setFoodMenu(menuRes.data.menu); // Need to check if menu wrapper is 'menu' or object of days
+        if (scheduleRes.data.schedule) setSchedule(scheduleRes.data.schedule);
+        if (documentsRes.data.documents) setDocuments(documentsRes.data.documents);
+        if (settingsRes.data.settings) setSettings(settingsRes.data.settings);
+
+        // Meeting System
+        if (meetingFormsRes.data.forms) setForms(meetingFormsRes.data.forms);
+        if (meetingRequestsRes.data.requests) setRequests(meetingRequestsRes.data.requests);
+
+      } catch (error) {
+        console.error("Error fetching dashboard data", error);
+        // Optional: show error toast
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [isAuthenticated]);
   const [viewingSubmission, setViewingSubmission] = useState<{ data: any; date: string } | null>(null);
 
   // Applications State
@@ -708,14 +765,8 @@ const Admin: React.FC = () => {
   const [editingClass, setEditingClass] = useState<{ id: number; name: string; capacity: number; ageGroup: string; teacherIds: number[] } | null>(null);
 
   // Persistence Effects for new data
-  useEffect(() => { localStorage.setItem('patika_teachers', JSON.stringify(teachers)); }, [teachers]);
-  useEffect(() => { localStorage.setItem('patika_classes', JSON.stringify(classes)); }, [classes]);
-  useEffect(() => { localStorage.setItem('patika_food_menu', JSON.stringify(foodMenu)); }, [foodMenu]);
-  useEffect(() => { localStorage.setItem('patika_schedule', JSON.stringify(schedule)); }, [schedule]);
-  useEffect(() => { localStorage.setItem('patika_applications', JSON.stringify(applications)); }, [applications]);
-  useEffect(() => {
-    localStorage.setItem('patika_custom_forms', JSON.stringify(customForms));
-  }, [customForms]);
+  // Persistence removed in favor of API calls
+
 
   // Self-healing migration: Ensure all required forms ALWAYS exist and remove duplicates
   useEffect(() => {
@@ -863,9 +914,12 @@ const Admin: React.FC = () => {
     }
   };
 
-  const handleStatusChangeClick = (requestId: number, newStatus: MeetingStatus) => {
-    if (newStatus === 'pending') {
-      setRequests(prev => prev.map(req => req.id === requestId ? { ...req, status: newStatus } : req));
+  const handleStatusChangeClick = async (requestId: number, newStatus: MeetingStatus) => {
+    if (newStatus === 'pending' || newStatus === 'rejected') {
+      try {
+        await meetingService.updateRequestStatus(requestId, newStatus);
+        setRequests(prev => prev.map(req => req.id === requestId ? { ...req, status: newStatus } : req));
+      } catch (err) { console.error(err); alert('Durum güncellenemedi'); }
       return;
     }
     const request = requests.find(r => r.id === requestId);
@@ -895,15 +949,17 @@ const Admin: React.FC = () => {
       setGeneratedEmailBody(`Sayın ${request.parentName},\n\n${formattedDate} tarihinde saat ${request.time}'da veli toplantısı onaylandı.\n\n📅 Tarih: ${formattedDate}\n⏰ Saat: ${request.time}\n👧 Öğrenci: ${request.studentName}\n🏫 Sınıf: ${className}\n${teacherNames ? `👩‍🏫 Öğretmenler: ${teacherNames}\n` : ''}\n📎 Ek: Takvim daveti\n\nGörüşmek üzere,\nPatika Çocuk Yuvası`);
       setApprovalStep(1);
       setShowEmailModal(true);
-    } else if (request && newStatus === 'rejected') {
-      setRequests(prev => prev.map(req => req.id === requestId ? { ...req, status: newStatus } : req));
     }
   };
 
-  const confirmStatusChange = () => {
+  const confirmStatusChange = async () => {
     if (pendingStatusChange) {
       const { requestId, newStatus } = pendingStatusChange;
-      setRequests(prev => prev.map(req => req.id === requestId ? { ...req, status: newStatus } : req));
+
+      try {
+        await meetingService.updateRequestStatus(requestId, newStatus);
+        setRequests(prev => prev.map(req => req.id === requestId ? { ...req, status: newStatus } : req));
+      } catch (err) { console.error(err); alert('Durum güncellenemedi'); return; }
 
       if (newStatus === 'approved') {
         if (settings.emailjsServiceId && settings.emailjsTemplateId && settings.emailjsPublicKey) {
@@ -1102,14 +1158,20 @@ const Admin: React.FC = () => {
     }
   };
 
-  const handleSaveForm = () => {
+  const handleSaveForm = async () => {
     if (editFormData) {
-      const updatedForms = selectedFormId
-        ? forms.map(f => f.id === selectedFormId ? editFormData : f)
-        : [...forms, { ...editFormData, isActive: true }];
-
-      setForms(updatedForms);
-      setActiveView('meetings');
+      try {
+        if (selectedFormId && forms.find(f => f.id === selectedFormId)) {
+          await meetingService.updateForm(selectedFormId, editFormData);
+          const res = await meetingService.getAllForms();
+          if (res.data.forms) setForms(res.data.forms);
+        } else {
+          await meetingService.createForm(editFormData);
+          const res = await meetingService.getAllForms();
+          if (res.data.forms) setForms(res.data.forms);
+        }
+        setActiveView('meetings');
+      } catch (e) { console.error(e); alert('Form kaydedilemedi'); }
     }
   };
 
@@ -1616,7 +1678,7 @@ const Admin: React.FC = () => {
               <p className="text-xs text-text-muted">{t.branch}</p>
             </div>
             <button onClick={() => setEditingTeacher(t)} className="text-gray-400 hover:text-primary"><span className="material-symbols-outlined">edit</span></button>
-            <button onClick={() => setTeachers(teachers.filter(x => x.id !== t.id))} className="text-gray-400 hover:text-red-500"><span className="material-symbols-outlined">delete</span></button>
+            <button onClick={() => handleDeleteTeacher(t.id)} className="text-gray-400 hover:text-red-500"><span className="material-symbols-outlined">delete</span></button>
           </div>
         ))}
       </div>
@@ -1629,7 +1691,7 @@ const Admin: React.FC = () => {
             <input className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20" placeholder="Branş" value={editingTeacher.branch} onChange={(e) => setEditingTeacher({ ...editingTeacher, branch: e.target.value })} />
             <div className="flex justify-end gap-3">
               <button onClick={() => setEditingTeacher(null)} className="px-4 py-2 text-gray-500">İptal</button>
-              <button onClick={() => { const exists = teachers.find(t => t.id === editingTeacher.id); setTeachers(exists ? teachers.map(t => t.id === editingTeacher.id ? editingTeacher : t) : [...teachers, editingTeacher]); setEditingTeacher(null); }} className="px-6 py-2 bg-primary text-white rounded-xl font-bold">Kaydet</button>
+              <button onClick={handleSaveTeacher} className="px-6 py-2 bg-primary text-white rounded-xl font-bold">Kaydet</button>
             </div>
           </div>
         </div>
@@ -1659,7 +1721,7 @@ const Admin: React.FC = () => {
                 <h3 className="font-bold text-text-main dark:text-white text-lg">{c.name}</h3>
                 <div className="flex gap-1">
                   <button onClick={() => setEditingClass(c)} className="text-gray-400 hover:text-primary"><span className="material-symbols-outlined text-xl">edit</span></button>
-                  <button onClick={() => setClasses(classes.filter(x => x.id !== c.id))} className="text-gray-400 hover:text-red-500"><span className="material-symbols-outlined text-xl">delete</span></button>
+                  <button onClick={() => handleDeleteClass(c.id)} className="text-gray-400 hover:text-red-500"><span className="material-symbols-outlined text-xl">delete</span></button>
                 </div>
               </div>
               <div className="space-y-2 text-sm">
@@ -1681,7 +1743,7 @@ const Admin: React.FC = () => {
             <input type="number" className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-black/20" placeholder="Kapasite" value={editingClass.capacity} onChange={(e) => setEditingClass({ ...editingClass, capacity: parseInt(e.target.value) || 0 })} />
             <div className="flex justify-end gap-3">
               <button onClick={() => setEditingClass(null)} className="px-4 py-2 text-gray-500">İptal</button>
-              <button onClick={() => { const exists = classes.find(c => c.id === editingClass.id); setClasses(exists ? classes.map(c => c.id === editingClass.id ? editingClass : c) : [...classes, editingClass]); setEditingClass(null); }} className="px-6 py-2 bg-primary text-white rounded-xl font-bold">Kaydet</button>
+              <button onClick={handleSaveClass} className="px-6 py-2 bg-primary text-white rounded-xl font-bold">Kaydet</button>
             </div>
           </div>
         </div>
@@ -1711,7 +1773,12 @@ const Admin: React.FC = () => {
             </tbody>
           </table>
         </div>
-        <div className="p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-xl flex items-center gap-2 text-sm"><span className="material-symbols-outlined">check_circle</span>Değişiklikler otomatik kaydedilir.</div>
+        <div className="flex justify-end mt-4">
+          <button onClick={handleSaveMenu} className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-xl font-bold hover:bg-orange-600 transition-colors shadow-lg active:scale-95">
+            <span className="material-symbols-outlined">save</span>
+            Listeyi Kaydet
+          </button>
+        </div>
       </div>
     );
   };
@@ -1739,6 +1806,12 @@ const Admin: React.FC = () => {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="flex justify-end mt-4">
+        <button onClick={handleSaveSchedule} className="flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-xl font-bold hover:bg-orange-600 transition-colors shadow-lg active:scale-95">
+          <span className="material-symbols-outlined">save</span>
+          Programı Kaydet
+        </button>
       </div>
     </div>
   );
@@ -1836,7 +1909,7 @@ const Admin: React.FC = () => {
                     <span className="material-symbols-outlined text-lg">list_alt</span> Başvurular ({form.submissions?.length || 0})
                   </button>
                 </div>
-                <button onClick={() => setCustomForms(customForms.filter(f => f.id !== form.id))} className="text-gray-400 hover:text-red-500">
+                <button onClick={() => handleDeleteCustomForm(form.id)} className="text-gray-400 hover:text-red-500">
                   <span className="material-symbols-outlined">delete</span>
                 </button>
               </div>
@@ -1878,15 +1951,24 @@ const Admin: React.FC = () => {
       setEditingForm({ ...editingForm, fields: editingForm.fields.map(f => f.id === id ? { ...f, ...updates } : f) });
     };
 
-    const saveForm = () => {
-      const exists = customForms.find(f => f.id === editingForm.id);
-      if (exists) {
-        setCustomForms(customForms.map(f => f.id === editingForm.id ? editingForm : f));
-      } else {
-        setCustomForms([...customForms, editingForm]);
+    const saveForm = async () => {
+      try {
+        const exists = customForms.find(f => f.id === editingForm.id);
+        if (exists) {
+          await formService.update(editingForm.id, editingForm);
+        } else {
+          await formService.create(editingForm);
+        }
+        // Refetch to be sure
+        const res = await formService.getAll();
+        if (res.data.forms) setCustomForms(res.data.forms);
+
+        setActiveView('forms');
+        setEditingForm(null);
+      } catch (error) {
+        console.error('Form save error', error);
+        alert('Form kaydedilirken hata oluştu.');
       }
-      setActiveView('forms');
-      setEditingForm(null);
     };
 
     return (
@@ -2784,7 +2866,7 @@ const Admin: React.FC = () => {
 
       <div className="flex justify-end">
         <button
-          onClick={() => { setSettingsSaved(true); setTimeout(() => setSettingsSaved(false), 2000); }}
+          onClick={handleSaveSettings}
           disabled={settingsSaved}
           className={`px-6 py-2 font-bold rounded-lg shadow-lg transition-all flex items-center gap-2 ${settingsSaved ? 'bg-green-500 text-white' : 'bg-green-600 text-white hover:bg-green-700'}`}
         >

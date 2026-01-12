@@ -16,6 +16,7 @@ import menuRoutes from './routes/menu';
 import scheduleRoutes from './routes/schedule';
 import documentsRoutes from './routes/documents';
 import settingsRoutes from './routes/settings';
+import meetingRoutes from './routes/meetings';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -50,6 +51,7 @@ app.use('/api/menu', menuRoutes);
 app.use('/api/schedule', scheduleRoutes);
 app.use('/api/documents', documentsRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/meetings', meetingRoutes);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

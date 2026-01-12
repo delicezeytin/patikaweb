@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import DynamicFormRenderer, { FormField } from '../components/DynamicFormRenderer';
+import { contentService, formService } from '../services/api';
 
 interface GenericForm {
   id: string;
@@ -74,94 +75,51 @@ const Contact: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    // Load contact page content
-    // Load contact page content
-    const savedContent = localStorage.getItem('patika_contact_content_v2');
-    if (savedContent) {
-      setContent(JSON.parse(savedContent));
-    } else {
-      localStorage.removeItem('patika_contact_content');
-    }
-
-    // Check admin settings for form availability, fallback to default if empty
-    const settings = localStorage.getItem('patika_custom_forms');
-    let forms: GenericForm[] = defaultFormsData;
-
-    if (settings) {
+    const fetchData = async () => {
       try {
-        forms = JSON.parse(settings);
-      } catch (e) {
-        console.error("Error parsing form settings", e);
+        const [contentRes, formsRes] = await Promise.all([
+          contentService.get('contact'),
+          formService.getAll()
+        ]);
+
+        if (contentRes.data && contentRes.data.content) {
+          setContent(contentRes.data.content);
+        }
+
+        const forms: GenericForm[] = formsRes.data.forms || defaultFormsData;
+
+        // Load Contact Form
+        const contactForm = forms.find((f: any) => f.id === 'contact');
+        if (contactForm) {
+          setFormData(contactForm);
+        }
+
+        // Find other active forms for Quick Links
+        const links = [];
+        const personnelForm = forms.find((f: any) => f.id === 'personnel');
+        if (personnelForm && personnelForm.isActive !== false) {
+          links.push({ id: 'personnel', title: personnelForm.title, path: '/apply-personnel' });
+        }
+        setActiveOtherForms(links);
+
+      } catch (error) {
+        console.error('Error fetching contact data:', error);
       }
-    }
-
-    // Load Contact Form
-    const contactForm = forms.find((f: any) => f.id === 'contact');
-    if (contactForm) {
-      setFormData(contactForm);
-    }
-
-    // Find other active forms for Quick Links
-    const links = [];
-    const personnelForm = forms.find((f: any) => f.id === 'personnel');
-    if (personnelForm && personnelForm.isActive !== false) {
-      links.push({ id: 'personnel', title: personnelForm.title, path: '/apply-personnel' });
-    }
-    /* TEMPORARILY DISABLED AS PER USER REQUEST
-    const studentForm = forms.find((f: any) => f.id === 'school_register');
-    if (studentForm && studentForm.isActive !== false) {
-      links.push({ id: 'student', title: studentForm.title, path: '/apply-student' });
-    }
-    */
-    setActiveOtherForms(links);
+    };
+    fetchData();
   }, []);
 
-  const handleContactSubmit = (data: any) => {
+  const handleContactSubmit = async (data: any) => {
     if (!formData) return;
 
-    const timestamp = Date.now();
-    const dateStr = new Date().toISOString().split('T')[0];
-
-    // Save submission to patika_custom_forms
-    const savedForms = localStorage.getItem('patika_custom_forms');
-    if (savedForms) {
-      const forms = JSON.parse(savedForms);
-      const updatedForms = forms.map((f: any) => {
-        if (f.id === 'contact') {
-          return {
-            ...f,
-            submissions: [
-              ...(f.submissions || []),
-              {
-                id: timestamp,
-                date: dateStr,
-                data: data
-              }
-            ]
-          };
-        }
-        return f;
-      });
-      localStorage.setItem('patika_custom_forms', JSON.stringify(updatedForms));
+    try {
+      await formService.submit('contact', data);
+      setSubmitted(true);
+      window.scrollTo(0, 0);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      alert('Mesaj gönderilirken hata oluştu.');
     }
-
-    // Also save to global applications for Panel Özeti view
-    const existingAppsStr = localStorage.getItem('patika_applications');
-    const existingApps = existingAppsStr ? JSON.parse(existingAppsStr) : [];
-    const newApp = {
-      id: timestamp,
-      type: 'contact',
-      name: data['Ad Soyad'] || data['c1'] || 'Bilinmiyor',
-      email: data['E-posta'] || data['c2'] || '',
-      phone: data['Telefon'] || data['c3'] || '',
-      message: data['Mesajınız'] || data['c5'] || '',
-      date: dateStr,
-      status: 'new'
-    };
-    localStorage.setItem('patika_applications', JSON.stringify([newApp, ...existingApps]));
-
-    setSubmitted(true);
-    window.scrollTo(0, 0);
   };
 
   return (
