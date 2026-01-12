@@ -132,6 +132,34 @@ router.post('/requests', async (req, res) => {
         // Validation
         if (!email) return res.status(400).json({ error: 'E-posta adresi zorunludur' });
 
+        // Spam Check: Prevent new request if one exists within ±10 days
+        const requestedDate = new Date(date); // date string "YYYY-MM-DD" works
+        const tenDaysBefore = new Date(requestedDate);
+        tenDaysBefore.setDate(requestedDate.getDate() - 10);
+
+        const tenDaysAfter = new Date(requestedDate);
+        tenDaysAfter.setDate(requestedDate.getDate() + 10);
+
+        const dateStrBefore = tenDaysBefore.toISOString().split('T')[0];
+        const dateStrAfter = tenDaysAfter.toISOString().split('T')[0];
+
+        const existingRequest = await prisma.meetingRequest.findFirst({
+            where: {
+                email: email,
+                status: { not: 'rejected' },
+                date: {
+                    gte: dateStrBefore,
+                    lte: dateStrAfter
+                }
+            }
+        });
+
+        if (existingRequest) {
+            return res.status(400).json({
+                error: 'Seçilen tarihin 10 gün öncesi veya sonrasında zaten aktif bir randevu talebiniz bulunmaktadır.'
+            });
+        }
+
         const otp = generateOtp();
         const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 

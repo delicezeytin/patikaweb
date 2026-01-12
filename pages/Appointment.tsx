@@ -312,6 +312,25 @@ const Appointment: React.FC = () => {
     }
   };
 
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').slice(0, 6);
+    if (!/^\d+$/.test(pastedData)) return;
+
+    const newOtp = [...otpValues];
+    pastedData.split('').forEach((char, i) => {
+      if (i < 6) newOtp[i] = char;
+    });
+    setOtpValues(newOtp);
+
+    // Focus appropriate input
+    const focusIndex = Math.min(5, pastedData.length);
+    inputRefs.current[focusIndex]?.focus();
+    if (pastedData.length === 6) {
+      inputRefs.current[5]?.blur(); // Optional: blur if full
+    }
+  };
+
   // Wizard Navigation
   const handleNext = async () => {
     // Step 1: Class Selection -> Step 2
@@ -443,10 +462,10 @@ const Appointment: React.FC = () => {
                 {step > s ? <span className="material-symbols-outlined font-bold">check</span> : s}
               </div>
               <span className="text-xs font-bold uppercase tracking-wider">
-                {s === 1 && "Doğrulama"}
-                {s === 2 && "Sınıf"}
-                {s === 3 && "Zaman"}
-                {s === 4 && "Bilgiler"}
+                {s === 1 && "Sınıf"}
+                {s === 2 && "Zaman"}
+                {s === 3 && "Bilgiler"}
+                {s === 4 && "Doğrulama"}
                 {s === 5 && "Onay"}
               </span>
             </div>
@@ -478,6 +497,7 @@ const Appointment: React.FC = () => {
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    onPaste={handleOtpPaste}
                     className={`size-10 sm:size-14 rounded-xl border-2 text-center text-xl sm:text-2xl font-bold bg-white dark:bg-background-dark outline-none transition-all
                           ${digit
                         ? 'border-primary text-primary shadow-md'
