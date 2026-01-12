@@ -43,7 +43,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
         const form = await prisma.customForm.findUnique({
-            where: { id },
+            where: { id: id as string },
             include: { submissions: { orderBy: { createdAt: 'desc' } } }
         });
         res.json({ form });
@@ -73,7 +73,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
         const { id } = req.params;
         const { title, slug, description, fields, isActive, notificationEmails } = req.body;
         const form = await prisma.customForm.update({
-            where: { id },
+            where: { id: id as string },
             data: { title, slug, description, fields, isActive, notificationEmails }
         });
         res.json({ success: true, form });
@@ -87,7 +87,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
 router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        await prisma.customForm.delete({ where: { id } });
+        await prisma.customForm.delete({ where: { id: id as string } });
         res.json({ success: true });
     } catch (error) {
         console.error('Delete form error:', error);
@@ -124,7 +124,7 @@ router.get('/:id/submissions', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
         const submissions = await prisma.formSubmission.findMany({
-            where: { formId: id },
+            where: { formId: id as string },
             orderBy: { createdAt: 'desc' }
         });
         res.json({ submissions });
@@ -140,7 +140,7 @@ router.put('/submissions/:id', authMiddleware, async (req, res) => {
         const { id } = req.params;
         const { status } = req.body;
         const submission = await prisma.formSubmission.update({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id as string) },
             data: { status }
         });
         res.json({ success: true, submission });

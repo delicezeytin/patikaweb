@@ -38,7 +38,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
         const { id } = req.params;
         const { name, url, icon, color, bg } = req.body;
         const document = await prisma.document.update({
-            where: { id },
+            where: { id: id as string },
             data: { name, url, icon, color, bg }
         });
         res.json({ success: true, document });
@@ -52,7 +52,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
 router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        await prisma.document.delete({ where: { id } });
+        await prisma.document.delete({ where: { id: id as string } });
         res.json({ success: true });
     } catch (error) {
         console.error('Delete document error:', error);

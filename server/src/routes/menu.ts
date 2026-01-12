@@ -25,9 +25,9 @@ router.put('/:day', authMiddleware, async (req, res) => {
         const { breakfast, lunch, snack } = req.body;
 
         const menu = await prisma.weeklyMenu.upsert({
-            where: { day },
+            where: { day: day as string },
             update: { breakfast, lunch, snack },
-            create: { day, breakfast, lunch, snack }
+            create: { day: day as string, breakfast, lunch, snack }
         });
         res.json({ success: true, menu });
     } catch (error) {

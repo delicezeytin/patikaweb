@@ -38,7 +38,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
         const { id } = req.params;
         const { time, activity, sortOrder } = req.body;
         const item = await prisma.schedule.update({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id as string) },
             data: { time, activity, sortOrder }
         });
         res.json({ success: true, item });
@@ -52,7 +52,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
 router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        await prisma.schedule.delete({ where: { id: parseInt(id) } });
+        await prisma.schedule.delete({ where: { id: parseInt(id as string) } });
         res.json({ success: true });
     } catch (error) {
         console.error('Delete schedule error:', error);

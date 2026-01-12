@@ -32,9 +32,9 @@ router.put('/:pageType', authMiddleware, async (req, res) => {
         const { content } = req.body;
 
         const updated = await prisma.pageContent.upsert({
-            where: { pageType },
+            where: { pageType: pageType as string },
             update: { content },
-            create: { pageType, content }
+            create: { pageType: pageType as string, content }
         });
 
         res.json({ success: true, content: updated.content });

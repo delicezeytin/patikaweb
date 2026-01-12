@@ -48,10 +48,10 @@ router.put('/:id', authMiddleware, async (req, res) => {
         const { name, capacity, ageGroup, teacherIds } = req.body;
 
         // Delete existing teacher relations
-        await prisma.teacherClass.deleteMany({ where: { classId: parseInt(id) } });
+        await prisma.teacherClass.deleteMany({ where: { classId: parseInt(id as string) } });
 
         const updatedClass = await prisma.class.update({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id as string) },
             data: {
                 name,
                 capacity,
@@ -73,7 +73,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
 router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        await prisma.class.delete({ where: { id: parseInt(id) } });
+        await prisma.class.delete({ where: { id: parseInt(id as string) } });
         res.json({ success: true });
     } catch (error) {
         console.error('Delete class error:', error);

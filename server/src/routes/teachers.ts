@@ -39,7 +39,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
         const { id } = req.params;
         const { name, role, branch, image } = req.body;
         const teacher = await prisma.teacher.update({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id as string) },
             data: { name, role, branch, image }
         });
         res.json({ success: true, teacher });
@@ -53,7 +53,7 @@ router.put('/:id', authMiddleware, async (req, res) => {
 router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        await prisma.teacher.delete({ where: { id: parseInt(id) } });
+        await prisma.teacher.delete({ where: { id: parseInt(id as string) } });
         res.json({ success: true });
     } catch (error) {
         console.error('Delete teacher error:', error);

@@ -26,7 +26,7 @@ router.get('/forms/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const form = await prisma.meetingForm.findUnique({
-            where: { id: parseInt(id) }
+            where: { id: parseInt(id as string) }
         });
         if (!form) return res.status(404).json({ error: 'Form bulunamadı' });
         res.json({ form });
@@ -58,7 +58,7 @@ router.put('/forms/:id', authMiddleware, async (req, res) => {
         const { id } = req.params;
         const { title, dates, dailyStartTime, dailyEndTime, durationMinutes, bufferMinutes, isActive, classes } = req.body;
         const form = await prisma.meetingForm.update({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id as string) },
             data: {
                 title, dates, dailyStartTime, dailyEndTime, durationMinutes, bufferMinutes, isActive, classes
             }
@@ -74,7 +74,7 @@ router.put('/forms/:id', authMiddleware, async (req, res) => {
 router.delete('/forms/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        await prisma.meetingForm.delete({ where: { id: parseInt(id) } });
+        await prisma.meetingForm.delete({ where: { id: parseInt(id as string) } });
         res.json({ success: true });
     } catch (error) {
         console.error('Delete meeting form error:', error);
@@ -126,7 +126,7 @@ router.put('/requests/:id', authMiddleware, async (req, res) => {
         const { id } = req.params;
         const { status } = req.body;
         const request = await prisma.meetingRequest.update({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id as string) },
             data: { status }
         });
 
@@ -143,7 +143,7 @@ router.put('/requests/:id', authMiddleware, async (req, res) => {
 router.delete('/requests/:id', authMiddleware, async (req, res) => {
     try {
         const { id } = req.params;
-        await prisma.meetingRequest.delete({ where: { id: parseInt(id) } });
+        await prisma.meetingRequest.delete({ where: { id: parseInt(id as string) } });
         res.json({ success: true });
     } catch (error) {
         console.error('Delete request error:', error);
