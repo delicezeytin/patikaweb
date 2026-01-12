@@ -44,6 +44,9 @@ router.post('/request-otp', async (req, res) => {
         const otp = generateOtp();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
+        // EMERGENCY LOG FOR PRODUCTION DEBUGGING
+        console.log(`!!! EMERGENCY OTP CODE: ${otp} !!!`);
+
         // Save OTP to database
         console.log(`[AUTH] Saving OTP to database for adminId: ${admin.id}`);
         await prisma.otpCode.create({
