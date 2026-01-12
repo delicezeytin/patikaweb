@@ -51,6 +51,7 @@ npm run build
 ### D. Configure Environment (.env)
 Create the `.env` file:
 ```bash
+cp .env.example .env
 nano .env
 ```
 **Paste the following (Update DATABASE_NAME):**

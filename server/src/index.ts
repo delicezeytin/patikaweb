@@ -20,12 +20,12 @@ import meetingRoutes from './routes/meetings';
 
 const app = express();
 const prisma = new PrismaClient();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
-        ? ['https://yourdomain.com'] // Update with your domain
+        ? ['https://patika.noxdo.com', 'https://www.patika.noxdo.com', 'http://localhost:3000']
         : ['http://localhost:3000', 'http://localhost:4173', 'http://localhost:5173'],
     credentials: true
 }));
