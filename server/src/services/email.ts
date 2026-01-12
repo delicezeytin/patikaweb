@@ -52,8 +52,8 @@ export const sendOtpEmail = async (email: string, otp: string): Promise<void> =>
         'Patika Yuva - Doğrulama Kodu (OTP)',
         `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-            <h2 style="color: #e65100;">Giriş Doğrulama</h2>
-            <p>Yönetim paneline giriş yapmak için aşağıdaki kodu kullanınız:</p>
+            <h2 style="color: #e65100;">Doğrulama Kodu</h2>
+            <p>E-posta adresinizi doğrulamak ve işleminize devam etmek için aşağıdaki kodu kullanınız:</p>
             <h1 style="font-size: 32px; letter-spacing: 5px; background: #eee; padding: 10px; display: inline-block; border-radius: 8px;">${otp}</h1>
             <p>Bu kod 5 dakika süreyle geçerlidir.</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
