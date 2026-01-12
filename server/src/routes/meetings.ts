@@ -230,9 +230,11 @@ router.post('/requests/verify', async (req, res) => {
 
         // Send notification to Admin
         try {
-            const settings = await prisma.systemSettings.findFirst();
+            const settings = await prisma.systemSettings.findUnique({ where: { id: 1 } });
+            console.log(`[Verify] Admin Notification Check. Settings found: ${!!settings}, Email: ${settings?.notificationEmail}`);
+
             if (settings?.notificationEmail) {
-                const { sendEmail } = require('../services/email');
+                const { sendEmail } = require('../services/email'); // Ensure dynamic load
                 const origin = req.get('origin') || 'https://patikayuvas.com';
                 const adminLink = `${origin}/admin`;
 
@@ -251,13 +253,17 @@ router.post('/requests/verify', async (req, res) => {
                         </div>
                         <br>
                         <a href="${adminLink}" style="display: inline-block; background-color: #d32f2f; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Yönetim Paneline Git</a>
+                        <p style="font-size: 12px; color: #999; margin-top: 10px;">Bu e-posta sistem tarafından otomatik gönderilmiştir.</p>
                     </div>
                 `;
 
-                await sendEmail(settings.notificationEmail, 'Yeni Toplantı Talebi', body);
+                const result = await sendEmail(settings.notificationEmail, 'Yeni Toplantı Talebi', body);
+                console.log('[Verify] Admin notification email result:', result);
+            } else {
+                console.warn('[Verify] Notification email not set in SystemSettings.');
             }
         } catch (emailErr) {
-            console.error('Admin notification email failed:', emailErr);
+            console.error('[Verify] Admin notification email failed:', emailErr);
         }
 
         res.json({ success: true, message: 'Randevu talebiniz başarıyla doğrulandı ve onaya gönderildi.' });
