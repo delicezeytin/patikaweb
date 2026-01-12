@@ -92,58 +92,36 @@ pm2 save
 pm2 startup
 ```
 
-## 7. Nginx Configuration
+## 7. RunCloud Nginx Configuration
 
-Create a new configuration file:
-```bash
-sudo nano /etc/nginx/sites-available/patika
-```
+Since you are using RunCloud, you don't need to edit files manually.
 
-Paste the following configuration:
+1. **Go to RunCloud Dashboard > Web Application > Nginx Config**.
+2. Click **Create Config**.
+3. Select **TYPE: location.root**.
+4. In **Location Name**, enter: `/api`
+5. In **Content**, paste this proxy configuration:
+
 ```nginx
-server {
-    listen 80;
-    server_name patika.noxdo.com; # Replace with your domain
-
-    root /home/runcloud/webapps/patika-api/dist;
-    index index.html;
-
-    # Frontend (React)
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Backend API Proxy
-    location /api {
-        proxy_pass http://localhost:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
+proxy_pass http://127.0.0.1:3001;
+proxy_http_version 1.1;
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection 'upgrade';
+proxy_set_header Host $host;
+proxy_cache_bypass $http_upgrade;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 ```
+6. Click **Add Config**.
+7. **Rebuild Web App Config** (important!).
 
-Enable the site:
-```bash
-sudo ln -s /etc/nginx/sites-available/patika /etc/nginx/sites-enabled/
-sudo rm /etc/nginx/sites-enabled/default  # Remove default if present
-sudo nginx -t # Test configuration
-sudo systemctl restart nginx
-```
+**Note on Public Path:**
+Ensure your RunCloud "Public Path" is set to:
+`/home/runcloud/webapps/patika-api/dist`
+(This ensures the built React app is served correctly).
 
-## 8. SSL Configuration (Certbot)
+## 8. SSL Configuration
 
-Install Certbot:
-```bash
-sudo apt install -y certbot python3-certbot-nginx
-```
-
-Obtain SSL certificate:
-```bash
-sudo certbot --nginx -d patika.noxdo.com
-```
+Use the RunCloud **SSL/TLS** menu to generate a generic Let's Encrypt certificate for your domain.
 
 Your site is now live! 🚀
